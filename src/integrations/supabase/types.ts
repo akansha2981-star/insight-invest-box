@@ -74,6 +74,48 @@ export type Database = {
         }
         Relationships: []
       }
+      home_banners: {
+        Row: {
+          banner_type: string
+          bg_color: string
+          created_at: string
+          cta_label: string | null
+          cta_url: string | null
+          id: string
+          is_active: boolean
+          sort_order: number
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          banner_type?: string
+          bg_color?: string
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          banner_type?: string
+          bg_color?: string
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       page_sections: {
         Row: {
           content: string
