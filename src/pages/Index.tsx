@@ -252,11 +252,58 @@ export default function Index() {
   const [breakingAnimate, setBreakingAnimate] = useState(true);
   const [breakingNews, setBreakingNews] = useState<string[]>(FALLBACK_BREAKING_NEWS);
 
+  // Live market data from Alpha Vantage (persisted in site_config)
+  const [liveCurrencies, setLiveCurrencies] = useState(CURRENCIES);
+  const [liveGlobalMarkets, setLiveGlobalMarkets] = useState(GLOBAL_MARKETS);
+  const [liveCommodities, setLiveCommodities] = useState(COMMODITIES);
+  const [marketDataUpdatedAt, setMarketDataUpdatedAt] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPosts();
     fetchBreakingNews();
+    fetchMarketData();
   }, []);
+
+  async function fetchMarketData() {
+    try {
+      const { data } = await supabase
+        .from("site_config")
+        .select("value")
+        .eq("key", "market_data_live")
+        .maybeSingle();
+
+      if (!data?.value) return;
+      const v = data.value as any;
+      if (!v.live) return;
+
+      if (Array.isArray(v.currencies) && v.currencies.length > 0) {
+        setLiveCurrencies(prev => prev.map(c => {
+          const live = v.currencies.find((lc: any) => lc.pair === c.pair);
+          return live ? { ...c, rate: live.rate, change: live.change, pct: live.pct, up: live.up } : c;
+        }));
+      }
+
+      if (Array.isArray(v.globalMarkets) && v.globalMarkets.length > 0) {
+        setLiveGlobalMarkets(prev => prev.map(m => {
+          const live = v.globalMarkets.find((lm: any) => lm.name === m.name);
+          return live ? { ...m, ...live } : m;
+        }));
+      }
+
+      if (Array.isArray(v.commodities) && v.commodities.length > 0) {
+        setLiveCommodities(prev => prev.map(c => {
+          const live = v.commodities.find((lc: any) => lc.name === c.name);
+          return live
+            ? { ...c, price: live.price, change: live.change, chgAbs: live.chgAbs, up: live.up, hi: live.hi ?? c.hi, lo: live.lo ?? c.lo }
+            : c;
+        }));
+      }
+
+      if (v.updatedAt) setMarketDataUpdatedAt(v.updatedAt);
+    } catch (e) {
+      console.error("fetchMarketData error:", e);
+    }
+  }
 
   useEffect(() => {
     if (breakingNews.length === 0) return;
@@ -283,7 +330,6 @@ export default function Index() {
     }
   }
 
-
   async function fetchPosts() {
     const { data } = await supabase
       .from("blog_posts")
@@ -294,6 +340,7 @@ export default function Index() {
     setPosts(data ?? []);
     setLoading(false);
   }
+
 
   const carouselPosts = posts.slice(0, 5);
   const sideStories   = posts.slice(0, 5);
@@ -540,7 +587,7 @@ export default function Index() {
                 <Link to="/markets" className="text-[11px] font-semibold text-primary">More →</Link>
               </div>
               <div className="divide-y divide-border/40">
-                {GLOBAL_MARKETS.map(m => (
+                {liveGlobalMarkets.map(m => (
                   <div key={m.name} className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/20 transition-colors cursor-pointer">
                     <div className="flex items-center gap-2">
                       <span className="text-base">{m.country}</span>
@@ -591,10 +638,13 @@ export default function Index() {
             <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
               <div className="border-b border-border px-5 py-3 bg-muted/30 flex items-center justify-between">
                 <span className="font-black text-[13px] text-foreground">🥇 Commodities (MCX)</span>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Futures</span>
+                <div className="flex items-center gap-2">
+                  {marketDataUpdatedAt && <span className="text-[9px] text-gain font-bold">● LIVE</span>}
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Futures</span>
+                </div>
               </div>
               <div className="divide-y divide-border/40">
-                {COMMODITIES.map(c => (
+                {liveCommodities.map(c => (
                   <div key={c.name} className="flex items-center justify-between px-5 py-3 hover:bg-muted/20 transition-colors cursor-pointer group">
                     <div className="flex items-center gap-3">
                       <span className="text-xl">{c.emoji}</span>
@@ -620,10 +670,13 @@ export default function Index() {
             <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
               <div className="border-b border-border px-5 py-3 bg-muted/30 flex items-center justify-between">
                 <span className="font-black text-[13px] text-foreground">💱 Currency Rates (vs INR)</span>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Interbank</span>
+                <div className="flex items-center gap-2">
+                  {marketDataUpdatedAt && <span className="text-[9px] text-gain font-bold">● LIVE</span>}
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Interbank</span>
+                </div>
               </div>
               <div className="divide-y divide-border/40">
-                {CURRENCIES.map(c => (
+                {liveCurrencies.map(c => (
                   <div key={c.pair} className="flex items-center justify-between px-5 py-3.5 hover:bg-muted/20 transition-colors cursor-pointer group">
                     <div className="flex items-center gap-3">
                       <span className="text-xl">{c.flag}</span>
