@@ -6,10 +6,31 @@ import { SearchBar } from "@/components/SearchBar";
 import { MobileSearchModal } from "@/components/MobileSearchModal";
 
 const NAV_ITEMS = [
-  { label: "Markets", href: "/markets", sub: ["BSE / NSE", "Derivatives", "Commodities", "Currency", "Global Markets", "IPO"] },
-  { label: "Stocks", href: "/stocks", sub: ["Top Gainers", "Top Losers", "52W High", "52W Low", "Most Active", "Stock Screener"] },
+  { label: "Markets", href: "/markets", sub: [
+    { label: "BSE / NSE", href: "/markets" },
+    { label: "Derivatives", href: "/markets" },
+    { label: "Commodities", href: "/markets" },
+    { label: "Currency", href: "/markets" },
+    { label: "Global Markets", href: "/markets" },
+    { label: "IPO Corner", href: "/markets" },
+  ]},
+  { label: "Stocks", href: "/stocks", sub: [
+    { label: "Top Gainers", href: "/stocks" },
+    { label: "Top Losers", href: "/stocks" },
+    { label: "Stock Screener", href: "/stocks" },
+    { label: "52W High / Low", href: "/stocks" },
+    { label: "Stock Reviews", href: "/stocks/reviews" },
+    { label: "Most Active", href: "/stocks" },
+  ]},
   { label: "Stock Reviews", href: "/stocks/reviews" },
-  { label: "News", href: "/news", sub: ["Markets", "Economy", "Companies", "Budget 2025", "Commodities", "Global"] },
+  { label: "News", href: "/news", sub: [
+    { label: "Markets", href: "/news" },
+    { label: "Economy", href: "/economy" },
+    { label: "Companies", href: "/news" },
+    { label: "Budget 2026", href: "/news" },
+    { label: "Commodities", href: "/markets" },
+    { label: "Global", href: "/news" },
+  ]},
   { label: "Economy", href: "/economy" },
   { label: "MF & ETF", href: "/mf" },
   { label: "Crypto", href: "/crypto" },
@@ -91,11 +112,11 @@ export function Header() {
                 {item.sub && <ChevronDown className={`h-3.5 w-3.5 ml-0.5 transition-transform ${activeDropdown === item.label ? 'rotate-180' : ''}`} />}
               </Link>
               {item.sub && activeDropdown === item.label && (
-                <div className="absolute top-full left-0 mt-1 bg-white border border-border rounded-xl shadow-card-lg z-50 min-w-[180px] py-2">
+                <div className="absolute top-full left-0 mt-1 bg-white border border-border rounded-xl shadow-card-lg z-50 min-w-[200px] py-2">
                   {item.sub.map((sub) => (
-                    <a key={sub} href="#" className="block px-4 py-2.5 text-sm text-foreground/80 hover:text-primary hover:bg-blue-50 transition-colors">
-                      {sub}
-                    </a>
+                    <Link key={sub.label} to={sub.href} className="block px-4 py-2.5 text-sm text-foreground/80 hover:text-primary hover:bg-blue-50 transition-colors">
+                      {sub.label}
+                    </Link>
                   ))}
                 </div>
               )}

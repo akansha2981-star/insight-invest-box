@@ -7,6 +7,7 @@ import { GainersLosers } from "@/components/GainersLosers";
 import { NewsCard, NewsCardHero, NewsCardSmall } from "@/components/NewsCard";
 import { Footer } from "@/components/Footer";
 import { FeaturedStockReviews } from "@/components/FeaturedStockReviews";
+import { HomeBannerSlider } from "@/components/HomeBannerSlider";
 import {
   RefreshCw, ArrowUp, ArrowDown, TrendingUp,
   Flame, Star, Globe, BarChart3, Zap, ChevronRight, Clock,
@@ -387,6 +388,11 @@ export default function Index() {
       <main className="max-w-[1440px] mx-auto px-3 sm:px-4 py-4 space-y-6">
 
         {/* ════════════════════════════════════════
+            BLOCK 0 — Homepage Banners & Announcements
+        ════════════════════════════════════════ */}
+        <HomeBannerSlider />
+
+        {/* ════════════════════════════════════════
             BLOCK 1 — Market Indices
         ════════════════════════════════════════ */}
         <section>
@@ -417,6 +423,11 @@ export default function Index() {
             </div>
           ))}
         </div>
+
+        {/* ════════════════════════════════════════
+            BLOCK 2.5 — Featured Stock Reviews (Auto)
+        ════════════════════════════════════════ */}
+        <FeaturedStockReviews />
 
         {/* ════════════════════════════════════════
             BLOCK 3 — Top Stories Layout
@@ -628,11 +639,6 @@ export default function Index() {
 
           </aside>
         </div>
-
-        {/* ════════════════════════════════════════
-            BLOCK 3.5 — Featured Stock Reviews
-        ════════════════════════════════════════ */}
-        <FeaturedStockReviews />
 
         {/* ════════════════════════════════════════
             BLOCK 4 — Commodities & Currencies
