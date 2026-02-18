@@ -85,14 +85,14 @@ const IPO_DATA = [
   { company: "Vibhor Steel Tubes",    price: "₹141", band: "₹138–141", gmp: "+₹22", status: "Listed",   sub: "312x",  open: "Jan 14", close: "Jan 16" },
 ];
 
-const BREAKING_NEWS = [
+// Fallback breaking news (shown if DB is empty)
+const FALLBACK_BREAKING_NEWS = [
   "🔴 SENSEX rises 423 pts; NIFTY holds above 22,800",
   "📊 RBI holds repo rate at 6.5% for sixth consecutive time",
   "💰 Rupee at 86.82 against USD; mild pressure from crude",
-  "🏦 HDFC Bank Q3 net profit rises 2.7% YoY to ₹16,736 Cr",
-  "🌍 US Fed signals two rate cuts possible in 2025",
-  "📈 Reliance Industries up 1.2%; energy sector leads gains",
 ];
+
+
 
 const TOOLS = [
   { name: "SIP Calculator",    emoji: "💰", desc: "Plan your SIP returns",   bg: "bg-emerald-50 border-emerald-200", hover: "hover:bg-emerald-100" },
@@ -250,19 +250,39 @@ export default function Index() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [breakingIdx, setBreakingIdx] = useState(0);
   const [breakingAnimate, setBreakingAnimate] = useState(true);
+  const [breakingNews, setBreakingNews] = useState<string[]>(FALLBACK_BREAKING_NEWS);
+
 
   useEffect(() => {
     fetchPosts();
+    fetchBreakingNews();
+  }, []);
+
+  useEffect(() => {
+    if (breakingNews.length === 0) return;
     const newsTimer = setInterval(() => {
       setBreakingAnimate(false);
       setTimeout(() => {
-        setBreakingIdx(i => (i + 1) % BREAKING_NEWS.length);
+        setBreakingIdx(i => (i + 1) % breakingNews.length);
         setBreakingAnimate(true);
       }, 200);
     }, 4500);
     const refreshTimer = setInterval(() => setLastUpdated(new Date()), 30000);
     return () => { clearInterval(newsTimer); clearInterval(refreshTimer); };
-  }, []);
+  }, [breakingNews]);
+
+  async function fetchBreakingNews() {
+    const { data } = await supabase
+      .from("site_config")
+      .select("value")
+      .eq("key", "breaking_news")
+      .maybeSingle();
+    if (data?.value && Array.isArray(data.value)) {
+      const items = (data.value as any[]).filter(i => i.active).map((i: any) => i.text as string);
+      if (items.length > 0) setBreakingNews(items);
+    }
+  }
+
 
   async function fetchPosts() {
     const { data } = await supabase
@@ -300,7 +320,7 @@ export default function Index() {
             <p
               className={`text-[12px] sm:text-sm text-foreground font-medium truncate transition-opacity duration-200 ${breakingAnimate ? 'opacity-100' : 'opacity-0'}`}
             >
-              {BREAKING_NEWS[breakingIdx]}
+              {breakingNews[breakingIdx]}
             </p>
           </div>
           <div className="shrink-0 hidden md:flex text-[11px] text-muted-foreground items-center gap-1.5 border-l border-border pl-3 ml-1">
@@ -751,7 +771,7 @@ export default function Index() {
         ════════════════════════════════════════ */}
         {!loading && moreNews.length > 0 && (
           <section>
-            <SectionHeading icon={Flame} title="More From MarketPulse" link="/news" />
+            <SectionHeading icon={Flame} title="More From Investing IQ" link="/news" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {moreNews.map(post => <NewsCard key={post.id} post={post} featured />)}
             </div>

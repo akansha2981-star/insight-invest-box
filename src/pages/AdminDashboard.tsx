@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 import { AdminPageSections } from "@/components/AdminPageSections";
+import { AdminBreakingNews } from "@/components/AdminBreakingNews";
+
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
@@ -13,7 +15,7 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -73,7 +75,8 @@ export default function AdminDashboard() {
         </div>
         <h2 className="text-xl font-bold text-foreground mb-2">Access Denied</h2>
         <p className="text-muted-foreground text-sm mb-6">You don't have admin privileges. Contact your administrator.</p>
-        <Link to="/" className="text-primary hover:text-primary/80 font-semibold text-sm">← Back to MarketPulse</Link>
+        <Link to="/" className="text-primary hover:text-primary/80 font-semibold text-sm">← Back to Investing IQ</Link>
+
       </div>
     </div>
   );
@@ -92,8 +95,9 @@ export default function AdminDashboard() {
               <TrendingUp className="h-4 w-4 text-white" />
             </div>
             <div>
-              <div className="font-black text-[15px] leading-none">MarketPulse</div>
+            <div className="font-black text-[15px] leading-none">Investing IQ</div>
               <div className="text-[9px] text-white/40 tracking-wider uppercase mt-0.5">Admin Portal</div>
+
             </div>
           </div>
         </div>
@@ -101,10 +105,11 @@ export default function AdminDashboard() {
         <nav className="px-3 py-4 flex-1">
           <div className="text-[9px] text-white/30 font-bold uppercase tracking-widest px-2 mb-2">Content</div>
           {[
-            { id: 'dashboard',     label: 'Dashboard',       icon: BarChart2 },
-            { id: 'posts',         label: 'All Articles',     icon: Newspaper },
-            { id: 'create',        label: 'Write Article',    icon: PenSquare },
-            { id: 'page-sections', label: 'Page Sections',    icon: Layout },
+            { id: 'dashboard',      label: 'Dashboard',        icon: BarChart2 },
+            { id: 'posts',          label: 'All Articles',      icon: Newspaper },
+            { id: 'create',         label: 'Write Article',     icon: PenSquare },
+            { id: 'page-sections',  label: 'Page Sections',     icon: Layout },
+            { id: 'breaking-news',  label: 'Breaking News',     icon: Radio },
           ].map(item => (
             <button
               key={item.id}
@@ -119,6 +124,7 @@ export default function AdminDashboard() {
               {item.label}
             </button>
           ))}
+
 
           <div className="text-[9px] text-white/30 font-bold uppercase tracking-widest px-2 mb-2 mt-5">Site</div>
           <Link
@@ -155,7 +161,8 @@ export default function AdminDashboard() {
           <div className="p-8 max-w-5xl">
             <div className="mb-8">
               <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-muted-foreground text-sm mt-1">Manage MarketPulse content</p>
+              <p className="text-muted-foreground text-sm mt-1">Manage Investing IQ content</p>
+
             </div>
 
             {/* Stats */}
@@ -257,6 +264,8 @@ export default function AdminDashboard() {
         )}
 
         {view === 'page-sections' && <AdminPageSections />}
+        {view === 'breaking-news' && <AdminBreakingNews />}
+
       </main>
     </div>
   );

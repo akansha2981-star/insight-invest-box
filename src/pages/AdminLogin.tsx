@@ -114,13 +114,13 @@ export default function AdminLogin() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
-            <ArrowLeft className="h-4 w-4" /> Back to MarketPulse
+            <ArrowLeft className="h-4 w-4" /> Back to Investing IQ
           </Link>
           <div className="flex items-center justify-center gap-2.5 mb-2">
             <div className="bg-destructive rounded-xl p-2.5 shadow-card-md">
               <TrendingUp className="h-6 w-6 text-destructive-foreground" />
             </div>
-            <span className="font-black text-2xl text-foreground">MarketPulse</span>
+            <span className="font-black text-2xl text-foreground">Investing IQ</span>
           </div>
           <div className="text-sm text-muted-foreground font-medium">Admin Portal</div>
         </div>
@@ -130,7 +130,7 @@ export default function AdminLogin() {
             {mode === 'login' ? 'Sign in to your account' : 'Create admin account'}
           </h1>
           <p className="text-sm text-muted-foreground mb-7">
-            {mode === 'login' ? 'Access the MarketPulse content management system' : 'New accounts require admin role assignment'}
+            {mode === 'login' ? 'Access the Investing IQ content management system' : 'New accounts require admin role assignment'}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -138,7 +138,7 @@ export default function AdminLogin() {
               <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wide">Email address</label>
               <input
                 type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                placeholder="admin@marketpulse.com"
+                placeholder="admin@investingiq.com"
                 className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:bg-white transition-all"
               />
             </div>

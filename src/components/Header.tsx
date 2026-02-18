@@ -62,9 +62,10 @@ export function Header() {
             <TrendingUp className="h-5 w-5 text-white" />
           </div>
           <div>
-            <div className="font-black text-[22px] text-foreground tracking-tight leading-none">MarketPulse</div>
+            <div className="font-black text-[22px] text-foreground tracking-tight leading-none">Investing IQ</div>
             <div className="text-[9px] font-bold text-muted-foreground tracking-[0.2em] uppercase">Financial Intelligence</div>
           </div>
+
         </Link>
 
         <div className={`hidden md:flex relative flex-1 max-w-lg transition-all ${searchFocused ? 'max-w-xl' : ''}`}>
