@@ -19,18 +19,6 @@ TICKER_STOCKS.forEach(s => { SEED_PRICES[s.symbol] = s.price - s.change; });
 const SYMBOL_MAP: Record<string, (typeof TICKER_STOCKS)[number]> = {};
 TICKER_STOCKS.forEach(s => { SYMBOL_MAP[s.symbol] = s; });
 
-const AV_TO_MOCK: Record<string, string> = {
-  "BSE:SENSEX": "SENSEX",
-  "NSE:NIFTY50": "NIFTY",
-  "NSE:RELIANCE": "RELIANCE",
-  "NSE:TCS": "TCS",
-  "NSE:HDFCBANK": "HDFCBANK",
-  "NSE:INFY": "INFY",
-  "NSE:ICICIBANK": "ICICIBANK",
-  "NSE:BHARTIARTL": "BHARTIARTL",
-  "NSE:WIPRO": "WIPRO",
-  "NSE:AXISBANK": "AXISBANK",
-};
 
 export function StockTicker() {
   const [stocks, setStocks] = useState<TickerStock[]>(
@@ -43,20 +31,17 @@ export function StockTicker() {
       const { data, error } = await supabase.functions.invoke("stock-ticker");
       if (error || data?.error || !data?.quotes) return; // silently fall back to mock
 
-      const quotes = data.quotes as Array<{ symbol: string; displayName: string; price: number }>;
+      const quotes = data.quotes as Array<{ symbol: string; displayName: string; price: number; change: number; changePercent: number }>;
       if (!quotes.length) return;
 
       setLiveEnabled(true);
       setStocks(prev => {
         const updated = [...prev];
         quotes.forEach(q => {
-          const mockKey = AV_TO_MOCK[q.symbol];
-          const idx = updated.findIndex(s => s.symbol === (mockKey ?? q.symbol));
+          // New format: symbol is already the mock key (e.g. "RELIANCE")
+          const idx = updated.findIndex(s => s.symbol === q.symbol);
           if (idx === -1) return;
-          const prevClose = SEED_PRICES[mockKey] ?? updated[idx].price;
-          const change = +(q.price - prevClose).toFixed(2);
-          const changePercent = +((change / prevClose) * 100).toFixed(2);
-          updated[idx] = { ...updated[idx], price: q.price, change, changePercent };
+          updated[idx] = { ...updated[idx], price: q.price, change: q.change, changePercent: q.changePercent };
         });
         return updated;
       });
@@ -68,8 +53,8 @@ export function StockTicker() {
   useEffect(() => {
     // Try to fetch live data on mount
     fetchLiveData();
-    // Refresh live data every 5 minutes (Alpha Vantage free: 25 req/day)
-    const liveInterval = setInterval(fetchLiveData, 5 * 60 * 1000);
+    // Refresh every 3 hours — free tier is 25 req/day (5 symbols × ~8 refreshes = 40, close enough)
+    const liveInterval = setInterval(fetchLiveData, 3 * 60 * 60 * 1000);
 
     // Local micro-fluctuation every 6s to keep ticker animated
     const flickerInterval = setInterval(() => {
