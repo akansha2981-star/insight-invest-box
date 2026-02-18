@@ -11,7 +11,7 @@ export function Footer() {
               <div className="bg-red-600 rounded-lg p-1.5">
                 <TrendingUp className="h-4 w-4 text-white" />
               </div>
-              <span className="font-black text-lg text-white">MarketPulse</span>
+              <span className="font-black text-lg text-white">Investing IQ</span>
             </div>
             <p className="text-xs leading-relaxed text-white/50 mb-4">
               India's trusted financial intelligence platform. Real-time data, expert analysis, and comprehensive market coverage.
@@ -41,7 +41,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/30">© 2025 MarketPulse Financial Media Pvt. Ltd. All rights reserved.</p>
+          <p className="text-xs text-white/30">© 2026 Investing IQ Financial Media Pvt. Ltd. All rights reserved.</p>
           <div className="flex items-center gap-6 text-xs">
             <span className="text-white/30">BSE: <span className="text-emerald-400">LIVE</span></span>
             <span className="text-white/30">NSE: <span className="text-emerald-400">LIVE</span></span>

@@ -267,7 +267,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
                     type="text" value={slug} onChange={e => setSlug(e.target.value)}
                     className="w-full bg-white border border-border rounded-lg px-3 py-2 text-xs font-mono text-muted-foreground focus:outline-none focus:border-primary transition-all"
                   />
-                  <p className="text-[10px] text-muted-foreground mt-1">marketpulse.com/news/{slug || '…'}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">investingiq.com/news/{slug || '…'}</p>
                 </div>
 
                 {/* ── Sequence Number ── */}
@@ -375,7 +375,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
                       <div className="mt-3 p-3 bg-white border border-border rounded-lg">
                         <p className="text-[10px] font-bold text-muted-foreground mb-1.5 uppercase tracking-wide">Google Preview</p>
                         <p className="text-[13px] text-primary font-medium leading-tight truncate">{metaTitle || title}</p>
-                        <p className="text-[11px] text-gain">marketpulse.com › news › {slug || '…'}</p>
+                        <p className="text-[11px] text-gain">investingiq.com › news › {slug || '…'}</p>
                         <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 mt-0.5">{metaDescription || excerpt || 'No description set.'}</p>
                       </div>
                     )}
