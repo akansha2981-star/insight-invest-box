@@ -23,7 +23,10 @@ export type Database = {
           created_at: string
           excerpt: string | null
           id: string
+          meta_description: string | null
+          meta_title: string | null
           published_at: string | null
+          sequence_number: number | null
           slug: string
           status: string | null
           tags: string[] | null
@@ -39,7 +42,10 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           id?: string
+          meta_description?: string | null
+          meta_title?: string | null
           published_at?: string | null
+          sequence_number?: number | null
           slug: string
           status?: string | null
           tags?: string[] | null
@@ -55,7 +61,10 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           id?: string
+          meta_description?: string | null
+          meta_title?: string | null
           published_at?: string | null
+          sequence_number?: number | null
           slug?: string
           status?: string | null
           tags?: string[] | null
