@@ -114,13 +114,13 @@ export default function StocksPage() {
 
         {/* Gainers & Losers */}
         <section>
-          <SectionHeading icon={TrendingUp} title="Top Gainers & Losers — Live" />
+        <SectionHeading icon={TrendingUp} title="Top Gainers & Losers" />
           <GainersLosers />
         </section>
 
         {/* Stock Table */}
         <section>
-          <SectionHeading title="All Stocks — Live Prices" />
+          <SectionHeading title="All Stocks" />
           <div className="bg-white border border-border rounded-xl shadow-card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

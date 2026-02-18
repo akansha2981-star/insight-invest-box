@@ -109,7 +109,7 @@ export default function MarketsPage() {
           <div className="bg-white border border-border rounded-xl shadow-card p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-sm text-foreground">NIFTY 50 — Intraday</h3>
-              <span className="text-xs text-gain font-semibold bg-[hsl(var(--gain-light))] px-2 py-0.5 rounded">● LIVE</span>
+              <span className="text-xs text-muted-foreground font-semibold bg-muted/60 px-2 py-0.5 rounded">~ Simulated</span>
             </div>
             <ResponsiveContainer width="100%" height={180}>
               <AreaChart data={niftyData}>
@@ -130,7 +130,7 @@ export default function MarketsPage() {
           <div className="bg-white border border-border rounded-xl shadow-card p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-sm text-foreground">SENSEX — Intraday</h3>
-              <span className="text-xs text-gain font-semibold bg-[hsl(var(--gain-light))] px-2 py-0.5 rounded">● LIVE</span>
+              <span className="text-xs text-muted-foreground font-semibold bg-muted/60 px-2 py-0.5 rounded">~ Simulated</span>
             </div>
             <ResponsiveContainer width="100%" height={180}>
               <AreaChart data={SENSEX_INTRADAY}>
