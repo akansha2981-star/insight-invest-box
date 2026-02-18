@@ -29,6 +29,7 @@ interface StockReview {
   risks: string | null;
   financials: any;
   key_metrics: any;
+  price_history: any;
   tags: string[] | null;
   cover_image_url: string | null;
   is_featured: boolean | null;
@@ -58,9 +59,22 @@ function generatePriceHistory(currentPrice: number, weeks: number = 26) {
       price: +price.toFixed(2),
     });
   }
-  // Ensure last point is current price
   data[data.length - 1].price = currentPrice;
   return data;
+}
+
+// Parse stored price_history JSON into chart format
+function parsePriceHistory(raw: any, currentPrice: number | null) {
+  if (Array.isArray(raw) && raw.length > 0) {
+    // Support {month, price} or {date, price} formats
+    return raw.map((p: any) => ({
+      date: p.month ?? p.date ?? "",
+      price: typeof p.price === "number" ? p.price : parseFloat(p.price ?? "0"),
+    })).filter((p: any) => p.price > 0);
+  }
+  // Fallback: generate simulated data
+  if (currentPrice) return generatePriceHistory(currentPrice);
+  return [];
 }
 
 export default function StockReviewDetailPage() {
@@ -118,7 +132,7 @@ export default function StockReviewDetailPage() {
     : null;
   const isPositiveUpside = upside !== null && parseFloat(upside) > 0;
   const ratingCfg = RATING_CONFIG[r.rating ?? ""] ?? RATING_CONFIG["HOLD"];
-  const priceHistory = r.current_price ? generatePriceHistory(r.current_price) : [];
+  const priceHistory = parsePriceHistory(r.price_history, r.current_price);
 
   const financialData = r.financials ? Object.entries(r.financials)
     .filter(([, v]) => v && v !== "")
