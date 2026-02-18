@@ -5,10 +5,12 @@ import { GainersLosers } from "@/components/GainersLosers";
 import { Footer } from "@/components/Footer";
 import { PageSectionsBanner } from "@/components/PageSectionsBanner";
 import { TOP_GAINERS, TOP_LOSERS, getFluctuatedPrice } from "@/data/mockStocks";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell
 } from "recharts";
-import { TrendingUp, TrendingDown, Search, Filter, ArrowUp, ArrowDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Search, Filter, ArrowUp, ArrowDown, BarChart2 } from "lucide-react";
 
 const SECTORS = [
   { name: "IT", change: 1.84, stocks: 42 },
@@ -50,6 +52,18 @@ function SectionHeading({ icon: Icon, title }: { icon?: any; title: string }) {
 export default function StocksPage() {
   const [gainers, setGainers] = useState(TOP_GAINERS);
   const [search, setSearch] = useState("");
+  const [reviewSymbols, setReviewSymbols] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    // Fetch which symbols have published reviews
+    supabase
+      .from("stock_reviews" as any)
+      .select("symbol")
+      .eq("status", "published")
+      .then(({ data }) => {
+        if (data) setReviewSymbols(new Set((data as any[]).map(r => r.symbol)));
+      });
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -126,7 +140,7 @@ export default function StocksPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-muted/30 border-b border-border">
-                    {["Symbol", "Company", "Price", "Change", "% Change", "Volume", "Sector"].map(h => (
+                    {["Symbol", "Company", "Price", "Change", "% Change", "Volume", "Sector", "Analysis"].map(h => (
                       <th key={h} className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -153,6 +167,17 @@ export default function StocksPage() {
                       <td className="px-5 py-3.5 text-muted-foreground">{stock.volume}</td>
                       <td className="px-5 py-3.5">
                         <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold">{stock.sector}</span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        {reviewSymbols.has(stock.symbol) && (
+                          <Link
+                            to={`/stocks/review/${stock.symbol.toLowerCase()}`}
+                            className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 transition-colors whitespace-nowrap"
+                          >
+                            <BarChart2 className="h-3 w-3" />
+                            View Analysis
+                          </Link>
+                        )}
                       </td>
                     </tr>
                   ))}
