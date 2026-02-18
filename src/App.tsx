@@ -8,6 +8,12 @@ import NewsPage from "./pages/NewsPage";
 import NewsDetailPage from "./pages/NewsDetailPage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import MarketsPage from "./pages/MarketsPage";
+import StocksPage from "./pages/StocksPage";
+import EconomyPage from "./pages/EconomyPage";
+import MFPage from "./pages/MFPage";
+import CryptoPage from "./pages/CryptoPage";
+import PortfolioPage from "./pages/PortfolioPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +28,12 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/news" element={<NewsPage />} />
           <Route path="/news/:slug" element={<NewsDetailPage />} />
+          <Route path="/markets" element={<MarketsPage />} />
+          <Route path="/stocks" element={<StocksPage />} />
+          <Route path="/economy" element={<EconomyPage />} />
+          <Route path="/mf" element={<MFPage />} />
+          <Route path="/crypto" element={<CryptoPage />} />
+          <Route path="/portfolio" element={<PortfolioPage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

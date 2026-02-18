@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
+import { AdminPageSections } from "@/components/AdminPageSections";
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
@@ -12,7 +13,7 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -100,9 +101,10 @@ export default function AdminDashboard() {
         <nav className="px-3 py-4 flex-1">
           <div className="text-[9px] text-white/30 font-bold uppercase tracking-widest px-2 mb-2">Content</div>
           {[
-            { id: 'dashboard', label: 'Dashboard', icon: BarChart2 },
-            { id: 'posts',     label: 'All Articles', icon: Newspaper },
-            { id: 'create',    label: 'Write Article', icon: PenSquare },
+            { id: 'dashboard',     label: 'Dashboard',       icon: BarChart2 },
+            { id: 'posts',         label: 'All Articles',     icon: Newspaper },
+            { id: 'create',        label: 'Write Article',    icon: PenSquare },
+            { id: 'page-sections', label: 'Page Sections',    icon: Layout },
           ].map(item => (
             <button
               key={item.id}
@@ -253,6 +255,8 @@ export default function AdminDashboard() {
             onCancel={() => { setView(editingPost ? 'posts' : 'dashboard'); setEditingPost(null); }}
           />
         )}
+
+        {view === 'page-sections' && <AdminPageSections />}
       </main>
     </div>
   );
