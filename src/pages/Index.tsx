@@ -33,30 +33,30 @@ const MARKET_STATS = [
 ];
 
 const COMMODITIES = [
-  { name: "Gold", sub: "MCX Feb", price: "₹84,250", change: "+0.38%", chgAbs: "+₹320", up: true, emoji: "🥇", hi: "₹84,410", lo: "₹83,820" },
-  { name: "Silver", sub: "MCX Mar", price: "₹96,840", change: "+0.22%", chgAbs: "+₹212", up: true, emoji: "⚪", hi: "₹97,100", lo: "₹96,400" },
-  { name: "Crude Oil", sub: "MCX Feb", price: "₹6,248", change: "-0.82%", chgAbs: "-₹52", up: false, emoji: "🛢️", hi: "₹6,318", lo: "₹6,220" },
-  { name: "Natural Gas", sub: "MCX Feb", price: "₹224.60", change: "+1.14%", chgAbs: "+₹2.54", up: true, emoji: "🔥", hi: "₹226.80", lo: "₹221.40" },
-  { name: "Copper", sub: "MCX Feb", price: "₹812.40", change: "-0.41%", chgAbs: "-₹3.36", up: false, emoji: "🔶", hi: "₹817.00", lo: "₹809.50" },
+  { name: "Gold", sub: "MCX Feb", price: "₹87,450", change: "+0.44%", chgAbs: "+₹380", up: true, emoji: "🥇", hi: "₹87,640", lo: "₹86,890" },
+  { name: "Silver", sub: "MCX Mar", price: "₹98,240", change: "+0.31%", chgAbs: "+₹305", up: true, emoji: "⚪", hi: "₹98,520", lo: "₹97,680" },
+  { name: "Crude Oil", sub: "MCX Feb", price: "₹6,124", change: "-0.78%", chgAbs: "-₹48", up: false, emoji: "🛢️", hi: "₹6,198", lo: "₹6,096" },
+  { name: "Natural Gas", sub: "MCX Feb", price: "₹238.40", change: "+1.24%", chgAbs: "+₹2.92", up: true, emoji: "🔥", hi: "₹240.80", lo: "₹235.60" },
+  { name: "Copper", sub: "MCX Feb", price: "₹856.70", change: "-0.36%", chgAbs: "-₹3.12", up: false, emoji: "🔶", hi: "₹862.00", lo: "₹852.40" },
 ];
 
 const CURRENCIES = [
-  { pair: "USD/INR", rate: "86.82", change: "-0.12", pct: "-0.14%", up: false, flag: "🇺🇸", name: "US Dollar" },
-  { pair: "EUR/INR", rate: "90.45", change: "+0.18", pct: "+0.20%", up: true,  flag: "🇪🇺", name: "Euro" },
-  { pair: "GBP/INR", rate: "108.34", change: "-0.29", pct: "-0.27%", up: false, flag: "🇬🇧", name: "British Pound" },
-  { pair: "JPY/INR", rate: "0.5612", change: "+0.01", pct: "+0.18%", up: true,  flag: "🇯🇵", name: "Japanese Yen" },
-  { pair: "AED/INR", rate: "23.64", change: "-0.04", pct: "-0.17%", up: false, flag: "🇦🇪", name: "UAE Dirham" },
+  { pair: "USD/INR", rate: "86.62", change: "-0.08", pct: "-0.09%", up: false, flag: "🇺🇸", name: "US Dollar" },
+  { pair: "EUR/INR", rate: "90.18", change: "+0.22", pct: "+0.24%", up: true,  flag: "🇪🇺", name: "Euro" },
+  { pair: "GBP/INR", rate: "109.42", change: "-0.18", pct: "-0.16%", up: false, flag: "🇬🇧", name: "British Pound" },
+  { pair: "JPY/INR", rate: "0.5748", change: "+0.01", pct: "+0.19%", up: true,  flag: "🇯🇵", name: "Japanese Yen" },
+  { pair: "AED/INR", rate: "23.59", change: "-0.03", pct: "-0.13%", up: false, flag: "🇦🇪", name: "UAE Dirham" },
 ];
 
 const GLOBAL_MARKETS = [
-  { name: "Dow Jones",  value: "38,654", change: "+0.76%", chgPt: "+291", up: true,  country: "🇺🇸", region: "US" },
-  { name: "S&P 500",    value: "5,137",  change: "+0.82%", chgPt: "+42",  up: true,  country: "🇺🇸", region: "US" },
-  { name: "NASDAQ",     value: "16,214", change: "+1.03%", chgPt: "+166", up: true,  country: "🇺🇸", region: "US" },
-  { name: "FTSE 100",   value: "7,728",  change: "-0.15%", chgPt: "-12",  up: false, country: "🇬🇧", region: "UK" },
-  { name: "Nikkei 225", value: "38,487", change: "+0.62%", chgPt: "+238", up: true,  country: "🇯🇵", region: "Asia" },
-  { name: "Hang Seng",  value: "16,512", change: "-0.44%", chgPt: "-73",  up: false, country: "🇭🇰", region: "Asia" },
-  { name: "Shanghai",   value: "3,054",  change: "+0.31%", chgPt: "+9",   up: true,  country: "🇨🇳", region: "Asia" },
-  { name: "DAX",        value: "17,842", change: "+0.55%", chgPt: "+98",  up: true,  country: "🇩🇪", region: "EU" },
+  { name: "Dow Jones",  value: "44,546", change: "+0.37%", chgPt: "+164", up: true,  country: "🇺🇸", region: "US" },
+  { name: "S&P 500",    value: "6,114",  change: "+0.24%", chgPt: "+15",  up: true,  country: "🇺🇸", region: "US" },
+  { name: "NASDAQ",     value: "19,732", change: "+0.07%", chgPt: "+14",  up: true,  country: "🇺🇸", region: "US" },
+  { name: "FTSE 100",   value: "8,718",  change: "+0.52%", chgPt: "+45",  up: true,  country: "🇬🇧", region: "UK" },
+  { name: "Nikkei 225", value: "38,487", change: "-0.32%", chgPt: "-124", up: false, country: "🇯🇵", region: "Asia" },
+  { name: "Hang Seng",  value: "22,614", change: "+2.64%", chgPt: "+582", up: true,  country: "🇭🇰", region: "Asia" },
+  { name: "Shanghai",   value: "3,346",  change: "+0.74%", chgPt: "+24",  up: true,  country: "🇨🇳", region: "Asia" },
+  { name: "DAX",        value: "22,438", change: "+0.86%", chgPt: "+191", up: true,  country: "🇩🇪", region: "EU" },
 ];
 
 const SECTORS = [
@@ -71,11 +71,11 @@ const SECTORS = [
 ];
 
 const EXPERT_PICKS = [
-  { stock: "RELIANCE",  reco: "BUY",  target: "₹1,620", cmp: "₹1,440", upside: "+12.5%", analyst: "Motilal Oswal",    timeframe: "12M" },
+  { stock: "RELIANCE",  reco: "BUY",  target: "₹1,620", cmp: "₹1,442", upside: "+12.3%", analyst: "Motilal Oswal",    timeframe: "12M" },
   { stock: "ICICIBANK", reco: "BUY",  target: "₹1,580", cmp: "₹1,408", upside: "+12.2%", analyst: "Kotak Securities", timeframe: "12M" },
-  { stock: "HDFCBANK",  reco: "BUY",  target: "₹2,100", cmp: "₹1,923", upside: "+9.2%",  analyst: "ICICI Direct",     timeframe: "6M"  },
-  { stock: "TCS",       reco: "HOLD", target: "₹2,800", cmp: "₹2,690", upside: "+4.1%",  analyst: "Jefferies",        timeframe: "6M"  },
-  { stock: "SUNPHARMA", reco: "BUY",  target: "₹1,900", cmp: "₹1,748", upside: "+8.7%",  analyst: "HDFC Securities",  timeframe: "9M"  },
+  { stock: "HDFCBANK",  reco: "BUY",  target: "₹2,000", cmp: "₹1,712", upside: "+16.8%", analyst: "ICICI Direct",     timeframe: "6M"  },
+  { stock: "TCS",       reco: "HOLD", target: "₹2,900", cmp: "₹2,695", upside: "+7.6%",  analyst: "Jefferies",        timeframe: "6M"  },
+  { stock: "SUNPHARMA", reco: "BUY",  target: "₹2,050", cmp: "₹1,862", upside: "+10.1%", analyst: "HDFC Securities",  timeframe: "9M"  },
 ];
 
 const IPO_DATA = [
@@ -87,9 +87,9 @@ const IPO_DATA = [
 
 // Fallback breaking news (shown if DB is empty)
 const FALLBACK_BREAKING_NEWS = [
-  "🔴 SENSEX rises 423 pts; NIFTY holds above 22,800",
-  "📊 RBI holds repo rate at 6.5% for sixth consecutive time",
-  "💰 Rupee at 86.82 against USD; mild pressure from crude",
+  "🔴 SENSEX at 83,740 | NIFTY 50 at 25,437 | Feb 18, 2026",
+  "📊 RBI holds repo rate at 6.5%; rate cut signals expected in H2 FY26",
+  "💰 Gold hits ₹87,450/10g on MCX | USD/INR at 86.62",
 ];
 
 
@@ -104,10 +104,10 @@ const TOOLS = [
 ];
 
 const MARKET_SUMMARY = [
-  { label: "NIFTY P/E", value: "21.4", note: "5Y avg: 22.1" },
-  { label: "India VIX",  value: "13.82", note: "↓ low volatility" },
-  { label: "FII Flow",   value: "-₹2,841 Cr", note: "today", red: true },
-  { label: "DII Flow",   value: "+₹4,123 Cr", note: "today", green: true },
+  { label: "NIFTY P/E", value: "21.8", note: "5Y avg: 22.1" },
+  { label: "India VIX",  value: "14.62", note: "↑ mild caution" },
+  { label: "FII Flow",   value: "-₹3,204 Cr", note: "today", red: true },
+  { label: "DII Flow",   value: "+₹5,812 Cr", note: "today", green: true },
 ];
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
