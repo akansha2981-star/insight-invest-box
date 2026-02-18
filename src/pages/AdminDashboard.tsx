@@ -1,23 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2 } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 
 interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  status: string;
-  category: string | null;
-  published_at: string | null;
-  author_name: string | null;
-  views_count: number | null;
-  created_at: string;
-  content: string;
-  excerpt: string | null;
-  cover_image_url: string | null;
-  tags: string[] | null;
+  id: string; title: string; slug: string; status: string;
+  category: string | null; published_at: string | null;
+  author_name: string | null; views_count: number | null;
+  created_at: string; content: string; excerpt: string | null;
+  cover_image_url: string | null; tags: string[] | null;
 }
 
 type AdminView = 'dashboard' | 'posts' | 'create' | 'edit';
@@ -31,170 +23,196 @@ export default function AdminDashboard() {
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [authorized, setAuthorized] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  useEffect(() => { checkAuth(); }, []);
 
   async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { navigate('/admin/login'); return; }
     setUser(session.user);
-
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", session.user.id);
-
-    if (!roles || roles.length === 0) {
-      setAuthorized(false);
-    } else {
-      setAuthorized(true);
-      fetchPosts();
-    }
+    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
+    if (!roles || roles.length === 0) { setAuthorized(false); }
+    else { setAuthorized(true); fetchPosts(); }
     setLoading(false);
   }
 
   async function fetchPosts() {
-    const { data } = await supabase
-      .from("blog_posts")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data } = await supabase.from("blog_posts").select("*").order("created_at", { ascending: false });
     setPosts(data ?? []);
   }
 
   async function deletePost(id: string) {
-    if (!confirm("Are you sure you want to delete this post?")) return;
+    if (!confirm("Delete this article? This cannot be undone.")) return;
     await supabase.from("blog_posts").delete().eq("id", id);
     fetchPosts();
   }
 
   async function togglePublish(post: BlogPost) {
     const newStatus = post.status === 'published' ? 'draft' : 'published';
-    await supabase
-      .from("blog_posts")
-      .update({ status: newStatus, published_at: newStatus === 'published' ? new Date().toISOString() : null })
-      .eq("id", post.id);
+    await supabase.from("blog_posts").update({
+      status: newStatus,
+      published_at: newStatus === 'published' ? new Date().toISOString() : null
+    }).eq("id", post.id);
     fetchPosts();
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    navigate('/admin/login');
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
+  if (loading) return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center gap-3 text-muted-foreground">
+        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        Loading…
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (authorized === false) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-loss mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-foreground mb-2">Access Denied</h2>
-          <p className="text-muted-foreground mb-6 text-sm">You don't have admin privileges.</p>
-          <Link to="/" className="text-primary hover:text-primary/80 font-medium">← Back to Home</Link>
+  if (authorized === false) return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="text-center max-w-sm">
+        <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <AlertCircle className="h-8 w-8 text-loss" />
         </div>
+        <h2 className="text-xl font-bold text-foreground mb-2">Access Denied</h2>
+        <p className="text-muted-foreground text-sm mb-6">You don't have admin privileges. Contact your administrator.</p>
+        <Link to="/" className="text-primary hover:text-primary/80 font-semibold text-sm">← Back to MarketPulse</Link>
       </div>
-    );
-  }
+    </div>
+  );
 
   const published = posts.filter(p => p.status === 'published');
   const drafts = posts.filter(p => p.status === 'draft');
-  const totalViews = posts.reduce((sum, p) => sum + (p.views_count ?? 0), 0);
+  const totalViews = posts.reduce((s, p) => s + (p.views_count ?? 0), 0);
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className="w-56 bg-header border-r border-surface flex flex-col shrink-0">
-        <div className="p-4 border-b border-surface">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary rounded p-1">
-              <TrendingUp className="h-4 w-4 text-primary-foreground" />
+      {/* ─── Sidebar ─── */}
+      <aside className="w-60 bg-slate-900 text-white flex flex-col shrink-0 shadow-xl">
+        <div className="px-5 py-5 border-b border-white/10">
+          <div className="flex items-center gap-2.5">
+            <div className="bg-red-600 rounded-lg p-1.5">
+              <TrendingUp className="h-4 w-4 text-white" />
             </div>
             <div>
-              <div className="font-bold text-sm text-foreground">MarketPulse</div>
-              <div className="text-[10px] text-muted-foreground">Admin Portal</div>
+              <div className="font-black text-[15px] leading-none">MarketPulse</div>
+              <div className="text-[9px] text-white/40 tracking-wider uppercase mt-0.5">Admin Portal</div>
             </div>
           </div>
         </div>
 
-        <nav className="p-2 flex-1">
+        <nav className="px-3 py-4 flex-1">
+          <div className="text-[9px] text-white/30 font-bold uppercase tracking-widest px-2 mb-2">Content</div>
           {[
             { id: 'dashboard', label: 'Dashboard', icon: BarChart2 },
-            { id: 'posts', label: 'All Posts', icon: FileText },
-            { id: 'create', label: 'New Post', icon: Plus },
+            { id: 'posts',     label: 'All Articles', icon: Newspaper },
+            { id: 'create',    label: 'Write Article', icon: PenSquare },
           ].map(item => (
             <button
               key={item.id}
               onClick={() => { setView(item.id as AdminView); setEditingPost(null); }}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded text-sm transition-colors mb-0.5 ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors mb-1 ${
                 view === item.id
-                  ? 'bg-primary text-primary-foreground font-medium'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-surface-2'
+                  ? 'bg-primary text-white font-semibold'
+                  : 'text-white/60 hover:text-white hover:bg-white/8'
               }`}
             >
               <item.icon className="h-4 w-4" />
               {item.label}
             </button>
           ))}
-        </nav>
 
-        <div className="p-3 border-t border-surface">
-          <div className="text-xs text-muted-foreground mb-2 px-2 truncate">{user?.email}</div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded text-sm text-muted-foreground hover:text-loss hover:bg-loss/10 transition-colors"
-          >
-            <LogOut className="h-4 w-4" /> Sign Out
-          </button>
+          <div className="text-[9px] text-white/30 font-bold uppercase tracking-widest px-2 mb-2 mt-5">Site</div>
           <Link
             to="/"
-            className="w-full flex items-center gap-2 px-3 py-2 rounded text-sm text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors mt-0.5"
+            target="_blank"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/8 transition-colors mb-1"
           >
-            <Eye className="h-4 w-4" /> View Site
+            <Eye className="h-4 w-4" /> View Live Site
           </Link>
+        </nav>
+
+        <div className="px-3 py-4 border-t border-white/10">
+          <div className="flex items-center gap-3 px-2 mb-3">
+            <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-sm">
+              {user?.email?.[0]?.toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-semibold text-white truncate">{user?.email?.split('@')[0]}</div>
+              <div className="text-[10px] text-white/40">Administrator</div>
+            </div>
+          </div>
+          <button
+            onClick={() => { supabase.auth.signOut(); navigate('/admin/login'); }}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            <LogOut className="h-3.5 w-3.5" /> Sign Out
+          </button>
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 overflow-auto">
+      {/* ─── Main content ─── */}
+      <main className="flex-1 overflow-auto bg-background">
         {view === 'dashboard' && (
-          <div className="p-8">
-            <h1 className="text-2xl font-bold text-foreground mb-2">Dashboard</h1>
-            <p className="text-muted-foreground text-sm mb-8">Manage your MarketPulse content</p>
+          <div className="p-8 max-w-5xl">
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+              <p className="text-muted-foreground text-sm mt-1">Manage MarketPulse content</p>
+            </div>
 
+            {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {[
-                { label: "Total Posts", value: posts.length, icon: FileText, color: "text-primary" },
-                { label: "Published", value: published.length, icon: CheckCircle, color: "text-gain" },
-                { label: "Drafts", value: drafts.length, icon: Clock, color: "text-gold" },
-                { label: "Total Views", value: totalViews.toLocaleString(), icon: Eye, color: "text-foreground" },
+                { label: "Total Articles", value: posts.length, icon: FileText, color: "text-primary", bg: "bg-primary/8" },
+                { label: "Published", value: published.length, icon: CheckCircle, color: "text-gain", bg: "bg-[hsl(var(--gain-light))]" },
+                { label: "Drafts", value: drafts.length, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
+                { label: "Total Views", value: totalViews.toLocaleString(), icon: Eye, color: "text-foreground", bg: "bg-muted" },
               ].map(stat => (
-                <div key={stat.label} className="bg-card border border-surface rounded-lg p-5">
-                  <div className="flex items-center justify-between mb-3">
+                <div key={stat.label} className="bg-white border border-border rounded-xl p-5 shadow-card">
+                  <div className={`w-10 h-10 ${stat.bg} rounded-lg flex items-center justify-center mb-3`}>
                     <stat.icon className={`h-5 w-5 ${stat.color}`} />
                   </div>
                   <div className={`number-font text-3xl font-bold ${stat.color}`}>{stat.value}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+                  <div className="text-xs text-muted-foreground mt-1 font-medium">{stat.label}</div>
                 </div>
               ))}
             </div>
 
-            {/* Recent posts */}
-            <div className="bg-card border border-surface rounded-lg overflow-hidden">
-              <div className="border-b border-surface px-6 py-4 flex items-center justify-between">
-                <h2 className="font-semibold text-foreground">Recent Posts</h2>
-                <button onClick={() => setView('create')} className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors">
-                  <Plus className="h-4 w-4" /> New Post
+            {/* Quick actions */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              <button
+                onClick={() => setView('create')}
+                className="bg-primary text-white rounded-xl p-5 text-left hover:bg-primary/90 transition-colors shadow-card group"
+              >
+                <PenSquare className="h-6 w-6 mb-3 group-hover:scale-110 transition-transform" />
+                <div className="font-bold text-base">Write New Article</div>
+                <div className="text-white/70 text-xs mt-1">Create and publish content</div>
+              </button>
+              <button
+                onClick={() => setView('posts')}
+                className="bg-white border border-border rounded-xl p-5 text-left hover:shadow-card-md transition-all group"
+              >
+                <Newspaper className="h-6 w-6 mb-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                <div className="font-bold text-base text-foreground">Manage Articles</div>
+                <div className="text-muted-foreground text-xs mt-1">Edit, publish, or delete</div>
+              </button>
+              <Link
+                to="/news"
+                target="_blank"
+                className="bg-white border border-border rounded-xl p-5 text-left hover:shadow-card-md transition-all group block"
+              >
+                <Eye className="h-6 w-6 mb-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                <div className="font-bold text-base text-foreground">Preview News Page</div>
+                <div className="text-muted-foreground text-xs mt-1">See how readers see it</div>
+              </Link>
+            </div>
+
+            {/* Recent articles */}
+            <div className="bg-white border border-border rounded-xl shadow-card overflow-hidden">
+              <div className="border-b border-border px-6 py-4 flex items-center justify-between">
+                <h2 className="font-bold text-foreground">Recent Articles</h2>
+                <button onClick={() => setView('create')} className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
+                  <Plus className="h-4 w-4" /> New Article
                 </button>
               </div>
               <PostsTable
-                posts={posts.slice(0, 8)}
+                posts={posts.slice(0, 6)}
                 onEdit={(p) => { setEditingPost(p); setView('edit'); }}
                 onDelete={deletePost}
                 onTogglePublish={togglePublish}
@@ -207,17 +225,17 @@ export default function AdminDashboard() {
           <div className="p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-2xl font-bold text-foreground">All Posts</h1>
-                <p className="text-sm text-muted-foreground mt-1">{posts.length} total articles</p>
+                <h1 className="text-2xl font-bold text-foreground">All Articles</h1>
+                <p className="text-sm text-muted-foreground mt-1">{posts.length} total · {published.length} published · {drafts.length} drafts</p>
               </div>
               <button
                 onClick={() => setView('create')}
-                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors"
+                className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card"
               >
-                <Plus className="h-4 w-4" /> New Post
+                <Plus className="h-4 w-4" /> Write Article
               </button>
             </div>
-            <div className="bg-card border border-surface rounded-lg overflow-hidden">
+            <div className="bg-white border border-border rounded-xl shadow-card overflow-hidden">
               <PostsTable
                 posts={posts}
                 onEdit={(p) => { setEditingPost(p); setView('edit'); }}
@@ -232,7 +250,7 @@ export default function AdminDashboard() {
           <BlogEditor
             post={editingPost}
             onSave={() => { fetchPosts(); setView('posts'); setEditingPost(null); }}
-            onCancel={() => { setView('posts'); setEditingPost(null); }}
+            onCancel={() => { setView(editingPost ? 'posts' : 'dashboard'); setEditingPost(null); }}
           />
         )}
       </main>
@@ -240,79 +258,68 @@ export default function AdminDashboard() {
   );
 }
 
+/* ─── Posts table ─── */
 function PostsTable({ posts, onEdit, onDelete, onTogglePublish }: {
   posts: BlogPost[];
   onEdit: (p: BlogPost) => void;
   onDelete: (id: string) => void;
   onTogglePublish: (p: BlogPost) => void;
 }) {
-  if (posts.length === 0) {
-    return (
-      <div className="text-center py-16 text-muted-foreground">
-        <FileText className="h-10 w-10 mx-auto mb-3 opacity-30" />
-        <p>No posts yet. Create your first article!</p>
-      </div>
-    );
-  }
+  if (posts.length === 0) return (
+    <div className="text-center py-16 text-muted-foreground">
+      <FileText className="h-12 w-12 mx-auto mb-3 opacity-20" />
+      <p className="font-medium">No articles yet</p>
+      <p className="text-sm mt-1">Write your first article to get started</p>
+    </div>
+  );
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-surface">
-            {["Title", "Category", "Status", "Views", "Date", "Actions"].map(h => (
-              <th key={h} className="text-left text-xs font-semibold text-muted-foreground px-6 py-3">{h}</th>
+          <tr className="bg-muted/30 border-b border-border">
+            {["Article", "Category", "Author", "Status", "Views", "Date", "Actions"].map(h => (
+              <th key={h} className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {posts.map((post) => (
-            <tr key={post.id} className="border-b border-surface/50 last:border-0 hover:bg-surface-2/30 transition-colors">
-              <td className="px-6 py-3">
-                <div className="font-medium text-foreground line-clamp-1 max-w-xs">{post.title}</div>
-                <div className="text-xs text-muted-foreground">{post.slug}</div>
+            <tr key={post.id} className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors group">
+              <td className="px-5 py-3.5 max-w-xs">
+                <div className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">{post.title}</div>
+                <div className="text-xs text-muted-foreground font-mono mt-0.5">/news/{post.slug}</div>
               </td>
-              <td className="px-6 py-3">
-                <span className="text-xs bg-surface-3 text-muted-foreground px-2 py-1 rounded">{post.category}</span>
+              <td className="px-5 py-3.5">
+                <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold">{post.category}</span>
               </td>
-              <td className="px-6 py-3">
+              <td className="px-5 py-3.5 text-sm text-muted-foreground whitespace-nowrap">{post.author_name}</td>
+              <td className="px-5 py-3.5">
                 <button
                   onClick={() => onTogglePublish(post)}
-                  className={`text-xs font-semibold px-2 py-1 rounded flex items-center gap-1 transition-colors ${
-                    post.status === 'published'
-                      ? 'gain-badge'
-                      : 'loss-badge'
+                  className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
+                    post.status === 'published' ? 'badge-gain' : 'badge-neutral'
                   }`}
                 >
                   {post.status === 'published' ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                   {post.status}
                 </button>
               </td>
-              <td className="px-6 py-3 number-font text-muted-foreground">
+              <td className="px-5 py-3.5 number-font text-sm text-muted-foreground">
                 {(post.views_count ?? 0).toLocaleString()}
               </td>
-              <td className="px-6 py-3 text-xs text-muted-foreground whitespace-nowrap">
+              <td className="px-5 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
                 {new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
               </td>
-              <td className="px-6 py-3">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => onEdit(post)}
-                    className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors"
-                  >
+              <td className="px-5 py-3.5">
+                <div className="flex items-center gap-1">
+                  <button onClick={() => onEdit(post)} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit">
                     <Edit className="h-3.5 w-3.5" />
                   </button>
-                  <Link
-                    to={`/news/${post.slug}`}
-                    className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-surface-3 rounded transition-colors"
-                    target="_blank"
-                  >
+                  <Link to={`/news/${post.slug}`} target="_blank" className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors" title="Preview">
                     <Eye className="h-3.5 w-3.5" />
                   </Link>
-                  <button
-                    onClick={() => onDelete(post.id)}
-                    className="p-1.5 text-muted-foreground hover:text-loss hover:bg-loss/10 rounded transition-colors"
-                  >
+                  <button onClick={() => onDelete(post.id)} className="p-1.5 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>

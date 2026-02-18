@@ -1,138 +1,133 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Bell, User, Menu, X, TrendingUp, ChevronDown } from "lucide-react";
+import { Search, Bell, Menu, X, TrendingUp, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const NAV_ITEMS = [
-  { label: "Markets", href: "/markets", sub: ["Equity", "Derivatives", "Commodities", "Currency", "IPO"] },
-  { label: "Stocks", href: "/stocks", sub: ["BSE", "NSE", "Top Gainers", "Top Losers", "52 Week High"] },
-  { label: "News", href: "/news", sub: ["Markets", "Economy", "Companies", "Commodities", "Global"] },
+  { label: "Markets", href: "/markets", sub: ["BSE / NSE", "Derivatives", "Commodities", "Currency", "Global Markets", "IPO"] },
+  { label: "Stocks", href: "/stocks", sub: ["Top Gainers", "Top Losers", "52W High", "52W Low", "Most Active", "Stock Screener"] },
+  { label: "News", href: "/news", sub: ["Markets", "Economy", "Companies", "Budget 2025", "Commodities", "Global"] },
   { label: "Economy", href: "/economy" },
+  { label: "MF & ETF", href: "/mf" },
+  { label: "Crypto", href: "/crypto" },
   { label: "Portfolio", href: "/portfolio" },
-  { label: "Tools", href: "/tools" },
 ];
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
-  const navigate = useNavigate();
+  const [searchFocused, setSearchFocused] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null);
-    });
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => setUser(s?.user ?? null));
     return () => subscription.unsubscribe();
   }, []);
 
   return (
-    <header className="bg-header border-b border-surface sticky top-0 z-50">
-      {/* Top bar */}
-      <div className="border-b border-surface/50 px-4 py-1.5">
-        <div className="max-w-[1400px] mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span>BSE: <span className="text-gain font-medium">OPEN</span></span>
-            <span>NSE: <span className="text-gain font-medium">OPEN</span></span>
-            <span className="hidden md:inline">Last updated: {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+    <header className="bg-white border-b border-border sticky top-0 z-50 shadow-sm">
+      {/* Dark top strip */}
+      <div className="bg-slate-900 text-white/80 text-xs">
+        <div className="max-w-[1440px] mx-auto px-4 py-1.5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span>BSE: <span className="text-emerald-400 font-semibold">OPEN</span></span>
+            <span className="text-white/20">|</span>
+            <span>NSE: <span className="text-emerald-400 font-semibold">OPEN</span></span>
+            <span className="text-white/20 hidden md:inline">|</span>
+            <span className="hidden md:inline">MCX: <span className="text-emerald-400 font-semibold">OPEN</span></span>
           </div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="hidden md:inline">₹ INR</span>
+          <div className="flex items-center gap-3">
             {user ? (
-              <div className="flex items-center gap-2">
-                <span className="text-foreground">{user.email?.split('@')[0]}</span>
-                <button onClick={() => { supabase.auth.signOut(); navigate('/'); }} className="text-muted-foreground hover:text-loss transition-colors">Logout</button>
-                <Link to="/admin" className="text-primary hover:text-primary/80 transition-colors font-medium">Admin</Link>
-              </div>
+              <>
+                <span className="text-white/60">Hi, {user.email?.split('@')[0]}</span>
+                <Link to="/admin" className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">Admin Portal →</Link>
+                <button onClick={() => supabase.auth.signOut()} className="text-white/40 hover:text-white/70 transition-colors">Logout</button>
+              </>
             ) : (
-              <div className="flex items-center gap-2">
-                <Link to="/admin/login" className="hover:text-foreground transition-colors">Login</Link>
-                <span>|</span>
-                <Link to="/admin/login" className="hover:text-foreground transition-colors">Register</Link>
-              </div>
+              <>
+                <Link to="/admin/login" className="hover:text-white transition-colors">Login</Link>
+                <span className="text-white/20">|</span>
+                <Link to="/admin/login" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">Register</Link>
+              </>
             )}
           </div>
         </div>
       </div>
 
-      {/* Main nav */}
-      <div className="px-4 py-2.5">
-        <div className="max-w-[1400px] mx-auto flex items-center gap-6">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <div className="bg-primary rounded p-1.5">
-              <TrendingUp className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <div>
-              <div className="font-black text-xl tracking-tight text-foreground leading-none">MarketPulse</div>
-              <div className="text-[9px] text-muted-foreground tracking-widest uppercase">Financial Intelligence</div>
-            </div>
-          </Link>
-
-          {/* Search */}
-          <div className="flex-1 max-w-md hidden md:flex relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search stocks, news, companies..."
-              className="w-full bg-surface-2 border border-surface text-sm pl-9 pr-4 py-2 rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:bg-surface-3 transition-all"
-            />
+      {/* Main header row */}
+      <div className="max-w-[1440px] mx-auto px-4 py-3 flex items-center gap-5">
+        <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+          <div className="bg-red-600 rounded-lg p-2 group-hover:scale-105 transition-transform shadow-sm">
+            <TrendingUp className="h-5 w-5 text-white" />
           </div>
+          <div>
+            <div className="font-black text-[22px] text-foreground tracking-tight leading-none">MarketPulse</div>
+            <div className="text-[9px] font-bold text-muted-foreground tracking-[0.2em] uppercase">Financial Intelligence</div>
+          </div>
+        </Link>
 
-          {/* Nav links */}
-          <nav className="hidden lg:flex items-center gap-0.5">
-            {NAV_ITEMS.map((item) => (
-              <div
-                key={item.label}
-                className="relative"
-                onMouseEnter={() => setActiveDropdown(item.label)}
-                onMouseLeave={() => setActiveDropdown(null)}
-              >
-                <Link
-                  to={item.href}
-                  className="flex items-center gap-0.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-surface-2 rounded transition-all"
-                >
-                  {item.label}
-                  {item.sub && <ChevronDown className="h-3 w-3" />}
-                </Link>
-                {item.sub && activeDropdown === item.label && (
-                  <div className="absolute top-full left-0 mt-1 bg-card border border-surface rounded shadow-2xl shadow-black/50 z-50 min-w-[160px] py-1">
-                    {item.sub.map((sub) => (
-                      <a key={sub} href="#" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors">
-                        {sub}
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
+        <div className={`hidden md:flex relative flex-1 max-w-lg transition-all ${searchFocused ? 'max-w-xl' : ''}`}>
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search stocks, mutual funds, news..."
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
+            className="w-full bg-muted border border-border rounded-full pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:bg-white transition-all"
+          />
+        </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2 ml-auto">
-            <button className="p-1.5 text-muted-foreground hover:text-foreground hidden md:flex transition-colors">
-              <Bell className="h-4 w-4" />
-            </button>
-            <button
-              className="lg:hidden p-1.5 text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => setMobileOpen(!mobileOpen)}
+        <nav className="hidden lg:flex items-center">
+          {NAV_ITEMS.map((item) => (
+            <div
+              key={item.label}
+              className="relative"
+              onMouseEnter={() => setActiveDropdown(item.label)}
+              onMouseLeave={() => setActiveDropdown(null)}
             >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
+              <Link
+                to={item.href}
+                className={`flex items-center gap-0.5 px-3 py-2 text-sm font-medium transition-colors rounded-md ${
+                  activeDropdown === item.label ? 'text-primary bg-primary/8' : 'text-foreground/75 hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                {item.label}
+                {item.sub && <ChevronDown className={`h-3.5 w-3.5 ml-0.5 transition-transform ${activeDropdown === item.label ? 'rotate-180' : ''}`} />}
+              </Link>
+              {item.sub && activeDropdown === item.label && (
+                <div className="absolute top-full left-0 mt-1 bg-white border border-border rounded-xl shadow-card-lg z-50 min-w-[180px] py-2">
+                  {item.sub.map((sub) => (
+                    <a key={sub} href="#" className="block px-4 py-2.5 text-sm text-foreground/80 hover:text-primary hover:bg-blue-50 transition-colors">
+                      {sub}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2 ml-auto">
+          <button className="hidden md:flex p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">
+            <Bell className="h-[18px] w-[18px]" />
+          </button>
+          <button
+            className="lg:hidden p-2 text-muted-foreground hover:text-foreground"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile menu */}
       {mobileOpen && (
-        <div className="lg:hidden bg-card border-t border-surface px-4 pb-4">
+        <div className="lg:hidden bg-white border-t border-border px-4 pb-4">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.label}
               to={item.href}
-              className="block py-2.5 text-sm text-muted-foreground hover:text-foreground border-b border-surface/50 last:border-0 transition-colors"
+              className="block py-3 text-sm font-medium text-foreground border-b border-border/50 last:border-0 hover:text-primary transition-colors"
               onClick={() => setMobileOpen(false)}
             >
               {item.label}
