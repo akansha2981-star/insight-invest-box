@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Save, X, Eye, EyeOff, Clock, Send, Tag, Image, User, AlignLeft, Hash, FileText } from "lucide-react";
+import { RichTextEditor } from "./RichTextEditor";
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
@@ -61,7 +62,8 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
     else onSave();
   }
 
-  const wordCount = content.split(/\s+/).filter(Boolean).length;
+  const plainText = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const wordCount = plainText.split(/\s+/).filter(Boolean).length;
   const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
   return (
@@ -94,7 +96,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
             disabled={saving}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm border border-border bg-white text-foreground hover:bg-muted transition-colors disabled:opacity-50 font-medium"
           >
-            <Clock className="h-4 w-4 text-amber-500" /> Save Draft
+            <Clock className="h-4 w-4 text-primary" /> Save Draft
           </button>
           <button
             onClick={() => handleSave(true)}
@@ -109,7 +111,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
 
       <div className="flex-1 overflow-auto">
         {error && (
-          <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
+          <div className="mx-6 mt-4 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl">
             ⚠ {error}
           </div>
         )}
@@ -165,18 +167,11 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
 
               <div className="border-t border-border" />
 
-              {/* Main content */}
-              <textarea
-                value={content}
-                onChange={e => setContent(e.target.value)}
-                placeholder="Start writing your article here…
-
-Separate paragraphs with blank lines. Write clear, fact-based financial content. Include specific data points, analyst quotes, and market context.
-
-Example:
-The BSE Sensex surged 812 points on Tuesday, driven by strong buying in IT stocks…"
-                rows={28}
-                className="w-full text-[15px] text-foreground placeholder:text-muted-foreground/30 focus:outline-none resize-none border-0 bg-transparent leading-[1.85] font-normal"
+              {/* Rich Text Editor */}
+              <RichTextEditor
+                content={content}
+                onChange={setContent}
+                placeholder="Start writing your article here… Use the toolbar above for bold, italic, headings, lists, and images."
               />
             </div>
 
@@ -249,7 +244,7 @@ The BSE Sensex surged 812 points on Tuesday, driven by strong buying in IT stock
                   {tags && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {tags.split(',').map(t => t.trim()).filter(Boolean).map(tag => (
-                        <span key={tag} className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-semibold">#{tag}</span>
+                        <span key={tag} className="text-[10px] bg-accent text-accent-foreground border border-border px-2 py-0.5 rounded-full font-semibold">#{tag}</span>
                       ))}
                     </div>
                   )}
@@ -262,7 +257,7 @@ The BSE Sensex surged 812 points on Tuesday, driven by strong buying in IT stock
                     { label: "Words", value: wordCount.toLocaleString() },
                     { label: "Characters", value: content.length.toLocaleString() },
                     { label: "Read Time", value: `~${readTime} min` },
-                    { label: "Paragraphs", value: content.split('\n\n').filter(p => p.trim()).length },
+                    { label: "Paragraphs", value: content.split('</p>').filter(p => p.trim()).length },
                   ].map(stat => (
                     <div key={stat.label} className="flex justify-between items-center">
                       <span className="text-xs text-muted-foreground">{stat.label}</span>
@@ -280,7 +275,7 @@ The BSE Sensex surged 812 points on Tuesday, driven by strong buying in IT stock
               {coverImageUrl && <img src={coverImageUrl} alt="" className="w-full h-72 object-cover" />}
               <div className="p-8">
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded">{category}</span>
+                  <span className="text-xs font-bold bg-accent text-accent-foreground border border-border px-2.5 py-1 rounded">{category}</span>
                   {tags.split(',').filter(t => t.trim()).slice(0, 3).map(tag => (
                     <span key={tag} className="text-xs bg-muted text-muted-foreground px-2.5 py-1 rounded">{tag.trim()}</span>
                   ))}
@@ -294,11 +289,10 @@ The BSE Sensex surged 812 points on Tuesday, driven by strong buying in IT stock
                   <span>·</span>
                   <span>{wordCount} words</span>
                 </div>
-                <div className="space-y-4">
-                  {content.split('\n').map((p, i) => (
-                    p.trim() ? <p key={i} className="text-[15px] text-foreground leading-[1.85]">{p}</p> : <div key={i} className="h-2" />
-                  ))}
-                </div>
+                <div
+                  className="prose prose-sm sm:prose-base max-w-none text-foreground"
+                  dangerouslySetInnerHTML={{ __html: content }}
+                />
               </div>
             </div>
           </div>
