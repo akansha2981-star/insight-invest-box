@@ -22,49 +22,51 @@ export interface IndexData {
 }
 
 export const INDICES: IndexData[] = [
-  { name: "SENSEX", value: 73827.33, change: 812.45, changePercent: 1.11, high: 74012.50, low: 73020.80 },
-  { name: "NIFTY 50", value: 22378.40, change: 238.95, changePercent: 1.08, high: 22450.10, low: 22150.30 },
-  { name: "BANK NIFTY", value: 48223.15, change: -142.30, changePercent: -0.29, high: 48520.00, low: 48050.25 },
-  { name: "NIFTY IT", value: 37845.60, change: 512.20, changePercent: 1.37, high: 37920.50, low: 37350.80 },
-  { name: "NIFTY MIDCAP", value: 44987.25, change: 325.10, changePercent: 0.73, high: 45120.00, low: 44720.50 },
+  { name: "SENSEX", value: 75320.45, change: 423.80, changePercent: 0.57, high: 75520.00, low: 74900.10 },
+  { name: "NIFTY 50", value: 22831.20, change: 128.55, changePercent: 0.57, high: 22900.00, low: 22710.50 },
+  { name: "BANK NIFTY", value: 49124.65, change: -198.30, changePercent: -0.40, high: 49400.00, low: 48950.25 },
+  { name: "NIFTY IT", value: 38542.30, change: -215.10, changePercent: -0.55, high: 38800.00, low: 38400.80 },
+  { name: "NIFTY MIDCAP", value: 52340.75, change: 312.40, changePercent: 0.60, high: 52500.00, low: 52100.50 },
 ];
 
+// Updated with approximate Feb 2026 prices
 export const TOP_GAINERS: StockData[] = [
-  { symbol: "INFY", name: "Infosys Ltd", price: 1847.25, change: 52.40, changePercent: 2.92, volume: "12.4M", sector: "IT" },
-  { symbol: "TCS", name: "TCS Ltd", price: 4182.60, change: 98.15, changePercent: 2.40, volume: "8.2M", sector: "IT" },
-  { symbol: "WIPRO", name: "Wipro Ltd", price: 512.80, change: 11.35, changePercent: 2.26, volume: "9.8M", sector: "IT" },
-  { symbol: "HCLTECH", name: "HCL Technologies", price: 1623.45, change: 34.20, changePercent: 2.15, volume: "5.6M", sector: "IT" },
-  { symbol: "MARUTI", name: "Maruti Suzuki", price: 11842.35, change: 234.50, changePercent: 2.02, volume: "2.1M", sector: "Auto" },
-  { symbol: "SUNPHARMA", name: "Sun Pharma", price: 1342.70, change: 24.80, changePercent: 1.88, volume: "4.3M", sector: "Pharma" },
-  { symbol: "RELIANCE", name: "Reliance Industries", price: 2741.50, change: 48.30, changePercent: 1.79, volume: "18.7M", sector: "Energy" },
-  { symbol: "BAJFINANCE", name: "Bajaj Finance", price: 7284.15, change: 118.60, changePercent: 1.66, volume: "3.2M", sector: "Finance" },
+  { symbol: "ICICIBANK", name: "ICICI Bank Ltd", price: 1407.90, change: 0.40, changePercent: 0.03, volume: "18.2M", sector: "Banking" },
+  { symbol: "RELIANCE", name: "Reliance Industries", price: 1440.20, change: 17.20, changePercent: 1.21, volume: "22.5M", sector: "Energy" },
+  { symbol: "WIPRO", name: "Wipro Ltd", price: 308.45, change: 5.30, changePercent: 1.75, volume: "9.8M", sector: "IT" },
+  { symbol: "HCLTECH", name: "HCL Technologies", price: 1698.60, change: 28.40, changePercent: 1.70, volume: "5.6M", sector: "IT" },
+  { symbol: "MARUTI", name: "Maruti Suzuki", price: 12240.50, change: 185.30, changePercent: 1.54, volume: "2.1M", sector: "Auto" },
+  { symbol: "SUNPHARMA", name: "Sun Pharma", price: 1748.40, change: 22.60, changePercent: 1.31, volume: "4.3M", sector: "Pharma" },
+  { symbol: "BAJFINANCE", name: "Bajaj Finance", price: 8924.35, change: 112.80, changePercent: 1.28, volume: "3.2M", sector: "Finance" },
+  { symbol: "LT", name: "Larsen & Toubro", price: 3524.70, change: 38.90, changePercent: 1.12, volume: "6.1M", sector: "Infra" },
 ];
 
 export const TOP_LOSERS: StockData[] = [
-  { symbol: "BHARTIARTL", name: "Bharti Airtel", price: 1187.45, change: -34.60, changePercent: -2.83, volume: "11.2M", sector: "Telecom" },
-  { symbol: "AXISBANK", name: "Axis Bank", price: 1082.30, change: -28.45, changePercent: -2.56, volume: "14.8M", sector: "Banking" },
-  { symbol: "ONGC", name: "ONGC", price: 243.80, change: -6.15, changePercent: -2.46, volume: "22.3M", sector: "Energy" },
-  { symbol: "NTPC", name: "NTPC Ltd", price: 362.55, change: -7.80, changePercent: -2.11, volume: "16.7M", sector: "Power" },
-  { symbol: "COALINDIA", name: "Coal India", price: 456.20, change: -8.90, changePercent: -1.91, volume: "13.5M", sector: "Mining" },
-  { symbol: "ITC", name: "ITC Ltd", price: 432.15, change: -7.45, changePercent: -1.70, volume: "28.4M", sector: "FMCG" },
-  { symbol: "ADANIPORTS", name: "Adani Ports", price: 1312.40, change: -21.30, changePercent: -1.60, volume: "6.8M", sector: "Infra" },
-  { symbol: "HDFCBANK", name: "HDFC Bank", price: 1623.70, change: -25.80, changePercent: -1.56, volume: "20.1M", sector: "Banking" },
+  { symbol: "TCS", name: "TCS Ltd", price: 2689.90, change: -27.50, changePercent: -1.01, volume: "8.2M", sector: "IT" },
+  { symbol: "INFY", name: "Infosys Ltd", price: 1371.60, change: -19.60, changePercent: -1.41, volume: "12.4M", sector: "IT" },
+  { symbol: "HDFCBANK", name: "HDFC Bank", price: 1923.00, change: -2.70, changePercent: -0.29, volume: "20.1M", sector: "Banking" },
+  { symbol: "BHARTIARTL", name: "Bharti Airtel", price: 1624.80, change: -18.40, changePercent: -1.12, volume: "11.2M", sector: "Telecom" },
+  { symbol: "AXISBANK", name: "Axis Bank", price: 1124.50, change: -14.20, changePercent: -1.25, volume: "14.8M", sector: "Banking" },
+  { symbol: "ONGC", name: "ONGC", price: 258.30, change: -4.80, changePercent: -1.82, volume: "22.3M", sector: "Energy" },
+  { symbol: "NTPC", name: "NTPC Ltd", price: 342.15, change: -5.60, changePercent: -1.61, volume: "16.7M", sector: "Power" },
+  { symbol: "ITC", name: "ITC Ltd", price: 468.90, change: -6.30, changePercent: -1.33, volume: "28.4M", sector: "FMCG" },
 ];
 
+// Seed data — gets replaced by live NSE prices on load
 export const TICKER_STOCKS: (StockData & { index?: string })[] = [
-  { symbol: "SENSEX", name: "SENSEX", price: 73827.33, change: 812.45, changePercent: 1.11, volume: "" },
-  { symbol: "NIFTY", name: "NIFTY", price: 22378.40, change: 238.95, changePercent: 1.08, volume: "" },
-  { symbol: "RELIANCE", name: "RELIANCE", price: 2741.50, change: 48.30, changePercent: 1.79, volume: "" },
-  { symbol: "TCS", name: "TCS", price: 4182.60, change: 98.15, changePercent: 2.40, volume: "" },
-  { symbol: "HDFCBANK", name: "HDFC BANK", price: 1623.70, change: -25.80, changePercent: -1.56, volume: "" },
-  { symbol: "INFY", name: "INFOSYS", price: 1847.25, change: 52.40, changePercent: 2.92, volume: "" },
-  { symbol: "ICICIBANK", name: "ICICI BANK", price: 1087.45, change: 12.30, changePercent: 1.14, volume: "" },
-  { symbol: "BHARTIARTL", name: "AIRTEL", price: 1187.45, change: -34.60, changePercent: -2.83, volume: "" },
-  { symbol: "WIPRO", name: "WIPRO", price: 512.80, change: 11.35, changePercent: 2.26, volume: "" },
-  { symbol: "AXISBANK", name: "AXIS BANK", price: 1082.30, change: -28.45, changePercent: -2.56, volume: "" },
-  { symbol: "GOLD", name: "GOLD", price: 72450.00, change: 380.00, changePercent: 0.53, volume: "" },
-  { symbol: "CRUDE", name: "CRUDE OIL", price: 6824.00, change: -45.00, changePercent: -0.66, volume: "" },
-  { symbol: "USDINR", name: "USD/INR", price: 83.12, change: -0.14, changePercent: -0.17, volume: "" },
+  { symbol: "SENSEX", name: "SENSEX", price: 75320.45, change: 423.80, changePercent: 0.57, volume: "" },
+  { symbol: "NIFTY", name: "NIFTY", price: 22831.20, change: 128.55, changePercent: 0.57, volume: "" },
+  { symbol: "RELIANCE", name: "RELIANCE", price: 1440.20, change: 17.20, changePercent: 1.21, volume: "" },
+  { symbol: "TCS", name: "TCS", price: 2689.90, change: -27.50, changePercent: -1.01, volume: "" },
+  { symbol: "HDFCBANK", name: "HDFC BANK", price: 1923.00, change: -2.70, changePercent: -0.29, volume: "" },
+  { symbol: "INFY", name: "INFOSYS", price: 1371.60, change: -19.60, changePercent: -1.41, volume: "" },
+  { symbol: "ICICIBANK", name: "ICICI BANK", price: 1407.90, change: 0.40, changePercent: 0.03, volume: "" },
+  { symbol: "BHARTIARTL", name: "AIRTEL", price: 1624.80, change: -18.40, changePercent: -1.12, volume: "" },
+  { symbol: "WIPRO", name: "WIPRO", price: 308.45, change: 5.30, changePercent: 1.75, volume: "" },
+  { symbol: "AXISBANK", name: "AXIS BANK", price: 1124.50, change: -14.20, changePercent: -1.25, volume: "" },
+  { symbol: "GOLD", name: "GOLD", price: 84250.00, change: 320.00, changePercent: 0.38, volume: "" },
+  { symbol: "CRUDE", name: "CRUDE OIL", price: 6248.00, change: -52.00, changePercent: -0.82, volume: "" },
+  { symbol: "USDINR", name: "USD/INR", price: 86.82, change: -0.12, changePercent: -0.14, volume: "" },
 ];
 
 // Simulate live price fluctuations

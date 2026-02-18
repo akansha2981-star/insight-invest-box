@@ -5,81 +5,100 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Free tier: 25 req/day, 5 req/min. Fetch only 5 symbols to preserve quota.
-// Indian stocks on Alpha Vantage use {SYMBOL}.BSE format
-const SYMBOLS = [
-  { avSymbol: "RELIANCE.BSE", displayName: "RELIANCE", mockSymbol: "RELIANCE" },
-  { avSymbol: "TCS.BSE",      displayName: "TCS",      mockSymbol: "TCS" },
-  { avSymbol: "HDFCBANK.BSE", displayName: "HDFC BANK",mockSymbol: "HDFCBANK" },
-  { avSymbol: "INFY.BSE",     displayName: "INFOSYS",  mockSymbol: "INFY" },
-  { avSymbol: "ICICIBANK.BSE",displayName: "ICICI BANK",mockSymbol: "ICICIBANK" },
-];
+// NSE India public API - no key required
+// Indices: https://www.nseindia.com/api/allIndices
+// Stock quote: https://www.nseindia.com/api/quote-equity?symbol=RELIANCE
+
+const STOCK_SYMBOLS = ["RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK"];
+
+const NSE_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Accept": "*/*",
+  "Accept-Language": "en-US,en;q=0.9",
+  "Accept-Encoding": "gzip, deflate, br",
+  "Referer": "https://www.nseindia.com/",
+  "Connection": "keep-alive",
+  "Cookie": "",
+};
+
+async function fetchNSEWithCookie() {
+  // Step 1: Get cookies from NSE homepage (required for API calls)
+  const homeRes = await fetch("https://www.nseindia.com/", { headers: NSE_HEADERS });
+  const cookies = homeRes.headers.get("set-cookie") ?? "";
+  const cookieHeader = cookies.split(",").map(c => c.split(";")[0].trim()).join("; ");
+  
+  const apiHeaders = { ...NSE_HEADERS, "Cookie": cookieHeader };
+
+  const results: any[] = [];
+
+  // Step 2: Fetch stock quotes
+  for (const symbol of STOCK_SYMBOLS) {
+    try {
+      const res = await fetch(`https://www.nseindia.com/api/quote-equity?symbol=${symbol}`, {
+        headers: apiHeaders,
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const pd = data?.priceInfo;
+      if (!pd) continue;
+      const price = pd.lastPrice ?? pd.close ?? 0;
+      const prevClose = pd.previousClose ?? price;
+      const change = +(price - prevClose).toFixed(2);
+      const changePercent = prevClose ? +((change / prevClose) * 100).toFixed(2) : 0;
+      results.push({ symbol, displayName: symbol, price, change, changePercent });
+      await new Promise(r => setTimeout(r, 200));
+    } catch {
+      continue;
+    }
+  }
+
+  // Step 3: Fetch indices (Sensex from BSE, Nifty from NSE)
+  try {
+    const indRes = await fetch("https://www.nseindia.com/api/allIndices", { headers: apiHeaders });
+    if (indRes.ok) {
+      const indData = await indRes.json();
+      const nifty = indData?.data?.find((d: any) => d.index === "NIFTY 50");
+      if (nifty) {
+        results.push({
+          symbol: "NIFTY",
+          displayName: "NIFTY 50",
+          price: +nifty.last.toFixed(2),
+          change: +nifty.change.toFixed(2),
+          changePercent: +nifty.percentChange.toFixed(2),
+        });
+      }
+      const bankNifty = indData?.data?.find((d: any) => d.index === "NIFTY BANK");
+      if (bankNifty) {
+        results.push({
+          symbol: "BANKNIFTY",
+          displayName: "BANK NIFTY",
+          price: +bankNifty.last.toFixed(2),
+          change: +bankNifty.change.toFixed(2),
+          changePercent: +bankNifty.percentChange.toFixed(2),
+        });
+      }
+    }
+  } catch {
+    // indices fetch failed
+  }
+
+  return results;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const ALPHA_VANTAGE_KEY = Deno.env.get("ALPHA_VANTAGE_API_KEY");
-    if (!ALPHA_VANTAGE_KEY) {
-      return new Response(JSON.stringify({ error: "ALPHA_VANTAGE_API_KEY not configured" }), {
-        status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const quotes = await fetchNSEWithCookie();
+
+    if (quotes.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "no_data", message: "Could not fetch live data from NSE. Market may be closed." }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    const results = [];
-
-    for (const sym of SYMBOLS) {
-      const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${encodeURIComponent(sym.avSymbol)}&apikey=${ALPHA_VANTAGE_KEY}`;
-      
-      const response = await fetch(url);
-      if (!response.ok) {
-        console.warn(`Failed to fetch ${sym.avSymbol}: ${response.status}`);
-        continue;
-      }
-
-      const data = await response.json();
-
-      // Rate limit / info message check
-      if (data["Information"] || data["Note"]) {
-        console.warn("Alpha Vantage limit:", data["Information"] || data["Note"]);
-        return new Response(JSON.stringify({ error: "api_limit", message: data["Information"] || data["Note"] }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const quote = data["Global Quote"];
-      if (!quote || !quote["05. price"]) {
-        console.warn(`No quote data for ${sym.avSymbol}`, JSON.stringify(data));
-        continue;
-      }
-
-      const price = parseFloat(quote["05. price"]) || 0;
-      const prevClose = parseFloat(quote["08. previous close"]) || price;
-      const change = +(price - prevClose).toFixed(2);
-      const changePercent = prevClose ? +((change / prevClose) * 100).toFixed(2) : 0;
-
-      results.push({
-        symbol: sym.mockSymbol,
-        displayName: sym.displayName,
-        price,
-        change,
-        changePercent,
-      });
-
-      // Small delay between requests to respect 5 req/min rate limit
-      await new Promise(r => setTimeout(r, 300));
-    }
-
-    if (results.length === 0) {
-      return new Response(JSON.stringify({ error: "no_data", message: "No quotes returned from Alpha Vantage" }), {
-        status: 429,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify({ quotes: results }), {
+    return new Response(JSON.stringify({ quotes, source: "nse_india", live: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
