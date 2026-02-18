@@ -6,6 +6,7 @@ import { MarketIndices } from "@/components/MarketIndices";
 import { GainersLosers } from "@/components/GainersLosers";
 import { NewsCard, NewsCardHero, NewsCardSmall } from "@/components/NewsCard";
 import { Footer } from "@/components/Footer";
+import { FeaturedStockReviews } from "@/components/FeaturedStockReviews";
 import {
   RefreshCw, ArrowUp, ArrowDown, TrendingUp,
   Flame, Star, Globe, BarChart3, Zap, ChevronRight, Clock,
@@ -627,6 +628,11 @@ export default function Index() {
 
           </aside>
         </div>
+
+        {/* ════════════════════════════════════════
+            BLOCK 3.5 — Featured Stock Reviews
+        ════════════════════════════════════════ */}
+        <FeaturedStockReviews />
 
         {/* ════════════════════════════════════════
             BLOCK 4 — Commodities & Currencies

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Menu, X, TrendingUp, ChevronDown } from "lucide-react";
+import { Bell, Menu, X, TrendingUp, ChevronDown, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchBar } from "@/components/SearchBar";
+import { MobileSearchModal } from "@/components/MobileSearchModal";
 
 const NAV_ITEMS = [
   { label: "Markets", href: "/markets", sub: ["BSE / NSE", "Derivatives", "Commodities", "Currency", "Global Markets", "IPO"] },
@@ -19,6 +20,7 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [mobileSearch, setMobileSearch] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
@@ -102,6 +104,13 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2 ml-auto">
+          {/* Mobile search button */}
+          <button
+            className="md:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors"
+            onClick={() => setMobileSearch(true)}
+          >
+            <Search className="h-[18px] w-[18px]" />
+          </button>
           <button className="hidden md:flex p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">
             <Bell className="h-[18px] w-[18px]" />
           </button>
@@ -128,6 +137,8 @@ export function Header() {
           ))}
         </div>
       )}
+
+      <MobileSearchModal open={mobileSearch} onClose={() => setMobileSearch(false)} />
     </header>
   );
 }
