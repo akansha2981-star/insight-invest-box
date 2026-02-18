@@ -1,1 +1,7 @@
 project_id = "euxpopovbfjkzhxiclrl"
+
+[functions.ai-writing-assistant]
+verify_jwt = false
+
+[functions.stock-ticker]
+verify_jwt = false

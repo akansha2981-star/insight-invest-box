@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Eye, EyeOff, Clock, Send, Tag, User, Hash, FileText, Search, ListOrdered, UploadCloud, Trash2 } from "lucide-react";
+import { X, Eye, EyeOff, Clock, Send, Tag, User, Hash, FileText, Search, ListOrdered, UploadCloud, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { RichTextEditor } from "./RichTextEditor";
 
 interface BlogPost {
@@ -64,6 +64,8 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
   const [sequenceNumber,  setSequenceNumber]  = useState<number>(post?.sequence_number ?? 0);
   const [saving,          setSaving]          = useState(false);
   const [uploading,       setUploading]       = useState(false);
+  const [aiLoading,       setAiLoading]       = useState(false);
+  const [aiToast,         setAiToast]         = useState("");
   const [error,           setError]           = useState("");
   const [preview,         setPreview]         = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -87,6 +89,31 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
     const { data: { publicUrl } } = supabase.storage.from("blog-images").getPublicUrl(data.path);
     setCoverImageUrl(publicUrl);
     e.target.value = "";
+  }
+
+  async function handleAiAssist() {
+    if (!content.trim() || !title.trim()) {
+      setAiToast("Please write a title and some content first.");
+      setTimeout(() => setAiToast(""), 4000);
+      return;
+    }
+    setAiLoading(true);
+    setAiToast("");
+    try {
+      const { data, error: fnErr } = await supabase.functions.invoke("ai-writing-assistant", {
+        body: { title, content, category },
+      });
+      if (fnErr) throw new Error(fnErr.message);
+      if (data?.error) throw new Error(data.error);
+      if (data?.excerpt) setExcerpt(data.excerpt);
+      if (data?.meta_description) setMetaDescription(data.meta_description);
+      setAiToast("✓ AI generated excerpt & meta description!");
+    } catch (e) {
+      setAiToast("AI error: " + (e instanceof Error ? e.message : "Unknown error"));
+    } finally {
+      setAiLoading(false);
+      setTimeout(() => setAiToast(""), 5000);
+    }
   }
 
   async function handleSave(publishNow = false) {
@@ -134,6 +161,20 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* AI Toast notification */}
+          {aiToast && (
+            <span className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all ${aiToast.startsWith('✓') ? 'bg-accent text-accent-foreground border border-border' : 'bg-destructive/10 text-destructive border border-destructive/20'}`}>
+              {aiToast}
+            </span>
+          )}
+          <button
+            onClick={handleAiAssist} disabled={aiLoading}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 transition-colors font-semibold disabled:opacity-50"
+            title="AI: Auto-generate excerpt & meta description"
+          >
+            {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {aiLoading ? 'Generating…' : 'AI Assist'}
+          </button>
           <button
             onClick={() => setPreview(!preview)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors border ${
