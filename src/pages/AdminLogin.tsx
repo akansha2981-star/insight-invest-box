@@ -40,19 +40,26 @@ export default function AdminLogin() {
     setError("");
     try {
       if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
-        // After signup, sign them in to check
-        const { data: signInData } = await supabase.auth.signInWithPassword({ email, password });
+        const { error: signUpError } = await supabase.auth.signUp({ email, password });
+        if (signUpError) throw signUpError;
+        // Auto sign-in after signup
+        const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInErr) {
+          setError("Account created! Please sign in below.");
+          setMode('login');
+          return;
+        }
         if (signInData.user) {
           setIsLoggedIn(true);
-          const { data: admins } = await supabase.from("user_roles").select("id").eq("role", "admin").limit(1);
-          if (!admins || admins.length === 0) {
-            setNoAdmins(true);
-            setError("Account created! No admin exists yet — click 'Claim Admin Access' below to become the first admin.");
-          } else {
-            setError("Account created! Ask your admin to grant you access, then sign in.");
+          // Check own roles first (RLS allows this)
+          const { data: myRoles } = await supabase.from("user_roles").select("role").eq("user_id", signInData.user.id);
+          if (myRoles && myRoles.length > 0) {
+            navigate("/admin");
+            return;
           }
+          // No role assigned — show claim button (edge function will verify no admin exists)
+          setNoAdmins(true);
+          setError("Account ready! Click 'Claim Admin Access' below to become the administrator.");
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -60,19 +67,12 @@ export default function AdminLogin() {
         if (data.user) {
           setIsLoggedIn(true);
           const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
-          if (!roles || roles.length === 0) {
-            // Check if any admin exists
-            const { data: admins } = await supabase.from("user_roles").select("id").eq("role", "admin").limit(1);
-            if (!admins || admins.length === 0) {
-              setNoAdmins(true);
-              setError("No admins exist yet — click 'Claim Admin Access' below.");
-            } else {
-              await supabase.auth.signOut();
-              setIsLoggedIn(false);
-              throw new Error("No admin access. Contact the administrator.");
-            }
-          } else {
+          if (roles && roles.length > 0) {
             navigate("/admin");
+          } else {
+            // No role — let them try to claim (edge fn will check if admin already exists)
+            setNoAdmins(true);
+            setError("No admin role found. If you're the first user, claim admin access below.");
           }
         }
       }
