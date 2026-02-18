@@ -164,6 +164,11 @@
     background: hsl(var(--table-row-hover));
   }
 
+  /* Form inputs */
+  .form-input {
+    @apply w-full bg-muted/40 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary focus:bg-white transition-colors;
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: hsl(var(--muted)); }
