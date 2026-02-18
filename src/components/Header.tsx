@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Bell, Menu, X, TrendingUp, ChevronDown } from "lucide-react";
+import { Bell, Menu, X, TrendingUp, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { SearchBar } from "@/components/SearchBar";
 
 const NAV_ITEMS = [
   { label: "Markets", href: "/markets", sub: ["BSE / NSE", "Derivatives", "Commodities", "Currency", "Global Markets", "IPO"] },
   { label: "Stocks", href: "/stocks", sub: ["Top Gainers", "Top Losers", "52W High", "52W Low", "Most Active", "Stock Screener"] },
+  { label: "Stock Reviews", href: "/stocks/reviews" },
   { label: "News", href: "/news", sub: ["Markets", "Economy", "Companies", "Budget 2025", "Commodities", "Global"] },
   { label: "Economy", href: "/economy" },
   { label: "MF & ETF", href: "/mf" },
@@ -17,7 +19,6 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
-  const [searchFocused, setSearchFocused] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
@@ -68,16 +69,7 @@ export function Header() {
 
         </Link>
 
-        <div className={`hidden md:flex relative flex-1 max-w-lg transition-all ${searchFocused ? 'max-w-xl' : ''}`}>
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search stocks, mutual funds, news..."
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-            className="w-full bg-muted border border-border rounded-full pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:bg-white transition-all"
-          />
-        </div>
+        <SearchBar />
 
         <nav className="hidden lg:flex items-center">
           {NAV_ITEMS.map((item) => (

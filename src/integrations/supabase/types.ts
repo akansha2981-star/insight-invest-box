@@ -131,6 +131,84 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_reviews: {
+        Row: {
+          analyst_name: string | null
+          company_name: string
+          cover_image_url: string | null
+          created_at: string
+          current_price: number | null
+          exchange: string
+          financials: Json | null
+          id: string
+          investment_thesis: string | null
+          is_featured: boolean | null
+          key_metrics: Json | null
+          price_history: Json | null
+          published_at: string | null
+          rating: string | null
+          risks: string | null
+          sector: string
+          status: string | null
+          summary: string | null
+          symbol: string
+          tags: string[] | null
+          target_price: number | null
+          updated_at: string
+          views_count: number | null
+        }
+        Insert: {
+          analyst_name?: string | null
+          company_name: string
+          cover_image_url?: string | null
+          created_at?: string
+          current_price?: number | null
+          exchange?: string
+          financials?: Json | null
+          id?: string
+          investment_thesis?: string | null
+          is_featured?: boolean | null
+          key_metrics?: Json | null
+          price_history?: Json | null
+          published_at?: string | null
+          rating?: string | null
+          risks?: string | null
+          sector?: string
+          status?: string | null
+          summary?: string | null
+          symbol: string
+          tags?: string[] | null
+          target_price?: number | null
+          updated_at?: string
+          views_count?: number | null
+        }
+        Update: {
+          analyst_name?: string | null
+          company_name?: string
+          cover_image_url?: string | null
+          created_at?: string
+          current_price?: number | null
+          exchange?: string
+          financials?: Json | null
+          id?: string
+          investment_thesis?: string | null
+          is_featured?: boolean | null
+          key_metrics?: Json | null
+          price_history?: Json | null
+          published_at?: string | null
+          rating?: string | null
+          risks?: string | null
+          sector?: string
+          status?: string | null
+          summary?: string | null
+          symbol?: string
+          tags?: string[] | null
+          target_price?: number | null
+          updated_at?: string
+          views_count?: number | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

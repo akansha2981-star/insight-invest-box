@@ -14,6 +14,8 @@ import EconomyPage from "./pages/EconomyPage";
 import MFPage from "./pages/MFPage";
 import CryptoPage from "./pages/CryptoPage";
 import PortfolioPage from "./pages/PortfolioPage";
+import StockReviewPage from "./pages/StockReviewPage";
+import StockReviewDetailPage from "./pages/StockReviewDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,8 @@ const App = () => (
           <Route path="/mf" element={<MFPage />} />
           <Route path="/crypto" element={<CryptoPage />} />
           <Route path="/portfolio" element={<PortfolioPage />} />
+          <Route path="/stocks/reviews" element={<StockReviewPage />} />
+          <Route path="/stocks/review/:symbol" element={<StockReviewDetailPage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

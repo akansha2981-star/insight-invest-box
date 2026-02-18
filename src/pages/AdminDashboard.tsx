@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 import { AdminPageSections } from "@/components/AdminPageSections";
 import { AdminBreakingNews } from "@/components/AdminBreakingNews";
+import { AdminStockReviews } from "@/components/AdminStockReviews";
 
 
 interface BlogPost {
@@ -15,7 +16,7 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -108,6 +109,7 @@ export default function AdminDashboard() {
             { id: 'dashboard',      label: 'Dashboard',        icon: BarChart2 },
             { id: 'posts',          label: 'All Articles',      icon: Newspaper },
             { id: 'create',         label: 'Write Article',     icon: PenSquare },
+            { id: 'stock-reviews',  label: 'Stock Reviews',     icon: LineChart },
             { id: 'page-sections',  label: 'Page Sections',     icon: Layout },
             { id: 'breaking-news',  label: 'Breaking News',     icon: Radio },
           ].map(item => (
@@ -265,6 +267,7 @@ export default function AdminDashboard() {
 
         {view === 'page-sections' && <AdminPageSections />}
         {view === 'breaking-news' && <AdminBreakingNews />}
+        {view === 'stock-reviews' && <AdminStockReviews />}
 
       </main>
     </div>
