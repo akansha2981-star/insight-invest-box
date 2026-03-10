@@ -413,18 +413,22 @@ export default function Index() {
         </section>
 
         {/* ════════════════════════════════════════
-            BLOCK 2 — Market Summary Strip
+            BLOCK 1.5 — Mini Index Chart + Trending + Summary
         ════════════════════════════════════════ */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {MARKET_SUMMARY.map(s => (
-            <div key={s.label} className="bg-card border border-border rounded-xl px-4 py-3 shadow-sm">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{s.label}</div>
-              <div className={`number-font text-lg font-black ${s.red ? 'text-loss' : s.green ? 'text-gain' : 'text-foreground'}`}>
-                {s.value}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <MiniIndexChart />
+          <TrendingTopics />
+          <div className="grid grid-cols-2 gap-3 content-start">
+            {MARKET_SUMMARY.map(s => (
+              <div key={s.label} className="bg-card border border-border rounded-xl px-4 py-3 shadow-sm">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{s.label}</div>
+                <div className={`number-font text-lg font-black ${s.red ? 'text-loss' : s.green ? 'text-gain' : 'text-foreground'}`}>
+                  {s.value}
+                </div>
+                <div className="text-[10px] text-muted-foreground mt-0.5">{s.note}</div>
               </div>
-              <div className="text-[10px] text-muted-foreground mt-0.5">{s.note}</div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* ════════════════════════════════════════
