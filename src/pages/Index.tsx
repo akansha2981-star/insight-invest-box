@@ -8,6 +8,9 @@ import { NewsCard, NewsCardHero, NewsCardSmall } from "@/components/NewsCard";
 import { Footer } from "@/components/Footer";
 import { FeaturedStockReviews } from "@/components/FeaturedStockReviews";
 import { HomeBannerSlider } from "@/components/HomeBannerSlider";
+import { MiniIndexChart } from "@/components/MiniIndexChart";
+import { TrendingTopics } from "@/components/TrendingTopics";
+import { TopAnalysts } from "@/components/TopAnalysts";
 import {
   RefreshCw, ArrowUp, ArrowDown, TrendingUp,
   Flame, Star, Globe, BarChart3, Zap, ChevronRight, Clock,
