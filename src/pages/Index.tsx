@@ -564,6 +564,9 @@ export default function Index() {
           {/* ─── Right Sidebar ─── */}
           <aside className="xl:col-span-1 space-y-4">
 
+            {/* Today's Top Analysts */}
+            <TopAnalysts />
+
             {/* Expert Picks */}
             <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
               <div className="border-b border-border px-4 py-3 flex items-center gap-2 bg-gradient-to-r from-amber-50 to-card">
