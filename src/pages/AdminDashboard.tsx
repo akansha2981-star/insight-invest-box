@@ -7,6 +7,7 @@ import { AdminPageSections } from "@/components/AdminPageSections";
 import { AdminBreakingNews } from "@/components/AdminBreakingNews";
 import { AdminStockReviews } from "@/components/AdminStockReviews";
 import { AdminHomeBanners } from "@/components/AdminHomeBanners";
+import { AdminNewsletterSubscribers } from "@/components/AdminNewsletterSubscribers";
 
 
 interface BlogPost {
