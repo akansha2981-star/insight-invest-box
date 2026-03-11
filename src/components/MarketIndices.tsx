@@ -56,21 +56,7 @@ export function MarketIndices() {
   useEffect(() => {
     fetchLive();
     const liveInterval = setInterval(fetchLive, 5 * 60 * 1000);
-
-    // Micro-fluctuation for visual liveliness
-    const flicker = setInterval(() => {
-      setIndices(prev =>
-        prev.map(idx => {
-          const fluct = (Math.random() - 0.5) * idx.value * 0.0005;
-          const newVal = +(idx.value + fluct).toFixed(2);
-          const newChange = +(idx.change + fluct).toFixed(2);
-          const base = idx.value - idx.change;
-          return { ...idx, value: newVal, change: newChange, changePercent: +((newChange / base) * 100).toFixed(2) };
-        })
-      );
-    }, 8000);
-
-    return () => { clearInterval(liveInterval); clearInterval(flicker); };
+    return () => clearInterval(liveInterval);
   }, [fetchLive]);
 
   return (
