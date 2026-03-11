@@ -872,6 +872,11 @@ export default function Index() {
         </section>
 
         {/* ════════════════════════════════════════
+            BLOCK 7.5 — Newsletter Signup
+        ════════════════════════════════════════ */}
+        <NewsletterSignup />
+
+        {/* ════════════════════════════════════════
             BLOCK 8 — Data Disclaimer
         ════════════════════════════════════════ */}
         <div className="bg-card border border-border rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
