@@ -11,6 +11,7 @@ import { HomeBannerSlider } from "@/components/HomeBannerSlider";
 import { MiniIndexChart } from "@/components/MiniIndexChart";
 import { TrendingTopics } from "@/components/TrendingTopics";
 import { TopAnalysts } from "@/components/TopAnalysts";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 import {
   RefreshCw, ArrowUp, ArrowDown, TrendingUp,
   Flame, Star, Globe, BarChart3, Zap, ChevronRight, Clock,
@@ -869,6 +870,11 @@ export default function Index() {
             ))}
           </div>
         </section>
+
+        {/* ════════════════════════════════════════
+            BLOCK 7.5 — Newsletter Signup
+        ════════════════════════════════════════ */}
+        <NewsletterSignup />
 
         {/* ════════════════════════════════════════
             BLOCK 8 — Data Disclaimer
