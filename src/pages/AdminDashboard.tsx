@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 import { AdminPageSections } from "@/components/AdminPageSections";
 import { AdminBreakingNews } from "@/components/AdminBreakingNews";
 import { AdminStockReviews } from "@/components/AdminStockReviews";
 import { AdminHomeBanners } from "@/components/AdminHomeBanners";
+import { AdminNewsletterSubscribers } from "@/components/AdminNewsletterSubscribers";
 
 
 interface BlogPost {
@@ -17,7 +18,7 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -114,6 +115,7 @@ export default function AdminDashboard() {
             { id: 'home-banners',   label: 'Homepage Banners',  icon: Image },
             { id: 'page-sections',  label: 'Page Sections',     icon: Layout },
             { id: 'breaking-news',  label: 'Breaking News',     icon: Radio },
+            { id: 'newsletter',     label: 'Subscribers',       icon: Mail },
           ].map(item => (
             <button
               key={item.id}
@@ -271,6 +273,7 @@ export default function AdminDashboard() {
         {view === 'breaking-news' && <AdminBreakingNews />}
         {view === 'stock-reviews' && <AdminStockReviews />}
         {view === 'home-banners' && <AdminHomeBanners />}
+        {view === 'newsletter' && <AdminNewsletterSubscribers />}
 
       </main>
     </div>

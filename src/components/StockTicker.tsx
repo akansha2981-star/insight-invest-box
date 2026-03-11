@@ -44,23 +44,8 @@ export function StockTicker() {
 
   useEffect(() => {
     fetchLiveData();
-    // Refresh every 5 minutes — Yahoo Finance has no hard daily limit
     const liveInterval = setInterval(fetchLiveData, 5 * 60 * 1000);
-
-    // Local micro-fluctuation every 6s to keep ticker animated
-    const flickerInterval = setInterval(() => {
-      setStocks(prev =>
-        prev.map(s => ({
-          ...s,
-          price: +(s.price * (1 + (Math.random() - 0.5) * 0.0004)).toFixed(2),
-        }))
-      );
-    }, 6000);
-
-    return () => {
-      clearInterval(liveInterval);
-      clearInterval(flickerInterval);
-    };
+    return () => clearInterval(liveInterval);
   }, [fetchLiveData]);
 
   const doubled = [...stocks, ...stocks];
