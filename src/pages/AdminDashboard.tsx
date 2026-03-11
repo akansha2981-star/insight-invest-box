@@ -273,6 +273,7 @@ export default function AdminDashboard() {
         {view === 'breaking-news' && <AdminBreakingNews />}
         {view === 'stock-reviews' && <AdminStockReviews />}
         {view === 'home-banners' && <AdminHomeBanners />}
+        {view === 'newsletter' && <AdminNewsletterSubscribers />}
 
       </main>
     </div>
