@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 import { AdminPageSections } from "@/components/AdminPageSections";
 import { AdminBreakingNews } from "@/components/AdminBreakingNews";
