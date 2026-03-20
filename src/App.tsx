@@ -32,6 +32,7 @@ import TermsPage from "./pages/TermsPage";
 import SitemapPage from "./pages/SitemapPage";
 import NotFound from "./pages/NotFound";
 import UserLogin from "./pages/UserLogin";
+import { FloatingAIButton } from "./components/FloatingAIButton";
 const queryClient = new QueryClient();
 
 const App = () => (
