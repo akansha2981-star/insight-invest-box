@@ -6,6 +6,7 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid
 } from "recharts";
+import { Star } from "lucide-react";
 import { TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 
 const TOP_FUNDS = [
@@ -54,7 +55,7 @@ function Stars({ n }: { n: number }) {
   return (
     <div className="flex gap-0.5">
       {Array.from({ length: 5 }).map((_, i) => (
-        <span key={i} className={i < n ? "text-amber-400" : "text-muted-foreground/30"}>★</span>
+        <Star key={i} className={`h-3.5 w-3.5 ${i < n ? "text-amber-400 fill-amber-400" : "text-muted-foreground/30"}`} />
       ))}
     </div>
   );

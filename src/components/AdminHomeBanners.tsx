@@ -267,7 +267,7 @@ export function AdminHomeBanners() {
                 <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
                   <span>Order: {b.sort_order}</span>
                   {b.cta_label && <span>CTA: {b.cta_label} → {b.cta_url}</span>}
-                  {b.image_url && <span className="text-primary font-semibold">📷 Has Image</span>}
+                  {b.image_url && <span className="text-primary font-semibold flex items-center gap-0.5"><Image className="h-3 w-3" /> Has Image</span>}
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">

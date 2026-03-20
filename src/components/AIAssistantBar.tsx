@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from "react";
-import { Sparkles, Send, Loader2, X, ArrowRight, Building2, TrendingUp, Newspaper, Mic, MicOff } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Sparkles, Send, Loader2, X, ArrowRight, Building2, TrendingUp, Newspaper, Shield, Brain, Search, BarChart3, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ResultCard {
@@ -16,7 +16,7 @@ const SUGGESTIONS = [
   { icon: Building2, text: "Best properties under ₹1 Cr in Pune" },
   { icon: TrendingUp, text: "Top performing stocks this quarter" },
   { icon: Building2, text: "3 BHK apartments in Gurugram" },
-  { icon: Newspaper, text: "Latest market analysis" },
+  { icon: BarChart3, text: "Investment opportunities in Mumbai" },
 ];
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`;
@@ -27,17 +27,43 @@ function parseCards(text: string): { cleanText: string; cards: ResultCard[] } {
     try {
       const parsed = JSON.parse(`[${json}]`);
       cards.push(...parsed);
-    } catch { /* ignore parse errors */ }
+    } catch { /* ignore */ }
     return "";
   });
   return { cleanText: cleanText.trim(), cards };
 }
 
 const cardTypeConfig = {
-  property: { icon: Building2, color: "bg-emerald-500", label: "Property" },
-  stock: { icon: TrendingUp, color: "bg-primary", label: "Stock" },
-  article: { icon: Newspaper, color: "bg-amber-500", label: "Article" },
+  property: { icon: Building2, color: "bg-emerald-600", label: "Property" },
+  stock: { icon: TrendingUp, color: "bg-[hsl(var(--primary))]", label: "Stock" },
+  article: { icon: Newspaper, color: "bg-amber-600", label: "Article" },
 };
+
+/* Animated orb background */
+function AIOrbs({ active }: { active: boolean }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className={`absolute -top-20 -left-20 w-64 h-64 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-600/10 blur-3xl transition-all duration-1000 ${active ? "scale-150 opacity-80" : "scale-100 opacity-30"}`} />
+      <div className={`absolute -bottom-16 -right-16 w-56 h-56 rounded-full bg-gradient-to-br from-violet-500/15 to-indigo-600/10 blur-3xl transition-all duration-1000 delay-200 ${active ? "scale-150 opacity-70" : "scale-100 opacity-20"}`} />
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-gradient-to-br from-amber-400/10 to-orange-500/5 blur-2xl transition-all duration-700 ${active ? "scale-125 opacity-60" : "scale-75 opacity-10"}`} />
+    </div>
+  );
+}
+
+/* Neural network dots animation */
+function NeuralDots() {
+  return (
+    <div className="flex items-center gap-1">
+      {[0, 1, 2, 3, 4].map(i => (
+        <span
+          key={i}
+          className="block w-1 h-1 rounded-full bg-cyan-400 animate-pulse"
+          style={{ animationDelay: `${i * 120}ms`, animationDuration: "1.2s" }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export function AIAssistantBar() {
   const [query, setQuery] = useState("");
@@ -46,8 +72,20 @@ export function AIAssistantBar() {
   const [cards, setCards] = useState<ResultCard[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pulseAnim, setPulseAnim] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Subtle idle pulse
+  useEffect(() => {
+    if (!isOpen && !isStreaming) {
+      const interval = setInterval(() => {
+        setPulseAnim(true);
+        setTimeout(() => setPulseAnim(false), 2000);
+      }, 6000);
+      return () => clearInterval(interval);
+    }
+  }, [isOpen, isStreaming]);
 
   const handleSubmit = useCallback(async (q?: string) => {
     const input = (q || query).trim();
@@ -105,11 +143,10 @@ export function AIAssistantBar() {
               setResponse(cleanText);
               if (newCards.length > 0) setCards(newCards);
             }
-          } catch { /* partial json, wait for more */ }
+          } catch { /* partial json */ }
         }
       }
 
-      // Final parse
       const { cleanText, cards: finalCards } = parseCards(fullText);
       setResponse(cleanText);
       if (finalCards.length > 0) setCards(finalCards);
@@ -138,49 +175,65 @@ export function AIAssistantBar() {
   };
 
   return (
-    <div className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(221,75%,32%)] to-[hsl(var(--primary))]">
-      <div className="max-w-[1440px] mx-auto px-4 py-4">
+    <div className="relative bg-gradient-to-br from-slate-950 via-[hsl(221,50%,12%)] to-slate-950 border-b border-white/5">
+      <AIOrbs active={isStreaming || pulseAnim} />
+      <div className="relative max-w-[1440px] mx-auto px-4 py-5">
+        {/* Label */}
+        <div className="flex items-center gap-2 mb-3">
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-all duration-500 ${isStreaming ? "border-cyan-400/40 bg-cyan-500/10" : "border-white/10 bg-white/5"}`}>
+            <Brain className={`h-3.5 w-3.5 transition-colors duration-500 ${isStreaming ? "text-cyan-400" : "text-white/40"}`} />
+            <span className={`text-[10px] font-bold uppercase tracking-widest transition-colors duration-500 ${isStreaming ? "text-cyan-300" : "text-white/40"}`}>
+              AI Assistant
+            </span>
+            {isStreaming && <NeuralDots />}
+          </div>
+          <span className="text-[10px] text-white/20 font-medium">Powered by InvestingIQ Intelligence</span>
+        </div>
+
         {/* Input area */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1">
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2">
-              {isStreaming ? (
-                <div className="relative">
-                  <Sparkles className="h-4.5 w-4.5 text-amber-400 animate-pulse" />
-                  <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-amber-400 rounded-full animate-ping" />
-                </div>
-              ) : (
-                <Sparkles className="h-4.5 w-4.5 text-white/50" />
-              )}
+        <div className="relative flex items-center gap-3">
+          <div className="relative flex-1 group">
+            <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-violet-500/20 blur-sm transition-opacity duration-500 ${isStreaming || pulseAnim ? "opacity-100" : "opacity-0 group-focus-within:opacity-100"}`} />
+            <div className="relative flex items-center">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                {isStreaming ? (
+                  <div className="relative">
+                    <Search className="h-4.5 w-4.5 text-cyan-400" />
+                    <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-cyan-400 rounded-full animate-ping" />
+                  </div>
+                ) : (
+                  <Search className="h-4.5 w-4.5 text-white/30 group-focus-within:text-white/60 transition-colors" />
+                )}
+              </div>
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleSubmit()}
+                placeholder="Ask anything — properties, stocks, investments, market insights..."
+                className="w-full h-12 pl-12 pr-14 rounded-2xl bg-white/[0.07] backdrop-blur-md border border-white/10 text-white placeholder:text-white/25 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-cyan-500/30 focus:border-cyan-500/30 focus:bg-white/[0.1] transition-all duration-300"
+              />
+              <button
+                onClick={() => handleSubmit()}
+                disabled={!query.trim() || isStreaming}
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-20 disabled:from-white/10 disabled:to-white/10 text-white shadow-lg shadow-cyan-500/20 transition-all duration-300"
+              >
+                {isStreaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+              </button>
             </div>
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleSubmit()}
-              placeholder="Ask AI — 'Best 2BHK in Mumbai under ₹80L' or 'Top IT stocks to buy'..."
-              className="w-full h-11 pl-11 pr-12 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 text-white placeholder:text-white/40 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/25 focus:bg-white/15 transition-all"
-            />
-            <button
-              onClick={() => handleSubmit()}
-              disabled={!query.trim() || isStreaming}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center rounded-lg bg-white/15 hover:bg-white/25 disabled:opacity-30 text-white transition-all"
-            >
-              {isStreaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            </button>
           </div>
         </div>
 
         {/* Suggestion chips */}
         {!isOpen && (
-          <div className="flex items-center gap-2 mt-2.5 overflow-x-auto pb-1 scrollbar-hide">
-            <span className="text-[10px] text-white/30 uppercase tracking-wider font-bold shrink-0">Try</span>
+          <div className="flex items-center gap-2 mt-3 overflow-x-auto pb-1 scrollbar-hide">
+            <Zap className="h-3 w-3 text-amber-500/50 shrink-0" />
             {SUGGESTIONS.map((s, i) => (
               <button
                 key={i}
                 onClick={() => handleSuggestion(s.text)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/8 hover:bg-white/15 border border-white/10 text-white/60 hover:text-white/90 text-xs font-medium transition-all shrink-0"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.06] hover:border-white/15 text-white/40 hover:text-white/80 text-[11px] font-medium transition-all duration-300 shrink-0"
               >
                 <s.icon className="h-3 w-3" />
                 {s.text}
@@ -191,45 +244,43 @@ export function AIAssistantBar() {
 
         {/* Response area */}
         {isOpen && (
-          <div className="mt-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 overflow-hidden">
+          <div className="mt-4 rounded-2xl bg-white/[0.06] backdrop-blur-xl border border-white/10 overflow-hidden animate-fade-in">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
+              <div className="flex items-center gap-3">
                 {isStreaming ? (
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-0.5">
-                      <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <div className="flex items-center gap-2.5">
+                    <div className="relative w-5 h-5">
+                      <div className="absolute inset-0 rounded-full border-2 border-cyan-400/30 border-t-cyan-400 animate-spin" />
                     </div>
-                    <span className="text-xs text-amber-300/80 font-medium">AI is analyzing...</span>
+                    <span className="text-xs text-cyan-300/90 font-semibold">Analyzing your query across our database...</span>
                   </div>
                 ) : (
-                  <span className="text-xs text-white/50 font-medium flex items-center gap-1.5">
-                    <Sparkles className="h-3 w-3 text-amber-400" />
-                    AI Analysis Complete
+                  <span className="text-xs text-white/50 font-medium flex items-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                    Analysis Complete — Results from InvestingIQ Database
                   </span>
                 )}
               </div>
-              <button onClick={handleClose} className="text-white/40 hover:text-white/70 transition-colors">
+              <button onClick={handleClose} className="text-white/30 hover:text-white/70 p-1 rounded-lg hover:bg-white/10 transition-all">
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Content */}
-            <div className="px-4 py-3 max-h-[360px] overflow-y-auto">
+            <div className="px-5 py-4 max-h-[400px] overflow-y-auto">
               {error && (
-                <p className="text-red-300 text-sm">{error}</p>
+                <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>
               )}
               {response && (
-                <div className="text-white/80 text-sm leading-relaxed whitespace-pre-line">
+                <div className="text-white/75 text-sm leading-relaxed whitespace-pre-line">
                   {response}
                 </div>
               )}
 
               {/* Result cards */}
               {cards.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
                   {cards.map((card, i) => {
                     const config = cardTypeConfig[card.type] || cardTypeConfig.article;
                     const Icon = config.icon;
@@ -237,35 +288,44 @@ export function AIAssistantBar() {
                       <Link
                         key={`${card.id}-${i}`}
                         to={card.link}
-                        className="group flex items-start gap-3 p-3 rounded-lg bg-white/8 hover:bg-white/15 border border-white/10 hover:border-white/25 transition-all"
+                        className="group relative flex items-start gap-3 p-3.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.06] hover:border-white/20 transition-all duration-300"
+                        style={{ animationDelay: `${i * 80}ms` }}
                       >
-                        <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-white/10 flex items-center justify-center">
+                        <div className="shrink-0 w-11 h-11 rounded-xl overflow-hidden bg-white/[0.08] flex items-center justify-center ring-1 ring-white/10">
                           {card.image ? (
                             <img src={card.image} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <Icon className="h-5 w-5 text-white/40" />
+                            <Icon className="h-5 w-5 text-white/30" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 mb-0.5">
-                            <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${config.color} text-white`}>
-                              {config.label}
-                            </span>
-                          </div>
-                          <p className="text-white/90 text-xs font-semibold truncate group-hover:text-white transition-colors">
+                          <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md ${config.color} text-white`}>
+                            {config.label}
+                          </span>
+                          <p className="text-white/85 text-xs font-semibold truncate mt-1 group-hover:text-white transition-colors">
                             {card.title}
                           </p>
                           {card.subtitle && (
-                            <p className="text-white/45 text-[11px] truncate">{card.subtitle}</p>
+                            <p className="text-white/35 text-[11px] truncate">{card.subtitle}</p>
                           )}
                           {card.price && (
-                            <p className="text-amber-300/80 text-xs font-bold mt-0.5">{card.price}</p>
+                            <p className="text-cyan-300/80 text-xs font-bold mt-0.5">{card.price}</p>
                           )}
                         </div>
-                        <ArrowRight className="h-3.5 w-3.5 text-white/20 group-hover:text-white/60 shrink-0 mt-1 transition-colors" />
+                        <ArrowRight className="h-3.5 w-3.5 text-white/15 group-hover:text-white/50 group-hover:translate-x-0.5 shrink-0 mt-1 transition-all duration-300" />
                       </Link>
                     );
                   })}
+                </div>
+              )}
+
+              {/* Disclaimer */}
+              {!isStreaming && response && (
+                <div className="mt-4 flex items-start gap-2 px-3 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.05]">
+                  <Shield className="h-3.5 w-3.5 text-white/25 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-white/25 leading-relaxed">
+                    All data shown is sourced from InvestingIQ's internal database. Stock and market data referenced is sourced from official exchanges (NSE, BSE) and trusted platforms. InvestingIQ does not provide investment recommendations. This is for informational purposes only. Please consult a certified financial advisor before making investment decisions.
+                  </p>
                 </div>
               )}
             </div>

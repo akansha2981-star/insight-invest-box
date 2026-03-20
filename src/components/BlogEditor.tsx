@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Eye, EyeOff, Clock, Send, Tag, User, Hash, FileText, Search, ListOrdered, UploadCloud, Trash2, Sparkles, Loader2 } from "lucide-react";
+import { X, Eye, EyeOff, Clock, Send, Tag, User, Hash, FileText, Search, ListOrdered, UploadCloud, Trash2, Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { RichTextEditor } from "./RichTextEditor";
 
 interface BlogPost {
@@ -107,7 +107,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
       if (data?.error) throw new Error(data.error);
       if (data?.excerpt) setExcerpt(data.excerpt);
       if (data?.meta_description) setMetaDescription(data.meta_description);
-      setAiToast("✓ AI generated excerpt & meta description!");
+      setAiToast("AI generated excerpt & meta description successfully");
     } catch (e) {
       setAiToast("AI error: " + (e instanceof Error ? e.message : "Unknown error"));
     } finally {
@@ -163,7 +163,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
         <div className="flex items-center gap-2">
           {/* AI Toast notification */}
           {aiToast && (
-            <span className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all ${aiToast.startsWith('✓') ? 'bg-accent text-accent-foreground border border-border' : 'bg-destructive/10 text-destructive border border-destructive/20'}`}>
+            <span className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all ${aiToast.startsWith('AI generated') ? 'bg-accent text-accent-foreground border border-border' : 'bg-destructive/10 text-destructive border border-destructive/20'}`}>
               {aiToast}
             </span>
           )}
@@ -203,7 +203,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
       <div className="flex-1 overflow-auto">
         {error && (
           <div className="mx-6 mt-4 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl">
-            ⚠ {error}
+            <AlertCircle className="h-3.5 w-3.5 inline mr-1" /> {error}
           </div>
         )}
 

@@ -24,28 +24,58 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const sb = createClient(supabaseUrl, supabaseKey);
 
-    const [propertiesRes, stocksRes] = await Promise.all([
-      sb.from("properties").select("title,slug,city,price_display,bhk,property_type,listing_type,cover_image_url,roi_projection").limit(20),
-      sb.from("stock_reviews").select("symbol,company_name,sector,rating,current_price,target_price,summary").eq("status", "published").limit(15),
+    // Fetch ALL internal data for context
+    const [propertiesRes, stocksRes, postsRes, trendsRes] = await Promise.all([
+      sb.from("properties").select("title,slug,city,locality,price_display,bhk,property_type,listing_type,cover_image_url,roi_projection,amenities,developer_name,possession_status,area_sqft,price").eq("status", "active").limit(50),
+      sb.from("stock_reviews").select("symbol,company_name,sector,rating,current_price,target_price,summary,tags").eq("status", "published").limit(30),
+      sb.from("blog_posts").select("title,slug,category,excerpt").eq("status", "published").order("published_at", { ascending: false }).limit(15),
+      sb.from("re_price_trends").select("city,locality,avg_price_sqft,change_pct,ai_insights,period").limit(20),
     ]);
 
-    const properties = (propertiesRes.data || []).map(p => `${p.title} | ${p.city} | ${p.price_display || ''} | ${p.bhk || ''} | ${p.property_type} | ${p.listing_type} | slug:${p.slug}`).join("\n");
-    const stocks = (stocksRes.data || []).map(s => `${s.symbol} ${s.company_name} | ${s.sector} | Rating:${s.rating || 'N/A'} | CMP:${s.current_price || 'N/A'} Target:${s.target_price || 'N/A'}`).join("\n");
+    const properties = (propertiesRes.data || []).map(p =>
+      `${p.title} | ${p.city}${p.locality ? ', ' + p.locality : ''} | ${p.price_display || '₹' + p.price} | ${p.bhk || '-'} BHK | ${p.property_type} | ${p.listing_type} | ${p.developer_name || '-'} | ${p.possession_status || '-'} | ${p.area_sqft || '-'} sqft | slug:${p.slug}${p.amenities?.length ? ' | Amenities:' + p.amenities.join(',') : ''}`
+    ).join("\n");
 
-    const systemPrompt = `You are InvestingIQ's AI assistant — an expert financial and real estate advisor for the Indian market. Answer in the SAME LANGUAGE the user writes in. Be concise and actionable.
+    const stocks = (stocksRes.data || []).map(s =>
+      `${s.symbol} ${s.company_name} | Sector:${s.sector} | Rating:${s.rating || 'N/A'} | CMP:₹${s.current_price || 'N/A'} | Target:₹${s.target_price || 'N/A'} | ${s.summary || ''}`
+    ).join("\n");
 
-PLATFORM DATA:
-PROPERTIES:
+    const articles = (postsRes.data || []).map(a =>
+      `${a.title} | Category:${a.category} | slug:${a.slug}`
+    ).join("\n");
+
+    const trends = (trendsRes.data || []).map(t =>
+      `${t.city}${t.locality ? '/' + t.locality : ''} | Avg:₹${t.avg_price_sqft}/sqft | Change:${t.change_pct}% | ${t.ai_insights || ''}`
+    ).join("\n");
+
+    const systemPrompt = `You are InvestingIQ's AI assistant — an expert financial and real estate advisor for the Indian market.
+
+CRITICAL RULES:
+1. ONLY recommend items that exist in the database below. NEVER fabricate listings or stocks.
+2. Answer in the SAME LANGUAGE the user writes in.
+3. Be concise, helpful, and actionable. Use bullet points.
+4. For ANY investment-related information, ALWAYS end with: "Data sourced from official exchanges (NSE/BSE) and trusted platforms. This is informational only — not a recommendation. Consult a certified financial advisor."
+
+INTERNAL DATABASE:
+
+PROPERTIES (${(propertiesRes.data || []).length} listings):
 ${properties || "No properties listed yet."}
 
-STOCKS:
+STOCK REVIEWS (${(stocksRes.data || []).length} reviews):
 ${stocks || "No stock reviews yet."}
 
-When recommending items, include them as structured cards:
-<!--CARDS:[{"type":"property","title":"Name","subtitle":"City, BHK","price":"₹XX","link":"/real-estate/SLUG"},...]-->
-<!--CARDS:[{"type":"stock","title":"SYMBOL","subtitle":"Sector | Rating","price":"₹CMP","link":"/stocks/review/SYMBOL"},...]-->
+ARTICLES (${(postsRes.data || []).length}):
+${articles || "No articles yet."}
 
-For investment questions, add a brief disclaimer. Be helpful and direct.`;
+PRICE TRENDS:
+${trends || "No trend data yet."}
+
+CARD FORMAT — When recommending items from our database, embed structured cards:
+<!--CARDS:[{"type":"property","title":"Property Name","subtitle":"City, BHK","price":"₹XX","link":"/real-estate/SLUG"}]-->
+<!--CARDS:[{"type":"stock","title":"SYMBOL","subtitle":"Sector | Rating","price":"₹CMP","link":"/stocks/review/SYMBOL"}]-->
+<!--CARDS:[{"type":"article","title":"Article Title","subtitle":"Category","link":"/news/SLUG"}]-->
+
+If the user asks about something NOT in our database, say: "I don't have that in our current listings. Here's what we do have that might interest you:" and suggest relevant alternatives from our data.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
