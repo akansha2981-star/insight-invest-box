@@ -176,6 +176,204 @@ export type Database = {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          amenities: string[] | null
+          area_sqft: number | null
+          bhk: string | null
+          city: string
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          developer_name: string | null
+          id: string
+          images: string[] | null
+          is_featured: boolean | null
+          is_price_drop: boolean | null
+          listing_type: string
+          locality: string | null
+          original_price: number | null
+          price: number
+          price_display: string | null
+          property_type: string
+          rating: number | null
+          reviews_count: number | null
+          slug: string
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amenities?: string[] | null
+          area_sqft?: number | null
+          bhk?: string | null
+          city: string
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          developer_name?: string | null
+          id?: string
+          images?: string[] | null
+          is_featured?: boolean | null
+          is_price_drop?: boolean | null
+          listing_type?: string
+          locality?: string | null
+          original_price?: number | null
+          price?: number
+          price_display?: string | null
+          property_type?: string
+          rating?: number | null
+          reviews_count?: number | null
+          slug: string
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amenities?: string[] | null
+          area_sqft?: number | null
+          bhk?: string | null
+          city?: string
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          developer_name?: string | null
+          id?: string
+          images?: string[] | null
+          is_featured?: boolean | null
+          is_price_drop?: boolean | null
+          listing_type?: string
+          locality?: string | null
+          original_price?: number | null
+          price?: number
+          price_display?: string | null
+          property_type?: string
+          rating?: number | null
+          reviews_count?: number | null
+          slug?: string
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      re_interior_designs: {
+        Row: {
+          after_image_url: string | null
+          before_image_url: string | null
+          category: string | null
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          sort_order: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          after_image_url?: string | null
+          before_image_url?: string | null
+          category?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          after_image_url?: string | null
+          before_image_url?: string | null
+          category?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      re_price_trends: {
+        Row: {
+          ai_insights: string | null
+          avg_price_sqft: number | null
+          change_pct: number | null
+          city: string
+          created_at: string
+          id: string
+          locality: string | null
+          period: string | null
+          trend_data: Json | null
+          updated_at: string
+        }
+        Insert: {
+          ai_insights?: string | null
+          avg_price_sqft?: number | null
+          change_pct?: number | null
+          city: string
+          created_at?: string
+          id?: string
+          locality?: string | null
+          period?: string | null
+          trend_data?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          ai_insights?: string | null
+          avg_price_sqft?: number | null
+          change_pct?: number | null
+          city?: string
+          created_at?: string
+          id?: string
+          locality?: string | null
+          period?: string | null
+          trend_data?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      re_services: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          icon_name: string | null
+          id: string
+          is_active: boolean | null
+          sort_order: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_config: {
         Row: {
           id: string

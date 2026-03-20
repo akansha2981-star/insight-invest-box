@@ -33,6 +33,13 @@ const NAV_ITEMS = [
     { label: "Global", href: "/news" },
   ]},
   { label: "Economy", href: "/economy" },
+  { label: "Real Estate", href: "/real-estate", sub: [
+    { label: "Buy Property", href: "/real-estate" },
+    { label: "Rent Property", href: "/real-estate" },
+    { label: "Price Trends", href: "/real-estate" },
+    { label: "Interior Design", href: "/real-estate" },
+    { label: "Services", href: "/real-estate" },
+  ]},
   { label: "MF & ETF", href: "/mf" },
   { label: "Crypto", href: "/crypto" },
   { label: "Portfolio", href: "/portfolio" },

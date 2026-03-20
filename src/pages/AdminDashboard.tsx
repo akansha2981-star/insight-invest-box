@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 import { AdminPageSections } from "@/components/AdminPageSections";
 import { AdminBreakingNews } from "@/components/AdminBreakingNews";
 import { AdminStockReviews } from "@/components/AdminStockReviews";
 import { AdminHomeBanners } from "@/components/AdminHomeBanners";
 import { AdminNewsletterSubscribers } from "@/components/AdminNewsletterSubscribers";
+import { AdminRealEstate } from "@/components/AdminRealEstate";
 
 
 interface BlogPost {
@@ -18,7 +19,7 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -115,6 +116,7 @@ export default function AdminDashboard() {
             { id: 'home-banners',   label: 'Homepage Banners',  icon: Image },
             { id: 'page-sections',  label: 'Page Sections',     icon: Layout },
             { id: 'breaking-news',  label: 'Breaking News',     icon: Radio },
+            { id: 'real-estate',    label: 'Real Estate',       icon: Home },
             { id: 'newsletter',     label: 'Subscribers',       icon: Mail },
           ].map(item => (
             <button
@@ -274,6 +276,7 @@ export default function AdminDashboard() {
         {view === 'stock-reviews' && <AdminStockReviews />}
         {view === 'home-banners' && <AdminHomeBanners />}
         {view === 'newsletter' && <AdminNewsletterSubscribers />}
+        {view === 'real-estate' && <AdminRealEstate />}
 
       </main>
     </div>
