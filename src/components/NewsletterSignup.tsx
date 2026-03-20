@@ -27,7 +27,7 @@ export function NewsletterSignup() {
     }
     setStatus("success");
     setEmail("");
-    toast({ title: "Subscribed! 🎉", description: "You'll receive daily market updates." });
+    toast({ title: "Subscribed!", description: "You'll receive daily market updates." });
   }
 
   return (

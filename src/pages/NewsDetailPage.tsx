@@ -81,7 +81,7 @@ export default function NewsDetailPage() {
         <Header />
         <StockTicker />
         <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-          <div className="text-5xl mb-4">📰</div>
+          <Newspaper className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-foreground mb-2">Article Not Found</h1>
           <p className="text-muted-foreground mb-6">This article may have been removed or is not published yet.</p>
           <Link to="/news" className="text-primary hover:text-primary/80 font-medium">← Back to News</Link>

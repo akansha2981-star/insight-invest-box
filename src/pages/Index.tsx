@@ -667,7 +667,7 @@ export default function Index() {
             {/* Commodities */}
             <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
               <div className="border-b border-border px-5 py-3 bg-muted/30 flex items-center justify-between">
-                <span className="font-black text-[13px] text-foreground">🥇 Commodities (MCX)</span>
+                <span className="font-black text-[13px] text-foreground flex items-center gap-1.5"><BarChart3 className="h-3.5 w-3.5 text-[hsl(var(--gold))]" /> Commodities (MCX)</span>
                 <div className="flex items-center gap-2">
                   {marketDataUpdatedAt && <span className="text-[9px] text-gain font-bold">● LIVE</span>}
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Futures</span>

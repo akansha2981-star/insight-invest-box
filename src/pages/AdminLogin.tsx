@@ -175,7 +175,7 @@ export default function AdminLogin() {
           {isLoggedIn && noAdmins && (
             <div className="mt-4 p-4 bg-accent border border-border rounded-xl">
               <p className="text-xs text-foreground mb-3 font-medium">
-                🎉 You're the first user! No admin exists yet. Claim admin access to manage the platform.
+                You're the first user! No admin exists yet. Claim admin access to manage the platform.
               </p>
               <button
                 onClick={handleClaimAdmin}

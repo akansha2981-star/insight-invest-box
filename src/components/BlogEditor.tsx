@@ -203,7 +203,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
       <div className="flex-1 overflow-auto">
         {error && (
           <div className="mx-6 mt-4 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl">
-            ⚠ {error}
+            <AlertCircle className="h-3.5 w-3.5 inline mr-1" /> {error}
           </div>
         )}
 
