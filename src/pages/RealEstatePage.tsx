@@ -827,7 +827,7 @@ export default function RealEstatePage() {
 /* ── Property Card Component ── */
 function PropertyCard({ property: p, showPriceDrop, compact }: { property: Property; showPriceDrop?: boolean; compact?: boolean }) {
   return (
-    <div className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-all">
+    <Link to={`/real-estate/${p.slug}`} className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-all block">
       <div className="relative aspect-[16/10] bg-gradient-to-br from-slate-100 to-slate-50 overflow-hidden">
         {p.cover_image_url ? (
           <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -848,11 +848,14 @@ function PropertyCard({ property: p, showPriceDrop, compact }: { property: Prope
             </span>
           )}
         </div>
-        <button className="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors opacity-0 group-hover:opacity-100">
+        <button onClick={e => e.preventDefault()} className="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors opacity-0 group-hover:opacity-100">
           <Heart className="h-4 w-4 text-muted-foreground hover:text-red-500 transition-colors" />
         </button>
         {p.listing_type === "rent" && (
           <span className="absolute bottom-3 left-3 bg-[#1a1a2e]/80 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-1 rounded-lg uppercase">For Rent</span>
+        )}
+        {p.listing_type === "pg" && (
+          <span className="absolute bottom-3 left-3 bg-purple-600/80 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-1 rounded-lg uppercase">PG</span>
         )}
       </div>
       <div className="p-4">
@@ -898,6 +901,6 @@ function PropertyCard({ property: p, showPriceDrop, compact }: { property: Prope
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
