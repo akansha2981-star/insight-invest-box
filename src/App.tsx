@@ -17,6 +17,7 @@ import PortfolioPage from "./pages/PortfolioPage";
 import StockReviewPage from "./pages/StockReviewPage";
 import StockReviewDetailPage from "./pages/StockReviewDetailPage";
 import RealEstatePage from "./pages/RealEstatePage";
+import PropertyDetailPage from "./pages/PropertyDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/stocks/reviews" element={<StockReviewPage />} />
           <Route path="/stocks/review/:symbol" element={<StockReviewDetailPage />} />
           <Route path="/real-estate" element={<RealEstatePage />} />
+          <Route path="/real-estate/:slug" element={<PropertyDetailPage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
