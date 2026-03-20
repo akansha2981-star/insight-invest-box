@@ -106,7 +106,7 @@ function formatDbResponse(properties: any[], stocks: any[], articles: any[], tre
   if (totalResults === 0) return null;
 
   if (properties.length > 0) {
-    parts.push("## 🏠 Properties Found\n");
+    parts.push("## Properties Found\n");
     const cards = properties.map(p => ({
       type: "property",
       title: p.title,
@@ -117,18 +117,14 @@ function formatDbResponse(properties: any[], stocks: any[], articles: any[], tre
     
     for (const p of properties) {
       parts.push(`- **${p.title}** — ${p.city}${p.locality ? ', ' + p.locality : ''}`);
-      parts.push(`  ${p.bhk || '-'} BHK ${p.property_type} | ${p.price_display || '₹' + p.price}`);
-      if (p.developer_name) parts.push(`  Developer: ${p.developer_name}`);
-      if (p.possession_status) parts.push(`  Status: ${p.possession_status}`);
-      if (p.area_sqft) parts.push(`  Area: ${p.area_sqft} sqft`);
-      if (p.roi_projection) parts.push(`  ROI: ${p.roi_projection}`);
+      parts.push(`  ${p.bhk || '-'} BHK ${p.property_type} | ${p.price_display || '₹' + p.price}${p.area_sqft ? ' | ' + p.area_sqft + ' sqft' : ''}${p.developer_name ? ' | ' + p.developer_name : ''}`);
       parts.push("");
     }
     parts.push(`<!--CARDS:${JSON.stringify(cards)}-->`);
   }
 
   if (stocks.length > 0) {
-    parts.push("\n## 📈 Stock Reviews\n");
+    parts.push("\n## Stock Reviews\n");
     const cards = stocks.map(s => ({
       type: "stock",
       title: s.symbol,
@@ -138,8 +134,7 @@ function formatDbResponse(properties: any[], stocks: any[], articles: any[], tre
     }));
     
     for (const s of stocks) {
-      parts.push(`- **${s.symbol}** (${s.company_name}) — ${s.sector}`);
-      parts.push(`  Rating: ${s.rating || 'N/A'} | CMP: ₹${s.current_price || 'N/A'} | Target: ₹${s.target_price || 'N/A'}`);
+      parts.push(`- **${s.symbol}** (${s.company_name}) — Rating: ${s.rating || 'N/A'} | CMP: ₹${s.current_price || 'N/A'} | Target: ₹${s.target_price || 'N/A'}`);
       if (s.summary) parts.push(`  ${s.summary}`);
       parts.push("");
     }
@@ -147,7 +142,7 @@ function formatDbResponse(properties: any[], stocks: any[], articles: any[], tre
   }
 
   if (articles.length > 0) {
-    parts.push("\n## 📰 Related Articles\n");
+    parts.push("\n## Related Articles\n");
     const cards = articles.map(a => ({
       type: "article",
       title: a.title,
@@ -164,15 +159,13 @@ function formatDbResponse(properties: any[], stocks: any[], articles: any[], tre
   }
 
   if (trends.length > 0) {
-    parts.push("\n## 📊 Price Trends\n");
+    parts.push("\n## Price Trends\n");
     for (const t of trends) {
-      parts.push(`- **${t.city}${t.locality ? '/' + t.locality : ''}** — Avg: ₹${t.avg_price_sqft}/sqft | Change: ${t.change_pct}%`);
+      parts.push(`- **${t.city}${t.locality ? ' / ' + t.locality : ''}** — Avg: ₹${t.avg_price_sqft}/sqft | Change: ${t.change_pct}%`);
       if (t.ai_insights) parts.push(`  ${t.ai_insights}`);
       parts.push("");
     }
   }
-
-  parts.push("\n---\n*Data sourced from official exchanges (NSE/BSE) and trusted platforms. This is informational only — not a recommendation. Consult a certified financial advisor.*");
 
   return parts.join("\n");
 }
