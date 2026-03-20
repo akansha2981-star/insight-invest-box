@@ -19,6 +19,11 @@ const PAGE_OPTIONS = [
   { key: "mf", label: "MF & ETFs" },
   { key: "crypto", label: "Crypto" },
   { key: "portfolio", label: "Portfolio" },
+  { key: "about", label: "About Us" },
+  { key: "careers", label: "Careers" },
+  { key: "contact", label: "Contact Us" },
+  { key: "privacy", label: "Privacy Policy" },
+  { key: "terms", label: "Terms of Use" },
 ];
 
 const BLANK: Omit<PageSection, "id"> = {

@@ -104,12 +104,12 @@ const FALLBACK_BREAKING_NEWS = [
 
 
 const TOOLS = [
-  { name: "SIP Calculator",    icon: Calculator, desc: "Plan your SIP returns",   bg: "bg-emerald-50 border-emerald-200", hover: "hover:bg-emerald-100" },
-  { name: "EMI Calculator",    icon: Home, desc: "Home & auto loan EMIs",   bg: "bg-blue-50 border-blue-200",     hover: "hover:bg-blue-100" },
-  { name: "Stock Screener",    icon: Search, desc: "Filter & sort stocks",    bg: "bg-purple-50 border-purple-200", hover: "hover:bg-purple-100" },
-  { name: "Portfolio Tracker", icon: PieChart, desc: "Track your returns",      bg: "bg-amber-50 border-amber-200",   hover: "hover:bg-amber-100" },
-  { name: "Tax Calculator",    icon: Newspaper, desc: "Capital gains & LTCG",   bg: "bg-rose-50 border-rose-200",    hover: "hover:bg-rose-100" },
-  { name: "FD Calculator",     icon: Landmark, desc: "Fixed deposit yields",    bg: "bg-indigo-50 border-indigo-200", hover: "hover:bg-indigo-100" },
+  { name: "SIP Calculator",    icon: Calculator, desc: "Plan your SIP returns",   bg: "bg-emerald-50 border-emerald-200", hover: "hover:bg-emerald-100", to: "/tools/sip" },
+  { name: "EMI Calculator",    icon: Home, desc: "Home & auto loan EMIs",   bg: "bg-blue-50 border-blue-200",     hover: "hover:bg-blue-100", to: "/tools/emi" },
+  { name: "Stock Screener",    icon: Search, desc: "Filter & sort stocks",    bg: "bg-purple-50 border-purple-200", hover: "hover:bg-purple-100", to: "/tools/screener" },
+  { name: "Portfolio Tester",  icon: PieChart, desc: "Test your portfolio",    bg: "bg-amber-50 border-amber-200",   hover: "hover:bg-amber-100", to: "/tools/portfolio" },
+  { name: "Tax Calculator",    icon: Newspaper, desc: "Capital gains & LTCG",   bg: "bg-rose-50 border-rose-200",    hover: "hover:bg-rose-100", to: "/tools/tax" },
+  { name: "FD Calculator",     icon: Landmark, desc: "Fixed deposit yields",    bg: "bg-indigo-50 border-indigo-200", hover: "hover:bg-indigo-100", to: "/tools/fd" },
 ];
 
 const MARKET_SUMMARY = [
@@ -926,12 +926,12 @@ export default function Index() {
           <SectionHeading icon={Calculator} title="Tools & Calculators" />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {TOOLS.map(tool => (
-              <div key={tool.name}
-                className={`${tool.bg} ${tool.hover} border rounded-xl p-4 transition-all cursor-pointer text-center group shadow-sm hover:shadow-md`}>
+              <Link key={tool.name} to={tool.to}
+                className={`${tool.bg} ${tool.hover} border rounded-xl p-4 transition-all cursor-pointer text-center group shadow-sm hover:shadow-md block`}>
                 <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-white/60 flex items-center justify-center"><tool.icon className="h-5 w-5 text-foreground" /></div>
                 <div className="text-[12px] font-bold text-foreground group-hover:text-primary transition-colors">{tool.name}</div>
                 <div className="text-[10px] text-muted-foreground mt-0.5">{tool.desc}</div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>

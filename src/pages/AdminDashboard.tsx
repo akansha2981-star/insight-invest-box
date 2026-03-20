@@ -19,7 +19,7 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -114,7 +114,8 @@ export default function AdminDashboard() {
             { id: 'create',         label: 'Write Article',     icon: PenSquare },
             { id: 'stock-reviews',  label: 'Stock Reviews',     icon: LineChart },
             { id: 'home-banners',   label: 'Homepage Banners',  icon: Image },
-            { id: 'page-sections',  label: 'Page Sections',     icon: Layout },
+            { id: 'pages',          label: 'Pages Content',     icon: FileText },
+            { id: 'page-sections',  label: 'Section Blocks',    icon: Layout },
             { id: 'breaking-news',  label: 'Breaking News',     icon: Radio },
             { id: 'real-estate',    label: 'Real Estate',       icon: Home },
             { id: 'newsletter',     label: 'Subscribers',       icon: Mail },
@@ -272,6 +273,7 @@ export default function AdminDashboard() {
         )}
 
         {view === 'page-sections' && <AdminPageSections />}
+        {view === 'pages' && <AdminPageSections />}
         {view === 'breaking-news' && <AdminBreakingNews />}
         {view === 'stock-reviews' && <AdminStockReviews />}
         {view === 'home-banners' && <AdminHomeBanners />}

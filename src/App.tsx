@@ -18,6 +18,18 @@ import StockReviewPage from "./pages/StockReviewPage";
 import StockReviewDetailPage from "./pages/StockReviewDetailPage";
 import RealEstatePage from "./pages/RealEstatePage";
 import PropertyDetailPage from "./pages/PropertyDetailPage";
+import SIPCalculatorPage from "./pages/SIPCalculatorPage";
+import EMICalculatorPage from "./pages/EMICalculatorPage";
+import FDCalculatorPage from "./pages/FDCalculatorPage";
+import TaxCalculatorPage from "./pages/TaxCalculatorPage";
+import StockScreenerPage from "./pages/StockScreenerPage";
+import PortfolioTesterPage from "./pages/PortfolioTesterPage";
+import AboutPage from "./pages/AboutPage";
+import CareersPage from "./pages/CareersPage";
+import ContactPage from "./pages/ContactPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import TermsPage from "./pages/TermsPage";
+import SitemapPage from "./pages/SitemapPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +54,18 @@ const App = () => (
           <Route path="/stocks/review/:symbol" element={<StockReviewDetailPage />} />
           <Route path="/real-estate" element={<RealEstatePage />} />
           <Route path="/real-estate/:slug" element={<PropertyDetailPage />} />
+          <Route path="/tools/sip" element={<SIPCalculatorPage />} />
+          <Route path="/tools/emi" element={<EMICalculatorPage />} />
+          <Route path="/tools/fd" element={<FDCalculatorPage />} />
+          <Route path="/tools/tax" element={<TaxCalculatorPage />} />
+          <Route path="/tools/screener" element={<StockScreenerPage />} />
+          <Route path="/tools/portfolio" element={<PortfolioTesterPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/careers" element={<CareersPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/sitemap" element={<SitemapPage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
