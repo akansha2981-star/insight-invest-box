@@ -48,20 +48,24 @@ When recommending items, include them as structured cards:
 
 For investment questions, add a brief disclaimer. Be helpful and direct.`;
 
+    const reqBody = {
+      model: "google/gemini-2.5-flash",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: query },
+      ],
+      stream: true,
+    };
+    console.log("Sending request, body length:", JSON.stringify(reqBody).length);
+    console.log("API key present:", !!LOVABLE_API_KEY, "key length:", LOVABLE_API_KEY?.length);
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: query },
-        ],
-        stream: true,
-      }),
+      body: JSON.stringify(reqBody),
     });
 
     if (!response.ok) {
