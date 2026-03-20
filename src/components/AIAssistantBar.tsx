@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Sparkles, Send, Loader2, X, ArrowRight, Building2, TrendingUp, Newspaper, Shield, Brain, Search, BarChart3, Zap } from "lucide-react";
+import { Sparkles, Send, Loader2, X, ArrowRight, Building2, TrendingUp, Newspaper, Shield, Brain, Search, BarChart3, Zap, MessageSquare, Cpu, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ResultCard {
@@ -34,33 +34,84 @@ function parseCards(text: string): { cleanText: string; cards: ResultCard[] } {
 }
 
 const cardTypeConfig = {
-  property: { icon: Building2, color: "bg-emerald-600", label: "Property" },
-  stock: { icon: TrendingUp, color: "bg-[hsl(var(--primary))]", label: "Stock" },
-  article: { icon: Newspaper, color: "bg-amber-600", label: "Article" },
+  property: { icon: Building2, gradient: "from-emerald-500 to-teal-600", label: "Property", bg: "bg-emerald-500/10", text: "text-emerald-400" },
+  stock: { icon: TrendingUp, gradient: "from-blue-500 to-indigo-600", label: "Stock", bg: "bg-blue-500/10", text: "text-blue-400" },
+  article: { icon: Newspaper, gradient: "from-amber-500 to-orange-600", label: "Article", bg: "bg-amber-500/10", text: "text-amber-400" },
 };
 
-/* Animated orb background */
-function AIOrbs({ active }: { active: boolean }) {
+/* Animated mesh gradient background */
+function AIMeshBG({ active }: { active: boolean }) {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className={`absolute -top-20 -left-20 w-64 h-64 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-600/10 blur-3xl transition-all duration-1000 ${active ? "scale-150 opacity-80" : "scale-100 opacity-30"}`} />
-      <div className={`absolute -bottom-16 -right-16 w-56 h-56 rounded-full bg-gradient-to-br from-violet-500/15 to-indigo-600/10 blur-3xl transition-all duration-1000 delay-200 ${active ? "scale-150 opacity-70" : "scale-100 opacity-20"}`} />
-      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-gradient-to-br from-amber-400/10 to-orange-500/5 blur-2xl transition-all duration-700 ${active ? "scale-125 opacity-60" : "scale-75 opacity-10"}`} />
+      {/* Primary glow */}
+      <div className={`absolute -top-32 -left-32 w-96 h-96 rounded-full transition-all duration-[2000ms] ease-in-out ${active ? "bg-cyan-500/25 scale-150" : "bg-cyan-500/8 scale-100"}`} style={{ filter: "blur(80px)" }} />
+      {/* Secondary glow */}
+      <div className={`absolute -bottom-24 -right-24 w-80 h-80 rounded-full transition-all duration-[2000ms] ease-in-out delay-300 ${active ? "bg-violet-500/20 scale-150" : "bg-violet-500/5 scale-100"}`} style={{ filter: "blur(80px)" }} />
+      {/* Accent glow */}
+      <div className={`absolute top-1/2 left-1/3 w-60 h-60 rounded-full transition-all duration-[1500ms] ease-in-out ${active ? "bg-amber-400/15 scale-125" : "bg-amber-400/3 scale-75"}`} style={{ filter: "blur(60px)" }} />
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+        backgroundSize: "40px 40px",
+      }} />
+      {/* Scan line effect when active */}
+      {active && (
+        <div className="absolute inset-0">
+          <div className="absolute w-full h-px bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent animate-[scan_3s_ease-in-out_infinite]" style={{
+            animation: "scan 3s ease-in-out infinite",
+          }} />
+        </div>
+      )}
     </div>
   );
 }
 
-/* Neural network dots animation */
-function NeuralDots() {
+/* Thinking indicator with wave animation */
+function AIThinkingWave() {
   return (
-    <div className="flex items-center gap-1">
-      {[0, 1, 2, 3, 4].map(i => (
+    <div className="flex items-center gap-1.5">
+      {[0, 1, 2, 3, 4, 5, 6].map(i => (
         <span
           key={i}
-          className="block w-1 h-1 rounded-full bg-cyan-400 animate-pulse"
-          style={{ animationDelay: `${i * 120}ms`, animationDuration: "1.2s" }}
+          className="block w-[3px] rounded-full bg-gradient-to-t from-cyan-500 to-cyan-300"
+          style={{
+            animation: `wave 1.2s ease-in-out ${i * 0.1}s infinite`,
+            height: "12px",
+          }}
         />
       ))}
+      <style>{`
+        @keyframes wave {
+          0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
+          50% { transform: scaleY(1); opacity: 1; }
+        }
+        @keyframes scan {
+          0% { top: 0%; }
+          50% { top: 100%; }
+          100% { top: 0%; }
+        }
+        @keyframes orbitPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.4); }
+          50% { box-shadow: 0 0 0 8px rgba(34, 211, 238, 0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* AI Status indicator */
+function AIStatus({ streaming }: { streaming: boolean }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className="relative">
+        <div className={`w-2.5 h-2.5 rounded-full transition-colors duration-500 ${streaming ? "bg-cyan-400" : "bg-emerald-400"}`} />
+        {streaming && (
+          <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-cyan-400" style={{ animation: "orbitPulse 1.5s ease-in-out infinite" }} />
+        )}
+      </div>
+      <span className={`text-[10px] font-bold uppercase tracking-[0.2em] transition-colors duration-500 ${streaming ? "text-cyan-300" : "text-white/30"}`}>
+        {streaming ? "Analyzing" : "Ready"}
+      </span>
     </div>
   );
 }
@@ -72,17 +123,16 @@ export function AIAssistantBar() {
   const [cards, setCards] = useState<ResultCard[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pulseAnim, setPulseAnim] = useState(false);
+  const [idleAnim, setIdleAnim] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Subtle idle pulse
   useEffect(() => {
     if (!isOpen && !isStreaming) {
       const interval = setInterval(() => {
-        setPulseAnim(true);
-        setTimeout(() => setPulseAnim(false), 2000);
-      }, 6000);
+        setIdleAnim(true);
+        setTimeout(() => setIdleAnim(false), 2500);
+      }, 8000);
       return () => clearInterval(interval);
     }
   }, [isOpen, isStreaming]);
@@ -175,67 +225,82 @@ export function AIAssistantBar() {
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-slate-950 via-[hsl(221,50%,12%)] to-slate-950 border-b border-white/5">
-      <AIOrbs active={isStreaming || pulseAnim} />
-      <div className="relative max-w-[1440px] mx-auto px-4 py-5">
-        {/* Label */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-all duration-500 ${isStreaming ? "border-cyan-400/40 bg-cyan-500/10" : "border-white/10 bg-white/5"}`}>
-            <Brain className={`h-3.5 w-3.5 transition-colors duration-500 ${isStreaming ? "text-cyan-400" : "text-white/40"}`} />
-            <span className={`text-[10px] font-bold uppercase tracking-widest transition-colors duration-500 ${isStreaming ? "text-cyan-300" : "text-white/40"}`}>
-              AI Assistant
-            </span>
-            {isStreaming && <NeuralDots />}
+    <div className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0a0e1a 0%, #0d1526 30%, #111b33 60%, #0a0e1a 100%)" }}>
+      <AIMeshBG active={isStreaming || idleAnim} />
+
+      <div className="relative max-w-[1440px] mx-auto px-4 py-6 md:py-8">
+        {/* Top bar: Brand + Status */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className={`relative w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-700 ${isStreaming ? "bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30" : "bg-white/[0.06] border border-white/10"}`}>
+              <Brain className={`h-5 w-5 transition-colors duration-500 ${isStreaming ? "text-white" : "text-white/40"}`} />
+              {isStreaming && <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-cyan-400 rounded-full animate-ping" />}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-white font-bold text-sm tracking-tight">InvestingIQ Intelligence</h3>
+                <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-500/20">AI</span>
+              </div>
+              <p className="text-white/25 text-[11px] mt-0.5">Search properties, stocks & investments from our database</p>
+            </div>
           </div>
-          <span className="text-[10px] text-white/20 font-medium">Powered by InvestingIQ Intelligence</span>
+          <AIStatus streaming={isStreaming} />
         </div>
 
-        {/* Input area */}
-        <div className="relative flex items-center gap-3">
-          <div className="relative flex-1 group">
-            <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-violet-500/20 blur-sm transition-opacity duration-500 ${isStreaming || pulseAnim ? "opacity-100" : "opacity-0 group-focus-within:opacity-100"}`} />
-            <div className="relative flex items-center">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                {isStreaming ? (
-                  <div className="relative">
-                    <Search className="h-4.5 w-4.5 text-cyan-400" />
-                    <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-cyan-400 rounded-full animate-ping" />
-                  </div>
-                ) : (
-                  <Search className="h-4.5 w-4.5 text-white/30 group-focus-within:text-white/60 transition-colors" />
-                )}
-              </div>
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                placeholder="Ask anything — properties, stocks, investments, market insights..."
-                className="w-full h-12 pl-12 pr-14 rounded-2xl bg-white/[0.07] backdrop-blur-md border border-white/10 text-white placeholder:text-white/25 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-cyan-500/30 focus:border-cyan-500/30 focus:bg-white/[0.1] transition-all duration-300"
-              />
-              <button
-                onClick={() => handleSubmit()}
-                disabled={!query.trim() || isStreaming}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-20 disabled:from-white/10 disabled:to-white/10 text-white shadow-lg shadow-cyan-500/20 transition-all duration-300"
-              >
-                {isStreaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-              </button>
+        {/* Input area — premium glassmorphism */}
+        <div className="relative group">
+          {/* Outer glow ring */}
+          <div className={`absolute -inset-[1px] rounded-2xl transition-all duration-700 ${
+            isStreaming 
+              ? "bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 opacity-100" 
+              : "bg-gradient-to-r from-cyan-500/0 via-blue-500/0 to-violet-500/0 opacity-0 group-focus-within:from-cyan-500/50 group-focus-within:via-blue-500/50 group-focus-within:to-violet-500/50 group-focus-within:opacity-100"
+          }`} style={{ padding: "1px", borderRadius: "16px" }}>
+            <div className="w-full h-full rounded-2xl" style={{ background: "#0d1526" }} />
+          </div>
+          
+          <div className="relative flex items-center">
+            <div className="absolute left-5 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              {isStreaming ? (
+                <AIThinkingWave />
+              ) : (
+                <Search className="h-5 w-5 text-white/20 group-focus-within:text-cyan-400/60 transition-colors duration-300" />
+              )}
             </div>
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSubmit()}
+              placeholder="Ask about properties, stocks, investments, market trends..."
+              className="w-full h-14 pl-14 pr-16 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] text-white placeholder:text-white/20 text-sm font-medium focus:outline-none focus:bg-white/[0.07] transition-all duration-300"
+            />
+            <button
+              onClick={() => handleSubmit()}
+              disabled={!query.trim() || isStreaming}
+              className={`absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center rounded-xl transition-all duration-300 ${
+                query.trim() && !isStreaming
+                  ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105"
+                  : "bg-white/[0.05] text-white/15"
+              }`}
+            >
+              {isStreaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </button>
           </div>
         </div>
 
         {/* Suggestion chips */}
         {!isOpen && (
-          <div className="flex items-center gap-2 mt-3 overflow-x-auto pb-1 scrollbar-hide">
-            <Zap className="h-3 w-3 text-amber-500/50 shrink-0" />
+          <div className="flex items-center gap-2.5 mt-4 overflow-x-auto pb-1 scrollbar-hide">
+            <MessageSquare className="h-3 w-3 text-white/15 shrink-0" />
+            <span className="text-[10px] text-white/20 font-medium shrink-0">Try:</span>
             {SUGGESTIONS.map((s, i) => (
               <button
                 key={i}
                 onClick={() => handleSuggestion(s.text)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.06] hover:border-white/15 text-white/40 hover:text-white/80 text-[11px] font-medium transition-all duration-300 shrink-0"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] hover:border-white/15 text-white/35 hover:text-white/75 text-[11px] font-medium transition-all duration-300 shrink-0 group/chip"
               >
-                <s.icon className="h-3 w-3" />
+                <s.icon className="h-3 w-3 group-hover/chip:text-cyan-400/60 transition-colors" />
                 {s.text}
               </button>
             ))}
@@ -244,43 +309,52 @@ export function AIAssistantBar() {
 
         {/* Response area */}
         {isOpen && (
-          <div className="mt-4 rounded-2xl bg-white/[0.06] backdrop-blur-xl border border-white/10 overflow-hidden animate-fade-in">
+          <div className="mt-5 rounded-2xl bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] overflow-hidden animate-fade-in">
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
               <div className="flex items-center gap-3">
                 {isStreaming ? (
-                  <div className="flex items-center gap-2.5">
-                    <div className="relative w-5 h-5">
-                      <div className="absolute inset-0 rounded-full border-2 border-cyan-400/30 border-t-cyan-400 animate-spin" />
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-6 h-6">
+                      <div className="absolute inset-0 rounded-full border-2 border-cyan-400/20" />
+                      <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-cyan-400 animate-spin" />
+                      <div className="absolute inset-1 rounded-full bg-cyan-400/10 flex items-center justify-center">
+                        <Cpu className="h-2.5 w-2.5 text-cyan-400" />
+                      </div>
                     </div>
-                    <span className="text-xs text-cyan-300/90 font-semibold">Analyzing your query across our database...</span>
+                    <div>
+                      <span className="text-xs text-cyan-300 font-semibold block">Processing your query</span>
+                      <span className="text-[10px] text-white/25">Searching internal database...</span>
+                    </div>
                   </div>
                 ) : (
-                  <span className="text-xs text-white/50 font-medium flex items-center gap-2">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                    Analysis Complete — Results from InvestingIQ Database
-                  </span>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-6 h-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                      <Sparkles className="h-3 w-3 text-emerald-400" />
+                    </div>
+                    <span className="text-xs text-white/50 font-medium">Analysis complete</span>
+                  </div>
                 )}
               </div>
-              <button onClick={handleClose} className="text-white/30 hover:text-white/70 p-1 rounded-lg hover:bg-white/10 transition-all">
+              <button onClick={handleClose} className="text-white/20 hover:text-white/60 p-1.5 rounded-lg hover:bg-white/[0.06] transition-all">
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Content */}
-            <div className="px-5 py-4 max-h-[400px] overflow-y-auto">
+            <div className="px-5 py-5 max-h-[420px] overflow-y-auto">
               {error && (
-                <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>
+                <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/15 rounded-xl px-4 py-3">{error}</p>
               )}
               {response && (
-                <div className="text-white/75 text-sm leading-relaxed whitespace-pre-line">
+                <div className="text-white/70 text-[13px] leading-[1.8] whitespace-pre-line">
                   {response}
                 </div>
               )}
 
               {/* Result cards */}
               {cards.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-5">
                   {cards.map((card, i) => {
                     const config = cardTypeConfig[card.type] || cardTypeConfig.article;
                     const Icon = config.icon;
@@ -288,31 +362,33 @@ export function AIAssistantBar() {
                       <Link
                         key={`${card.id}-${i}`}
                         to={card.link}
-                        className="group relative flex items-start gap-3 p-3.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.06] hover:border-white/20 transition-all duration-300"
-                        style={{ animationDelay: `${i * 80}ms` }}
+                        className="group relative p-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/15 transition-all duration-300 animate-fade-in"
+                        style={{ animationDelay: `${i * 100}ms` }}
                       >
-                        <div className="shrink-0 w-11 h-11 rounded-xl overflow-hidden bg-white/[0.08] flex items-center justify-center ring-1 ring-white/10">
-                          {card.image ? (
-                            <img src={card.image} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <Icon className="h-5 w-5 text-white/30" />
-                          )}
+                        <div className="flex items-start gap-3">
+                          <div className={`shrink-0 w-10 h-10 rounded-xl overflow-hidden ${config.bg} flex items-center justify-center ring-1 ring-white/5`}>
+                            {card.image ? (
+                              <img src={card.image} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <Icon className={`h-5 w-5 ${config.text}`} />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className={`text-[8px] font-black uppercase tracking-[0.15em] ${config.text}`}>
+                              {config.label}
+                            </span>
+                            <p className="text-white/80 text-xs font-semibold truncate mt-0.5 group-hover:text-white transition-colors">
+                              {card.title}
+                            </p>
+                            {card.subtitle && (
+                              <p className="text-white/30 text-[11px] truncate mt-0.5">{card.subtitle}</p>
+                            )}
+                            {card.price && (
+                              <p className="text-cyan-300/80 text-xs font-bold mt-1">{card.price}</p>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md ${config.color} text-white`}>
-                            {config.label}
-                          </span>
-                          <p className="text-white/85 text-xs font-semibold truncate mt-1 group-hover:text-white transition-colors">
-                            {card.title}
-                          </p>
-                          {card.subtitle && (
-                            <p className="text-white/35 text-[11px] truncate">{card.subtitle}</p>
-                          )}
-                          {card.price && (
-                            <p className="text-cyan-300/80 text-xs font-bold mt-0.5">{card.price}</p>
-                          )}
-                        </div>
-                        <ArrowRight className="h-3.5 w-3.5 text-white/15 group-hover:text-white/50 group-hover:translate-x-0.5 shrink-0 mt-1 transition-all duration-300" />
+                        <ArrowRight className="absolute top-4 right-4 h-3.5 w-3.5 text-white/10 group-hover:text-white/40 group-hover:translate-x-0.5 transition-all duration-300" />
                       </Link>
                     );
                   })}
@@ -321,10 +397,10 @@ export function AIAssistantBar() {
 
               {/* Disclaimer */}
               {!isStreaming && response && (
-                <div className="mt-4 flex items-start gap-2 px-3 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.05]">
-                  <Shield className="h-3.5 w-3.5 text-white/25 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-white/25 leading-relaxed">
-                    All data shown is sourced from InvestingIQ's internal database. Stock and market data referenced is sourced from official exchanges (NSE, BSE) and trusted platforms. InvestingIQ does not provide investment recommendations. This is for informational purposes only. Please consult a certified financial advisor before making investment decisions.
+                <div className="mt-5 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                  <Shield className="h-3.5 w-3.5 text-white/15 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-white/20 leading-relaxed">
+                    All data shown is sourced from InvestingIQ's internal database. Stock and market data referenced is sourced from official exchanges (NSE, BSE) and trusted platforms. InvestingIQ does not provide investment recommendations. This is for informational purposes only.
                   </p>
                 </div>
               )}
