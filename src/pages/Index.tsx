@@ -856,7 +856,65 @@ export default function Index() {
         )}
 
         {/* ════════════════════════════════════════
-            BLOCK 7 — Tools & Calculators
+            BLOCK 7 — Why InvestingIQ
+        ════════════════════════════════════════ */}
+        <section className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-6 py-8 sm:px-10 sm:py-10">
+            <div className="text-center mb-8">
+              <h2 className="font-black text-xl sm:text-2xl text-foreground mb-2">Why Investors Trust InvestingIQ</h2>
+              <p className="text-sm text-muted-foreground max-w-xl mx-auto">Empowering 50,000+ investors with actionable insights, real-time data, and expert analysis</p>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { icon: Shield, title: "SEBI Compliant", desc: "All recommendations follow regulatory guidelines", color: "text-primary", bg: "bg-primary/8" },
+                { icon: Target, title: "80% Hit Rate", desc: "Our expert picks outperform market benchmarks", color: "text-gain", bg: "bg-[hsl(var(--gain-light))]" },
+                { icon: LineChart, title: "Real-time Data", desc: "Live market feed with sub-second updates", color: "text-amber-600", bg: "bg-amber-50" },
+                { icon: Users, title: "50K+ Users", desc: "Trusted by active traders and investors", color: "text-purple-600", bg: "bg-purple-50" },
+              ].map(item => (
+                <div key={item.title} className="text-center p-5 rounded-xl border border-border hover:shadow-md transition-all">
+                  <div className={`w-12 h-12 ${item.bg} rounded-xl flex items-center justify-center mx-auto mb-3`}>
+                    <item.icon className={`h-6 w-6 ${item.color}`} />
+                  </div>
+                  <div className="font-bold text-[13px] text-foreground mb-1">{item.title}</div>
+                  <div className="text-[11px] text-muted-foreground">{item.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ════════════════════════════════════════
+            BLOCK 7.5 — Learning Hub
+        ════════════════════════════════════════ */}
+        <section>
+          <SectionHeading icon={BookOpen} title="Learning Hub" accent="bg-primary" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { emoji: "📈", title: "Technical Analysis 101", desc: "Learn candlestick patterns, support & resistance, and moving averages", tag: "Beginner", tagColor: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+              { emoji: "🏦", title: "Mutual Fund Selection", desc: "How to pick the right MF scheme based on your goals and risk appetite", tag: "Guide", tagColor: "bg-blue-50 text-blue-700 border-blue-200" },
+              { emoji: "📊", title: "Reading Financial Statements", desc: "Understand balance sheets, P&L statements, and cash flow analysis", tag: "Intermediate", tagColor: "bg-amber-50 text-amber-700 border-amber-200" },
+              { emoji: "💰", title: "Tax-Saving Investments", desc: "Section 80C, ELSS funds, NPS benefits, and LTCG tax planning", tag: "Tax", tagColor: "bg-rose-50 text-rose-700 border-rose-200" },
+              { emoji: "🌐", title: "IPO Investing Guide", desc: "How to apply, GMP analysis, listing gains, and risks involved", tag: "Popular", tagColor: "bg-purple-50 text-purple-700 border-purple-200" },
+              { emoji: "⚡", title: "Options Trading Basics", desc: "Understand calls, puts, strike prices, and hedging strategies", tag: "Advanced", tagColor: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+            ].map(item => (
+              <div key={item.title} className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md hover:border-primary/20 transition-all cursor-pointer group">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{item.emoji}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${item.tagColor}`}>{item.tag}</span>
+                    </div>
+                    <h3 className="font-bold text-[13px] text-foreground group-hover:text-primary transition-colors mb-1">{item.title}</h3>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ════════════════════════════════════════
+            BLOCK 8 — Tools & Calculators
         ════════════════════════════════════════ */}
         <section>
           <SectionHeading icon={Calculator} title="Tools & Calculators" />
@@ -873,12 +931,12 @@ export default function Index() {
         </section>
 
         {/* ════════════════════════════════════════
-            BLOCK 7.5 — Newsletter Signup
+            BLOCK 8.5 — Newsletter Signup
         ════════════════════════════════════════ */}
         <NewsletterSignup />
 
         {/* ════════════════════════════════════════
-            BLOCK 8 — Data Disclaimer
+            BLOCK 9 — Data Disclaimer
         ════════════════════════════════════════ */}
         <div className="bg-card border border-border rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5 sm:mt-0" />
