@@ -905,23 +905,26 @@ export default function RealEstatePage() {
 /* ── Property Card Component ── */
 function PropertyCard({ property: p, showPriceDrop, compact }: { property: Property; showPriceDrop?: boolean; compact?: boolean }) {
   return (
-    <Link to={`/real-estate/${p.slug}`} className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-all block">
+    <Link to={`/real-estate/${p.slug}`} className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-xl hover:border-primary/20 transition-all duration-300 block h-full">
       <div className="relative aspect-[16/10] bg-gradient-to-br from-slate-100 to-slate-50 overflow-hidden">
         {p.cover_image_url ? (
-          <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
-            <Building2 className="h-14 w-14 text-blue-200" />
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50">
+            <Building2 className="h-14 w-14 text-blue-200/60" />
           </div>
         )}
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
         <div className="absolute top-3 left-3 flex gap-1.5">
           {p.is_featured && (
-            <span className="bg-[#ffd700] text-[#1a1a2e] text-[9px] font-black px-2 py-1 rounded-lg uppercase flex items-center gap-1">
+            <span className="bg-[#ffd700] text-[#1a1a2e] text-[9px] font-black px-2.5 py-1 rounded-lg uppercase flex items-center gap-1 shadow-lg shadow-[#ffd700]/30">
               <Star className="h-3 w-3" /> Featured
             </span>
           )}
           {(p.is_price_drop || showPriceDrop) && (
-            <span className="bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-lg uppercase flex items-center gap-1">
+            <span className="bg-red-500 text-white text-[9px] font-black px-2.5 py-1 rounded-lg uppercase flex items-center gap-1 shadow-lg shadow-red-500/30">
               <BadgePercent className="h-3 w-3" /> Price Drop
             </span>
           )}
@@ -930,37 +933,44 @@ function PropertyCard({ property: p, showPriceDrop, compact }: { property: Prope
           <Heart className="h-4 w-4 text-muted-foreground hover:text-red-500 transition-colors" />
         </button>
         {p.listing_type === "rent" && (
-          <span className="absolute bottom-3 left-3 bg-[#1a1a2e]/80 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-1 rounded-lg uppercase">For Rent</span>
+          <span className="absolute bottom-3 left-3 bg-[#1a1a2e]/80 backdrop-blur-sm text-white text-[9px] font-bold px-2.5 py-1 rounded-lg uppercase">For Rent</span>
         )}
         {p.listing_type === "pg" && (
-          <span className="absolute bottom-3 left-3 bg-purple-600/80 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-1 rounded-lg uppercase">PG</span>
+          <span className="absolute bottom-3 left-3 bg-purple-600/80 backdrop-blur-sm text-white text-[9px] font-bold px-2.5 py-1 rounded-lg uppercase">PG</span>
+        )}
+        {/* Rating badge */}
+        {(p.rating ?? 0) > 0 && (
+          <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-lg">
+            <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+            <span className="text-[10px] text-white font-bold">{p.rating}</span>
+          </div>
         )}
       </div>
       <div className="p-4">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-1.5">
           <span className="text-[9px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{p.property_type}</span>
           <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
             <MapPin className="h-2.5 w-2.5" /> {p.locality}, {p.city}
           </span>
         </div>
-        <h3 className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-0.5">{p.title}</h3>
+        <h3 className="font-bold text-[15px] text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-0.5">{p.title}</h3>
         {p.developer_name && <p className="text-xs text-muted-foreground mb-2">by {p.developer_name}</p>}
-        <div className="flex items-center gap-3 mb-2.5 flex-wrap">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
           {p.bhk && (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+            <span className="flex items-center gap-1 text-[11px] text-muted-foreground bg-muted px-2.5 py-1 rounded-lg font-medium">
               <Bed className="h-3 w-3" /> {p.bhk}
             </span>
           )}
           {p.area_sqft && (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+            <span className="flex items-center gap-1 text-[11px] text-muted-foreground bg-muted px-2.5 py-1 rounded-lg font-medium">
               <Maximize className="h-3 w-3" /> {p.area_sqft.toLocaleString()} sqft
             </span>
           )}
           {p.amenities && p.amenities.length > 0 && (
-            <span className="text-xs text-muted-foreground">+{p.amenities.length} amenities</span>
+            <span className="text-[10px] text-muted-foreground font-medium">+{p.amenities.length} amenities</span>
           )}
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-3 border-t border-border">
           <div>
             <div className="number-font text-lg font-black text-foreground">
               {p.price_display || formatPrice(p.price)}
@@ -971,12 +981,9 @@ function PropertyCard({ property: p, showPriceDrop, compact }: { property: Prope
               </div>
             )}
           </div>
-          {(p.rating ?? 0) > 0 && (
-            <div className="flex items-center gap-1 bg-[#ffd700]/10 px-2 py-1 rounded-lg">
-              <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
-              <span className="number-font text-sm font-bold text-foreground">{p.rating}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-all">
+            View Details <ArrowRight className="h-3.5 w-3.5" />
+          </div>
         </div>
       </div>
     </Link>
