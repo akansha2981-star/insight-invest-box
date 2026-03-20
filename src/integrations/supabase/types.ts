@@ -184,24 +184,35 @@ export type Database = {
           city: string
           cover_image_url: string | null
           created_at: string
+          density: string | null
           description: string | null
           developer_name: string | null
+          floor_plans: string[] | null
+          green_area_pct: number | null
+          highlights: string[] | null
           id: string
           images: string[] | null
+          investment_plan: string | null
           is_featured: boolean | null
           is_price_drop: boolean | null
           listing_type: string
           locality: string | null
           original_price: number | null
+          overview: string | null
+          possession_status: string | null
           price: number
           price_display: string | null
           property_type: string
           rating: number | null
+          rera_id: string | null
           reviews_count: number | null
+          roi_projection: string | null
           slug: string
           status: string | null
           title: string
+          total_floors: number | null
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           amenities?: string[] | null
@@ -210,24 +221,35 @@ export type Database = {
           city: string
           cover_image_url?: string | null
           created_at?: string
+          density?: string | null
           description?: string | null
           developer_name?: string | null
+          floor_plans?: string[] | null
+          green_area_pct?: number | null
+          highlights?: string[] | null
           id?: string
           images?: string[] | null
+          investment_plan?: string | null
           is_featured?: boolean | null
           is_price_drop?: boolean | null
           listing_type?: string
           locality?: string | null
           original_price?: number | null
+          overview?: string | null
+          possession_status?: string | null
           price?: number
           price_display?: string | null
           property_type?: string
           rating?: number | null
+          rera_id?: string | null
           reviews_count?: number | null
+          roi_projection?: string | null
           slug: string
           status?: string | null
           title: string
+          total_floors?: number | null
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           amenities?: string[] | null
@@ -236,24 +258,35 @@ export type Database = {
           city?: string
           cover_image_url?: string | null
           created_at?: string
+          density?: string | null
           description?: string | null
           developer_name?: string | null
+          floor_plans?: string[] | null
+          green_area_pct?: number | null
+          highlights?: string[] | null
           id?: string
           images?: string[] | null
+          investment_plan?: string | null
           is_featured?: boolean | null
           is_price_drop?: boolean | null
           listing_type?: string
           locality?: string | null
           original_price?: number | null
+          overview?: string | null
+          possession_status?: string | null
           price?: number
           price_display?: string | null
           property_type?: string
           rating?: number | null
+          rera_id?: string | null
           reviews_count?: number | null
+          roi_projection?: string | null
           slug?: string
           status?: string | null
           title?: string
+          total_floors?: number | null
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: []
       }
