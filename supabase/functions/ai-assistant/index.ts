@@ -373,21 +373,20 @@ If asking about something NOT in our database, answer using your general financi
       if (dbResultCount > 0) {
         const formattedResponse = formatDbResponse(properties, stocks, articles, trends, query);
         if (formattedResponse) {
-          return new Response(textToSSE("⚠️ *AI is temporarily unavailable, showing results from our database:*\n\n" + formattedResponse), {
+          return new Response(textToSSE("*AI is temporarily unavailable, showing results from our database:*\n\n" + formattedResponse), {
             headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
           });
         }
       }
       
-      // No DB results and no AI — return helpful fallback
       return new Response(textToSSE(
         "I'm currently unable to process your request as the AI service is temporarily unavailable.\n\n" +
         "In the meantime, you can:\n" +
-        "- 🏠 Browse properties at [Real Estate](/real-estate)\n" +
-        "- 📈 Check stock reviews at [Stocks](/stocks/reviews)\n" +
-        "- 📰 Read latest news at [News](/news)\n" +
-        "- 🧮 Use our [SIP Calculator](/tools/sip) or [EMI Calculator](/tools/emi)\n\n" +
-        "Please try again in a few minutes!"
+        "- Browse properties at [Real Estate](/real-estate)\n" +
+        "- Check stock reviews at [Stocks](/stocks/reviews)\n" +
+        "- Read latest news at [News](/news)\n" +
+        "- Use our [SIP Calculator](/tools/sip) or [EMI Calculator](/tools/emi)\n\n" +
+        "Please try again in a few minutes."
       ), {
         headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
       });
