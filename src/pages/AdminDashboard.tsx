@@ -273,6 +273,7 @@ export default function AdminDashboard() {
         )}
 
         {view === 'page-sections' && <AdminPageSections />}
+        {view === 'pages' && <AdminPageSections />}
         {view === 'breaking-news' && <AdminBreakingNews />}
         {view === 'stock-reviews' && <AdminStockReviews />}
         {view === 'home-banners' && <AdminHomeBanners />}
