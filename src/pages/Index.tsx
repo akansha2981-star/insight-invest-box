@@ -95,9 +95,9 @@ const IPO_DATA = [
 
 // Fallback breaking news (shown if DB is empty)
 const FALLBACK_BREAKING_NEWS = [
-  "🔴 SENSEX at 83,740 | NIFTY 50 at 25,437 | Feb 18, 2026",
-  "📊 RBI holds repo rate at 6.5%; rate cut signals expected in H2 FY26",
-  "💰 Gold hits ₹87,450/10g on MCX | USD/INR at 86.62",
+  "SENSEX at 83,740 | NIFTY 50 at 25,437 | Feb 18, 2026",
+  "RBI holds repo rate at 6.5%; rate cut signals expected in H2 FY26",
+  "Gold hits ₹87,450/10g on MCX | USD/INR at 86.62",
 ];
 
 
