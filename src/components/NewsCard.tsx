@@ -1,4 +1,5 @@
-import { Clock, Eye, Tag } from "lucide-react";
+import { Clock, Eye, Tag, BarChart3, Landmark, TrendingUp, Building2, Newspaper } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface BlogPost {
