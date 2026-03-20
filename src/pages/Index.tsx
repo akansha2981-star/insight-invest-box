@@ -675,7 +675,7 @@ export default function Index() {
                 {liveCommodities.map(c => (
                   <div key={c.name} className="flex items-center justify-between px-5 py-3 hover:bg-muted/20 transition-colors cursor-pointer group">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{c.emoji}</span>
+                      <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center"><DollarSign className="h-4 w-4 text-muted-foreground" /></div>
                       <div>
                         <div className="text-[12px] font-semibold text-foreground group-hover:text-primary transition-colors">{c.name}</div>
                         <div className="text-[10px] text-muted-foreground">{c.sub}</div>
