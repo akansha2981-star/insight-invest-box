@@ -30,22 +30,30 @@ export function MarketIndices() {
       const { data, error } = await supabase.functions.invoke("stock-ticker");
       if (error || data?.error || !data?.quotes) return;
 
-      const quotes = data.quotes as Array<{ symbol: string; price: number; change: number; changePercent: number }>;
-      const sensexQ = quotes.find(q => q.symbol === "SENSEX");
-      const niftyQ  = quotes.find(q => q.symbol === "NIFTY");
+      const quotes = data.quotes as Array<{ symbol: string; price: number; change: number; changePercent: number; high?: number; low?: number }>;
 
-      if (!sensexQ && !niftyQ) return;
+      const nameMap: Record<string, string> = {
+        "SENSEX": "SENSEX",
+        "NIFTY": "NIFTY 50",
+        "BANKNIFTY": "BANK NIFTY",
+      };
+
+      const matched = quotes.filter(q => nameMap[q.symbol]);
+      if (!matched.length) return;
 
       setLiveEnabled(true);
       setIndices(prev =>
         prev.map(idx => {
-          if (idx.name === "SENSEX" && sensexQ) {
-            return { ...idx, value: sensexQ.price, change: sensexQ.change, changePercent: sensexQ.changePercent };
-          }
-          if (idx.name === "NIFTY 50" && niftyQ) {
-            return { ...idx, value: niftyQ.price, change: niftyQ.change, changePercent: niftyQ.changePercent };
-          }
-          return idx;
+          const q = matched.find(m => nameMap[m.symbol] === idx.name);
+          if (!q) return idx;
+          return {
+            ...idx,
+            value: q.price,
+            change: q.change,
+            changePercent: q.changePercent,
+            ...(q.high ? { high: q.high } : {}),
+            ...(q.low ? { low: q.low } : {}),
+          };
         })
       );
     } catch {
@@ -55,7 +63,7 @@ export function MarketIndices() {
 
   useEffect(() => {
     fetchLive();
-    const liveInterval = setInterval(fetchLive, 5 * 60 * 1000);
+    const liveInterval = setInterval(fetchLive, 60 * 1000);
     return () => clearInterval(liveInterval);
   }, [fetchLive]);
 
