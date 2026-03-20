@@ -439,6 +439,9 @@ export default function Index() {
         ════════════════════════════════════════ */}
         <FeaturedStockReviews />
 
+        {/* Real Estate Investment Highlights */}
+        <HomeRealEstateSection />
+
         {/* ════════════════════════════════════════
             BLOCK 3 — Top Stories Layout
             Left: Carousel + Grid | Right: Sidebar
