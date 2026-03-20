@@ -3,11 +3,12 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { AIStreamingPanel } from "@/components/AIStreamingPanel";
 import {
   MapPin, Building2, Bed, Maximize, Star, Heart, Share2,
   Phone, ArrowRight, TrendingUp, TreePine, Layers, Shield,
   ChevronRight, Play, ChevronLeft, Users, BarChart3, Landmark,
-  IndianRupee, FileText, Home, Check, Clock, Eye
+  IndianRupee, FileText, Home, Check, Clock, Eye, Brain, Scale, LineChart as LineChartIcon, Map
 } from "lucide-react";
 
 interface PropertyDetail {
