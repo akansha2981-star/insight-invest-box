@@ -346,13 +346,54 @@ export function AIAssistantBar() {
             </div>
 
             {/* Content */}
-            <div className="px-5 py-5 max-h-[420px] overflow-y-auto">
+            <div className="px-5 py-5 max-h-[420px] overflow-y-auto scrollbar-hide">
               {error && (
                 <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/15 rounded-xl px-4 py-3">{error}</p>
               )}
               {response && (
-                <div className="text-white/70 text-[13px] leading-[1.8] whitespace-pre-line">
-                  {response}
+                <div className="ai-response-content text-white/75 text-[13px] leading-relaxed">
+                  <ReactMarkdown
+                    components={{
+                      h2: ({ children }) => (
+                        <h3 className="text-white/90 text-sm font-semibold mt-4 mb-2 first:mt-0 flex items-center gap-2 border-b border-white/[0.06] pb-2">
+                          {children}
+                        </h3>
+                      ),
+                      h3: ({ children }) => (
+                        <h4 className="text-white/85 text-[13px] font-semibold mt-3 mb-1.5">{children}</h4>
+                      ),
+                      p: ({ children }) => (
+                        <p className="text-white/60 text-[13px] leading-[1.7] mb-2">{children}</p>
+                      ),
+                      strong: ({ children }) => (
+                        <span className="text-white/90 font-semibold">{children}</span>
+                      ),
+                      ul: ({ children }) => (
+                        <ul className="space-y-2 my-2">{children}</ul>
+                      ),
+                      li: ({ children }) => (
+                        <li className="relative pl-4 text-white/60 text-[13px] leading-[1.7] before:content-[''] before:absolute before:left-0 before:top-[9px] before:w-1.5 before:h-1.5 before:rounded-full before:bg-cyan-500/40">
+                          {children}
+                        </li>
+                      ),
+                      hr: () => <div className="my-3 border-t border-white/[0.05]" />,
+                      em: ({ children }) => (
+                        <span className="text-white/30 text-[11px] italic">{children}</span>
+                      ),
+                      a: ({ href, children }) => (
+                        <Link to={href || "#"} className="text-cyan-400/80 hover:text-cyan-300 underline underline-offset-2 decoration-cyan-400/20 hover:decoration-cyan-400/50 transition-colors">
+                          {children}
+                        </Link>
+                      ),
+                    }}
+                  >
+                    {response
+                      .replace(/---\n\*Data sourced.*?\*/gs, "")
+                      .replace(/\*Data sourced.*?\*/gs, "")
+                      .replace(/⚠️/g, "")
+                      .replace(/🏠|📈|📰|🧮|📊/g, "")
+                      .trim()}
+                  </ReactMarkdown>
                 </div>
               )}
 
