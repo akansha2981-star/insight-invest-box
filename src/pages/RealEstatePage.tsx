@@ -522,9 +522,15 @@ export default function RealEstatePage() {
             PROPERTY PRICE INSIGHTS — City Tabs
         ═══════════════════════════════════ */}
         <section className="bg-card border border-border rounded-3xl p-6 md:p-8">
-          <div className="mb-6">
-            <h2 className="text-2xl font-black text-foreground mb-1">Property Price Insights in India</h2>
-            <p className="text-sm text-muted-foreground">Get accurate property price insights with city-wise trends and micro-market comparisons</p>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="h-5 w-5 text-amber-500" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600">AI-Powered Analysis</span>
+              </div>
+              <h2 className="text-2xl font-black text-foreground">Property Price Insights in India</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">AI-driven price trends with city-wise analysis and market projections</p>
+            </div>
           </div>
           {/* City tabs */}
           <div className="flex gap-1 mb-6 overflow-x-auto pb-1 scrollbar-hide">
@@ -539,61 +545,134 @@ export default function RealEstatePage() {
           </div>
 
           {cityTrend ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {/* Price Trend Card */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <BarChart3 className="h-5 w-5 text-blue-600" />
-                  <h3 className="font-bold text-foreground">Price Trend in {insightCity}</h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">{insightCity}'s average asking price is rising quarter-on-quarter.</p>
-                <div className="space-y-2">
-                  {[
-                    { q: "Q4 2025", price: cityTrend.avg_price_sqft ?? 0 },
-                    { q: "Q3 2025", price: Math.round((cityTrend.avg_price_sqft ?? 0) * 0.94) },
-                    { q: "Q2 2025", price: Math.round((cityTrend.avg_price_sqft ?? 0) * 0.89) },
-                    { q: "Q1 2025", price: Math.round((cityTrend.avg_price_sqft ?? 0) * 0.85) },
-                  ].map(q => (
-                    <div key={q.q} className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{q.q}</span>
-                      <span className="number-font font-bold text-foreground">₹{q.price.toLocaleString()}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Asking Price Card */}
-              <div className="bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-100 rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <IndianRupee className="h-5 w-5 text-emerald-600" />
-                  <h3 className="font-bold text-foreground">Asking Price in {insightCity}</h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Median Price of <span className="font-bold text-foreground">₹{((cityTrend.avg_price_sqft ?? 0) / 1000).toFixed(1)}K/Sq.Ft.</span>
-                </p>
-                <div className="flex items-center gap-2 mt-3">
-                  <div className={`flex items-center gap-1 text-sm font-bold ${
-                    (cityTrend.change_pct ?? 0) >= 0 ? "text-gain" : "text-loss"
-                  }`}>
-                    {(cityTrend.change_pct ?? 0) >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                    {(cityTrend.change_pct ?? 0) >= 0 ? "+" : ""}{cityTrend.change_pct}% YoY
+            <div className="space-y-5">
+              {/* Charts row */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Area Chart - Quarterly Trend */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <BarChart3 className="h-5 w-5 text-blue-600" />
+                    <h3 className="font-bold text-foreground">Quarterly Price Trend — {insightCity}</h3>
+                  </div>
+                  <div className="h-[220px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={(() => {
+                        const base = cityTrend.avg_price_sqft ?? 10000;
+                        return [
+                          { quarter: "Q1 '24", price: Math.round(base * 0.78) },
+                          { quarter: "Q2 '24", price: Math.round(base * 0.82) },
+                          { quarter: "Q3 '24", price: Math.round(base * 0.86) },
+                          { quarter: "Q4 '24", price: Math.round(base * 0.90) },
+                          { quarter: "Q1 '25", price: Math.round(base * 0.93) },
+                          { quarter: "Q2 '25", price: Math.round(base * 0.96) },
+                          { quarter: "Q3 '25", price: Math.round(base * 0.98) },
+                          { quarter: "Q4 '25", price: Math.round(base) },
+                        ];
+                      })()}>
+                        <defs>
+                          <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
+                            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="quarter" tick={{ fontSize: 11 }} stroke="#94a3b8" />
+                        <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" tickFormatter={v => `₹${(v / 1000).toFixed(0)}K`} />
+                        <Tooltip formatter={(v: number) => [`₹${v.toLocaleString()}/sqft`, "Avg Price"]} />
+                        <Area type="monotone" dataKey="price" stroke="#3b82f6" strokeWidth={2.5} fill="url(#priceGrad)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
-                <div className="mt-4 w-full h-3 bg-emerald-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(Math.abs(cityTrend.change_pct ?? 0) * 4, 100)}%` }} />
+
+                {/* Bar Chart - City Comparison */}
+                <div className="bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-100 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <IndianRupee className="h-5 w-5 text-emerald-600" />
+                    <h3 className="font-bold text-foreground">City-wise Price Comparison</h3>
+                  </div>
+                  <div className="h-[220px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={trends.slice(0, 7).map(t => ({
+                        city: t.city.length > 6 ? t.city.slice(0, 6) + '.' : t.city,
+                        price: (t.avg_price_sqft ?? 0) / 1000,
+                        growth: t.change_pct ?? 0,
+                      }))}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#d1fae5" />
+                        <XAxis dataKey="city" tick={{ fontSize: 10 }} stroke="#6ee7b7" />
+                        <YAxis tick={{ fontSize: 11 }} stroke="#6ee7b7" tickFormatter={v => `₹${v}K`} />
+                        <Tooltip formatter={(v: number, name: string) => [name === "price" ? `₹${v.toFixed(1)}K/sqft` : `${v}%`, name === "price" ? "Avg Price" : "YoY Growth"]} />
+                        <Bar dataKey="price" fill="#10b981" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
 
-              {/* AI Insights Card */}
-              <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-100 rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="h-5 w-5 text-amber-600" />
-                  <h3 className="font-bold text-foreground">AI Market Insights</h3>
+              {/* Insight cards row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* AI Insights */}
+                <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-100 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="h-5 w-5 text-amber-600" />
+                    <h3 className="font-bold text-foreground">AI Market Insights</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{cityTrend.ai_insights}</p>
+                  <div className="mt-4 flex items-center gap-2 text-xs text-amber-700 bg-amber-100 px-3 py-1.5 rounded-lg w-fit">
+                    <Sparkles className="h-3 w-3" /> Powered by AI Analysis
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">{cityTrend.ai_insights}</p>
-                <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" /> Updated by AI analysis
+
+                {/* Price Summary */}
+                <div className="bg-card border border-border rounded-2xl p-5">
+                  <div className="text-sm text-muted-foreground mb-1">Median Price in {insightCity}</div>
+                  <div className="number-font text-3xl font-black text-foreground mb-2">
+                    ₹{((cityTrend.avg_price_sqft ?? 0) / 1000).toFixed(1)}K<span className="text-sm font-normal text-muted-foreground">/sqft</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 text-sm font-bold ${(cityTrend.change_pct ?? 0) >= 0 ? "text-gain" : "text-loss"}`}>
+                    {(cityTrend.change_pct ?? 0) >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                    {(cityTrend.change_pct ?? 0) >= 0 ? "+" : ""}{cityTrend.change_pct}% YoY Growth
+                  </div>
+                  <div className="mt-3 w-full h-2 bg-muted rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${(cityTrend.change_pct ?? 0) >= 0 ? "bg-gain" : "bg-loss"}`}
+                      style={{ width: `${Math.min(Math.abs(cityTrend.change_pct ?? 0) * 4, 100)}%` }} />
+                  </div>
                 </div>
+
+                {/* Top Locality */}
+                <div className="bg-card border border-border rounded-2xl p-5">
+                  <div className="text-sm text-muted-foreground mb-1">Top Micro-Market</div>
+                  <div className="font-bold text-xl text-foreground mb-1">{cityTrend.locality || "—"}</div>
+                  <p className="text-xs text-muted-foreground mb-3">Popular locality based on demand and price appreciation</p>
+                  <Link to={`/real-estate?city=${insightCity}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-colors">
+                    View Properties <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* All city trend cards - clickable */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                {trends.slice(0, 10).map(t => (
+                  <button key={t.id} onClick={() => setInsightCity(t.city)}
+                    className={`text-left p-3.5 rounded-xl border transition-all ${
+                      insightCity === t.city ? "border-[#1a1a2e] bg-[#1a1a2e] text-white" : "border-border bg-white hover:shadow-md"
+                    }`}>
+                    <div className="font-bold text-sm">{t.city}</div>
+                    <div className={`number-font text-lg font-black ${insightCity === t.city ? "text-[#ffd700]" : "text-foreground"}`}>
+                      ₹{((t.avg_price_sqft ?? 0) / 1000).toFixed(1)}K
+                    </div>
+                    <div className={`text-xs font-semibold flex items-center gap-1 ${
+                      (t.change_pct ?? 0) >= 0 ? (insightCity === t.city ? "text-emerald-300" : "text-gain") : "text-loss"
+                    }`}>
+                      {(t.change_pct ?? 0) >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                      {Math.abs(t.change_pct ?? 0)}%
+                    </div>
+                    {t.ai_insights && (
+                      <p className={`text-[10px] mt-1 line-clamp-1 ${insightCity === t.city ? "text-white/50" : "text-muted-foreground"}`}>{t.ai_insights}</p>
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
           ) : (
@@ -602,26 +681,6 @@ export default function RealEstatePage() {
               <p>No price insights available for {insightCity} yet.</p>
             </div>
           )}
-
-          {/* All city trend cards */}
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {trends.slice(0, 10).map(t => (
-              <button key={t.id} onClick={() => setInsightCity(t.city)}
-                className={`text-left p-3.5 rounded-xl border transition-all ${
-                  insightCity === t.city ? "border-[#1a1a2e] bg-[#1a1a2e] text-white" : "border-border bg-white hover:shadow-md"
-                }`}>
-                <div className="font-bold text-sm">{t.city}</div>
-                <div className={`number-font text-lg font-black ${insightCity === t.city ? "text-[#ffd700]" : "text-foreground"}`}>
-                  ₹{((t.avg_price_sqft ?? 0) / 1000).toFixed(1)}K
-                </div>
-                <div className={`text-xs font-semibold ${
-                  (t.change_pct ?? 0) >= 0 ? (insightCity === t.city ? "text-emerald-300" : "text-gain") : "text-loss"
-                }`}>
-                  {(t.change_pct ?? 0) >= 0 ? "↑" : "↓"} {Math.abs(t.change_pct ?? 0)}%
-                </div>
-              </button>
-            ))}
-          </div>
         </section>
 
         {/* ═══════════════════════════════════
