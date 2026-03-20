@@ -36,6 +36,7 @@ export function MarketIndices() {
         "SENSEX": "SENSEX",
         "NIFTY": "NIFTY 50",
         "BANKNIFTY": "BANK NIFTY",
+        "NIFTYIT": "NIFTY IT",
       };
 
       const matched = quotes.filter(q => nameMap[q.symbol]);
@@ -63,7 +64,7 @@ export function MarketIndices() {
 
   useEffect(() => {
     fetchLive();
-    const liveInterval = setInterval(fetchLive, 60 * 1000);
+    const liveInterval = setInterval(fetchLive, 30 * 1000);
     return () => clearInterval(liveInterval);
   }, [fetchLive]);
 
