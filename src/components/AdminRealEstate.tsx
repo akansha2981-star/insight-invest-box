@@ -331,6 +331,76 @@ function PropertyForm({ property, onChange, onSave, onCancel, onUpload }: {
         </div>
 
         <div>
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Detailed Overview</label>
+          <textarea value={(property as any).overview || ""} onChange={e => onChange({ ...property, overview: e.target.value } as any)}
+            rows={4} placeholder="Detailed property overview for the detail page" className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Investment Plan</label>
+            <textarea value={(property as any).investment_plan || ""} onChange={e => onChange({ ...property, investment_plan: e.target.value } as any)}
+              rows={3} placeholder="Payment plan, EMI options, etc." className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">ROI Projection</label>
+            <textarea value={(property as any).roi_projection || ""} onChange={e => onChange({ ...property, roi_projection: e.target.value } as any)}
+              rows={3} placeholder="Expected returns, appreciation data" className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 gap-4">
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Total Floors</label>
+            <input type="number" value={(property as any).total_floors || ""} onChange={e => onChange({ ...property, total_floors: Number(e.target.value) } as any)}
+              className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Green Area %</label>
+            <input type="number" step="0.1" value={(property as any).green_area_pct || ""} onChange={e => onChange({ ...property, green_area_pct: Number(e.target.value) } as any)}
+              className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Density</label>
+            <input value={(property as any).density || ""} onChange={e => onChange({ ...property, density: e.target.value } as any)}
+              placeholder="e.g. Low, Medium" className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">RERA ID</label>
+            <input value={(property as any).rera_id || ""} onChange={e => onChange({ ...property, rera_id: e.target.value } as any)}
+              className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Video URL</label>
+            <input value={(property as any).video_url || ""} onChange={e => onChange({ ...property, video_url: e.target.value } as any)}
+              placeholder="YouTube or video link" className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Possession Status</label>
+            <select value={(property as any).possession_status || "under_construction"} onChange={e => onChange({ ...property, possession_status: e.target.value } as any)}
+              className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="ready">Ready to Move</option>
+              <option value="under_construction">Under Construction</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Highlights (comma separated)</label>
+          <input value={((property as any).highlights || []).join(", ")} onChange={e => onChange({ ...property, highlights: e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean) } as any)}
+            placeholder="Near metro, Vastu compliant, Gated community" className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Amenities (comma separated)</label>
+          <input value={(property.amenities || []).join(", ")} onChange={e => onChange({ ...property, amenities: e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean) })}
+            placeholder="Swimming Pool, Gym, Parking, Clubhouse" className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+        </div>
+
+        <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Cover Image</label>
           <div className="mt-1 flex items-center gap-4">
             {property.cover_image_url && (
