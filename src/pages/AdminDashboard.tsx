@@ -8,6 +8,7 @@ import { AdminBreakingNews } from "@/components/AdminBreakingNews";
 import { AdminStockReviews } from "@/components/AdminStockReviews";
 import { AdminHomeBanners } from "@/components/AdminHomeBanners";
 import { AdminNewsletterSubscribers } from "@/components/AdminNewsletterSubscribers";
+import { AdminRealEstate } from "@/components/AdminRealEstate";
 
 
 interface BlogPost {
