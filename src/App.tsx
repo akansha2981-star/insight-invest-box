@@ -31,7 +31,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import SitemapPage from "./pages/SitemapPage";
 import NotFound from "./pages/NotFound";
-
+import UserLogin from "./pages/UserLogin";
 const queryClient = new QueryClient();
 
 const App = () => (
