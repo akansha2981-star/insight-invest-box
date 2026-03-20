@@ -480,7 +480,7 @@ export default function RealEstatePage() {
           {/* Property cards grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {(hotCityProperties.length > 0 ? hotCityProperties : properties.filter(p => p.listing_type === "buy")).slice(0, 5).map((prop, idx) => (
-              <div key={prop.id} className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-all relative">
+              <Link to={`/real-estate/${prop.slug}`} key={prop.id} className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-all block">
                 {/* Rank number */}
                 <div className="absolute top-3 left-3 z-10 bg-[#1a1a2e] text-white text-xs font-black w-7 h-7 rounded-full flex items-center justify-center shadow-lg">
                   {idx + 1}
@@ -509,7 +509,7 @@ export default function RealEstatePage() {
                     <p className="text-[10px] text-muted-foreground mt-1">by {prop.developer_name}</p>
                   )}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
