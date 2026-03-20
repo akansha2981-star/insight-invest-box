@@ -454,6 +454,9 @@ export default function Index() {
           <AIMarketPulse />
         </section>
 
+        {/* AI Stock Recommendations */}
+        <AIStockRecommendations />
+
         {/* Real Estate Investment Highlights */}
         <HomeRealEstateSection />
 
