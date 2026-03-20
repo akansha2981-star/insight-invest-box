@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, TrendingUp, FileText, X, BarChart2 } from "lucide-react";
+import { Search, TrendingUp, FileText, X, BarChart2, Brain, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { TOP_GAINERS, TOP_LOSERS } from "@/data/mockStocks";
