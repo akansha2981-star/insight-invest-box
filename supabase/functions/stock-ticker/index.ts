@@ -12,6 +12,7 @@ const LOGOUT_URL = "https://apiconnect.angelone.in/rest/secure/angelbroking/user
 
 // Token symbols mapped to Angel One exchange tokens
 const STOCK_TOKENS: Record<string, { token: string; exchange: string; symbol: string; displayName: string }> = {
+  // Stocks
   "RELIANCE":  { token: "2885",  exchange: "NSE", symbol: "RELIANCE-EQ",  displayName: "RELIANCE" },
   "TCS":       { token: "11536", exchange: "NSE", symbol: "TCS-EQ",       displayName: "TCS" },
   "HDFCBANK":  { token: "1333",  exchange: "NSE", symbol: "HDFCBANK-EQ",  displayName: "HDFC BANK" },
@@ -20,9 +21,23 @@ const STOCK_TOKENS: Record<string, { token: string; exchange: string; symbol: st
   "BHARTIARTL":{ token: "10604", exchange: "NSE", symbol: "BHARTIARTL-EQ",displayName: "AIRTEL" },
   "WIPRO":     { token: "3787",  exchange: "NSE", symbol: "WIPRO-EQ",     displayName: "WIPRO" },
   "AXISBANK":  { token: "5900",  exchange: "NSE", symbol: "AXISBANK-EQ",  displayName: "AXIS BANK" },
+  "MARUTI":    { token: "10999", exchange: "NSE", symbol: "MARUTI-EQ",    displayName: "MARUTI" },
+  "SUNPHARMA": { token: "3351",  exchange: "NSE", symbol: "SUNPHARMA-EQ", displayName: "SUN PHARMA" },
+  "BAJFINANCE":{ token: "317",   exchange: "NSE", symbol: "BAJFINANCE-EQ",displayName: "BAJ FINANCE" },
+  "LT":        { token: "11483", exchange: "NSE", symbol: "LT-EQ",        displayName: "L&T" },
+  "ITC":       { token: "1660",  exchange: "NSE", symbol: "ITC-EQ",       displayName: "ITC" },
+  "SBIN":      { token: "3045",  exchange: "NSE", symbol: "SBIN-EQ",      displayName: "SBI" },
+  "HCLTECH":   { token: "7229",  exchange: "NSE", symbol: "HCLTECH-EQ",   displayName: "HCL TECH" },
+  // Indices
   "NIFTY":     { token: "99926000", exchange: "NSE", symbol: "NIFTY",     displayName: "NIFTY 50" },
   "BANKNIFTY": { token: "99926009", exchange: "NSE", symbol: "BANKNIFTY", displayName: "BANK NIFTY" },
   "SENSEX":    { token: "99919000", exchange: "BSE", symbol: "SENSEX",    displayName: "SENSEX" },
+  "NIFTYIT":   { token: "99926013", exchange: "NSE", symbol: "NIFTY IT",  displayName: "NIFTY IT" },
+  // MCX Commodities
+  "GOLD":      { token: "66600", exchange: "MCX", symbol: "GOLD",         displayName: "GOLD" },
+  "CRUDE":     { token: "66600", exchange: "MCX", symbol: "CRUDEOIL",     displayName: "CRUDE OIL" },
+  // Currency
+  "USDINR":    { token: "99920002", exchange: "CDS", symbol: "USDINR",    displayName: "USD/INR" },
 };
 
 // Generate TOTP using the secret key (RFC 6238)
