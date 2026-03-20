@@ -180,13 +180,13 @@ export function SearchBar() {
           ) : (
             <div>
               {/* Group by type */}
-              {(["stock", "review", "article"] as const).map(type => {
+              {(["stock", "review", "property", "article"] as const).map(type => {
                 const group = results.filter(r => r.type === type);
                 if (!group.length) return null;
                 return (
                   <div key={type}>
                     <div className="px-4 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      {type === "stock" ? "Stocks" : type === "review" ? "Stock Reviews" : "Articles"}
+                      {typeLabel(type)}
                     </div>
                     {group.map((r, i) => {
                       const globalIdx = results.indexOf(r);
