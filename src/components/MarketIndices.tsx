@@ -36,6 +36,7 @@ export function MarketIndices() {
         "SENSEX": "SENSEX",
         "NIFTY": "NIFTY 50",
         "BANKNIFTY": "BANK NIFTY",
+        "NIFTYIT": "NIFTY IT",
       };
 
       const matched = quotes.filter(q => nameMap[q.symbol]);
