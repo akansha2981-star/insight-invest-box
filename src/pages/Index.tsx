@@ -926,7 +926,7 @@ export default function Index() {
             {TOOLS.map(tool => (
               <div key={tool.name}
                 className={`${tool.bg} ${tool.hover} border rounded-xl p-4 transition-all cursor-pointer text-center group shadow-sm hover:shadow-md`}>
-                <div className="text-3xl mb-2">{tool.emoji}</div>
+                <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-white/60 flex items-center justify-center"><tool.icon className="h-5 w-5 text-foreground" /></div>
                 <div className="text-[12px] font-bold text-foreground group-hover:text-primary transition-colors">{tool.name}</div>
                 <div className="text-[10px] text-muted-foreground mt-0.5">{tool.desc}</div>
               </div>
