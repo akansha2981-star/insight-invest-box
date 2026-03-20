@@ -41,6 +41,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <FloatingAIButton />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/news" element={<NewsPage />} />
