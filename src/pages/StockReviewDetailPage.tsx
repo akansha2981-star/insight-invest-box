@@ -380,6 +380,21 @@ export default function StockReviewDetailPage() {
               </div>
             )}
 
+            {/* AI Analysis Panel */}
+            <AIStreamingPanel
+              title="AI Stock Analysis"
+              subtitle={`Powered by AI for ${r.symbol}`}
+              functionName="ai-stock-analysis"
+              payload={{ symbol: r.symbol }}
+              accentColor="cyan"
+              actions={[
+                { key: "full-analysis", label: "Full Analysis", icon: <Brain className="h-3 w-3" /> },
+                { key: "risk-assessment", label: "Risk Assessment", icon: <Shield className="h-3 w-3" /> },
+                { key: "peer-comparison", label: "Peer Compare", icon: <Scale className="h-3 w-3" /> },
+                { key: "earnings-preview", label: "Earnings Preview", icon: <LineChartIcon className="h-3 w-3" /> },
+              ]}
+            />
+
             {/* Back link */}
             <Link to="/stocks/reviews"
               className="block text-center text-sm font-semibold text-primary hover:text-primary/80 py-3 bg-white border border-border rounded-xl hover:bg-muted/30 transition-colors">
