@@ -707,7 +707,7 @@ export default function Index() {
                 {liveCurrencies.map(c => (
                   <div key={c.pair} className="flex items-center justify-between px-5 py-3.5 hover:bg-muted/20 transition-colors cursor-pointer group">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{c.flag}</span>
+                      <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-[10px] font-black text-muted-foreground">{c.code}</div>
                       <div>
                         <div className="text-[12px] font-semibold text-foreground group-hover:text-primary transition-colors">{c.pair}</div>
                         <div className="text-[10px] text-muted-foreground">{c.name}</div>
