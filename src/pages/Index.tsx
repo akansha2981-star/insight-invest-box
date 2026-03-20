@@ -127,8 +127,8 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-const EMOJI_MAP: Record<string, string> = {
-  Markets: '📊', Economy: '🏛️', Stocks: '📈', Commodities: '🥇', Companies: '🏢', default: '📰'
+const CATEGORY_ICON_MAP: Record<string, any> = {
+  Markets: BarChart3, Economy: Landmark, Stocks: TrendingUp, Commodities: DollarSign, Companies: Building2, default: Newspaper
 };
 
 function SectionHeading({ icon: Icon, title, link, linkLabel = "View All", accent }: {
