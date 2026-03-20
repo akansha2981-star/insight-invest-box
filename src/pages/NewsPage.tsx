@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { StockTicker } from "@/components/StockTicker";
 import { Footer } from "@/components/Footer";
 import { NewsCard } from "@/components/NewsCard";
-import { Search } from "lucide-react";
+import { Search, Newspaper } from "lucide-react";
 
 interface BlogPost {
   id: string; title: string; slug: string; excerpt: string | null;

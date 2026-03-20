@@ -174,7 +174,7 @@ export default function MarketsPage() {
               {GLOBAL_MARKETS.map((m) => (
                 <div key={m.name} className="flex items-center justify-between px-5 py-3 hover:bg-muted/20 transition-colors">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-base">{m.flag}</span>
+                    <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[9px] font-bold text-muted-foreground">{m.region}</div>
                     <span className="text-sm font-medium text-foreground">{m.name}</span>
                   </div>
                   <div className="flex items-center gap-3">

@@ -117,8 +117,8 @@ export function NewsCard({ post, featured = false }: { post: BlogPost; featured?
         {post.cover_image_url ? (
           <img src={post.cover_image_url} alt={post.title} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-2xl">
-            {EMOJI_MAP[post.category ?? ''] ?? EMOJI_MAP.default}
+          <div className="w-full h-full flex items-center justify-center">
+            <CategoryIcon category={post.category} className="h-6 w-6 text-muted-foreground/30" />
           </div>
         )}
       </div>

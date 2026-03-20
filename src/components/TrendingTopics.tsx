@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { TrendingUp, Hash } from "lucide-react";
+import { TrendingUp, Hash, Flame } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
