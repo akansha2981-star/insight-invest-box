@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { StockTicker } from "@/components/StockTicker";
 import { Footer } from "@/components/Footer";
 import { Clock, User, Eye, Tag, ArrowLeft, Share2, Newspaper } from "lucide-react";
+import { AIInsightTeaser } from "@/components/AIInsightTeaser";
 
 interface BlogPost {
   id: string;
