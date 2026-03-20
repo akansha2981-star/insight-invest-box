@@ -12,6 +12,7 @@ import { MiniIndexChart } from "@/components/MiniIndexChart";
 import { TrendingTopics } from "@/components/TrendingTopics";
 import { TopAnalysts } from "@/components/TopAnalysts";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
+import { HomeRealEstateSection } from "@/components/HomeRealEstateSection";
 import {
   RefreshCw, ArrowUp, ArrowDown, TrendingUp,
   Flame, Star, Globe, BarChart3, Zap, ChevronRight, Clock,
@@ -437,6 +438,9 @@ export default function Index() {
             BLOCK 2.5 — Featured Stock Reviews (Auto)
         ════════════════════════════════════════ */}
         <FeaturedStockReviews />
+
+        {/* Real Estate Investment Highlights */}
+        <HomeRealEstateSection />
 
         {/* ════════════════════════════════════════
             BLOCK 3 — Top Stories Layout

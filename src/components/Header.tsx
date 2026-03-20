@@ -36,6 +36,7 @@ const NAV_ITEMS = [
   { label: "Real Estate", href: "/real-estate", sub: [
     { label: "Buy Property", href: "/real-estate" },
     { label: "Rent Property", href: "/real-estate" },
+    { label: "PG / Paying Guest", href: "/real-estate" },
     { label: "Price Trends", href: "/real-estate" },
     { label: "Interior Design", href: "/real-estate" },
     { label: "Services", href: "/real-estate" },
