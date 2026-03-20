@@ -5,6 +5,7 @@ import { StockTicker } from "@/components/StockTicker";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { AIStreamingPanel } from "@/components/AIStreamingPanel";
+import { AIInsightTeaser } from "@/components/AIInsightTeaser";
 import {
   TrendingUp, TrendingDown, ChevronRight, Eye, Calendar,
   BarChart2, Target, AlertTriangle, Star, User, Tag, ArrowUpRight, Brain, Scale, LineChart as LineChartIcon, Shield
@@ -380,7 +381,9 @@ export default function StockReviewDetailPage() {
               </div>
             )}
 
-            {/* AI Analysis Panel */}
+            {/* AI Analysis - Show teaser for logged out, full panel for logged in */}
+            <AIInsightTeaser variant="stock" context={`AI insights for ${r.symbol}`} />
+
             <AIStreamingPanel
               title="AI Stock Analysis"
               subtitle={`Powered by AI for ${r.symbol}`}

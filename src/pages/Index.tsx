@@ -14,6 +14,8 @@ import { TopAnalysts } from "@/components/TopAnalysts";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { HomeRealEstateSection } from "@/components/HomeRealEstateSection";
 import { AIAssistantBar } from "@/components/AIAssistantBar";
+import { AIInsightTeaser } from "@/components/AIInsightTeaser";
+import { AIMarketPulse } from "@/components/AIMarketPulse";
 import {
   RefreshCw, ArrowUp, ArrowDown, TrendingUp,
   Flame, Star, Globe, BarChart3, Zap, ChevronRight, Clock,
@@ -440,6 +442,16 @@ export default function Index() {
             BLOCK 2.5 — Featured Stock Reviews (Auto)
         ════════════════════════════════════════ */}
         <FeaturedStockReviews />
+
+        {/* ════════════════════════════════════════
+            BLOCK 2.7 — AI Intelligence Hub (Visible to all)
+        ════════════════════════════════════════ */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <AIInsightTeaser variant="homepage" />
+          </div>
+          <AIMarketPulse />
+        </section>
 
         {/* Real Estate Investment Highlights */}
         <HomeRealEstateSection />
