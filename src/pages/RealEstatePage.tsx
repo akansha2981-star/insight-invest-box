@@ -46,6 +46,7 @@ const CITIES = ["Mumbai", "Bengaluru", "Gurugram", "Pune", "Noida", "Hyderabad",
 const SEARCH_TABS = [
   { id: "buy", label: "Buy", icon: Home },
   { id: "rent", label: "Rental", icon: Key },
+  { id: "pg", label: "PG / Co-Living", icon: Users },
   { id: "projects", label: "Projects", icon: Building2 },
   { id: "plot", label: "Plot & Land", icon: TreePine },
   { id: "commercial", label: "Commercial", icon: Store },
