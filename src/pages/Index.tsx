@@ -18,7 +18,8 @@ import {
   Building2, Landmark, Leaf, Cpu, Pill, Car, Home, ShoppingBag,
   ChevronLeft, Play, Pause, ArrowRight, Activity, Wallet,
   TrendingDown, DollarSign, PieChart, Calculator, Eye,
-  AlertCircle, Newspaper, Radio, BookOpen, Search
+  AlertCircle, Newspaper, Radio, BookOpen, Search,
+  Shield, Target, LineChart, Users, Award, Lightbulb
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
