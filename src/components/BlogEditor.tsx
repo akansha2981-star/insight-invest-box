@@ -163,7 +163,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
         <div className="flex items-center gap-2">
           {/* AI Toast notification */}
           {aiToast && (
-            <span className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all ${aiToast.startsWith('✓') ? 'bg-accent text-accent-foreground border border-border' : 'bg-destructive/10 text-destructive border border-destructive/20'}`}>
+            <span className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all ${aiToast.startsWith('AI generated') ? 'bg-accent text-accent-foreground border border-border' : 'bg-destructive/10 text-destructive border border-destructive/20'}`}>
               {aiToast}
             </span>
           )}
