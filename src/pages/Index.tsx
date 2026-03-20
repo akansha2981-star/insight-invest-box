@@ -360,6 +360,7 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-[hsl(var(--section-bg))]">
       <Header />
+      <AIAssistantBar />
       <StockTicker />
 
       {/* ─── Breaking news bar ─── */}
