@@ -131,7 +131,7 @@ export function AdminBreakingNews() {
         </label>
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-red-500 font-black text-sm">🔴</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-red-500 font-black text-sm">●</span>
             <input
               type="text"
               value={newText}
