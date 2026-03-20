@@ -68,7 +68,88 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
   const [aiToast,         setAiToast]         = useState("");
   const [error,           setError]           = useState("");
   const [preview,         setPreview]         = useState(false);
+  const [aiWriterOpen,    setAiWriterOpen]    = useState(false);
+  const [aiWriterStream,  setAiWriterStream]  = useState("");
+  const [aiWriterLoading, setAiWriterLoading] = useState(false);
+  const [aiWriterAction,  setAiWriterAction]  = useState<string | null>(null);
+  const [aiTopic,         setAiTopic]         = useState("");
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const aiAbortRef = useRef<AbortController | null>(null);
+
+  const handleAiWriter = useCallback(async (action: string) => {
+    setAiWriterOpen(true);
+    setAiWriterAction(action);
+    setAiWriterLoading(true);
+    setAiWriterStream("");
+
+    const controller = new AbortController();
+    aiAbortRef.current = controller;
+
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-blog-writer`;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          action,
+          topic: aiTopic || title,
+          category,
+          keywords: tags,
+          existingContent: content,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!resp.ok || !resp.body) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || `Error ${resp.status}`);
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let idx: number;
+        while ((idx = buffer.indexOf("\n")) !== -1) {
+          let line = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const c = parsed.choices?.[0]?.delta?.content;
+            if (c) { fullText += c; setAiWriterStream(fullText); }
+          } catch {}
+        }
+      }
+    } catch (e: any) {
+      if (e.name !== "AbortError") {
+        setAiWriterStream(`Error: ${e.message}`);
+      }
+    } finally {
+      setAiWriterLoading(false);
+      aiAbortRef.current = null;
+    }
+  }, [title, category, tags, content, aiTopic]);
+
+  const applyAiContent = () => {
+    // Strip code fences if present
+    let cleaned = aiWriterStream.replace(/^```html\n?/i, "").replace(/\n?```$/i, "").trim();
+    setContent(cleaned);
+    setAiWriterOpen(false);
+    setAiToast("AI content applied to editor");
+    setTimeout(() => setAiToast(""), 4000);
+  };
 
   function handleTitleChange(val: string) {
     setTitle(val);
