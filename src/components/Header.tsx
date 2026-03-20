@@ -4,6 +4,7 @@ import { Bell, Menu, X, TrendingUp, ChevronDown, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchBar } from "@/components/SearchBar";
 import { MobileSearchModal } from "@/components/MobileSearchModal";
+import logoImg from "@/assets/logo-investingiq.png";
 
 const NAV_ITEMS = [
   { label: "Markets", href: "/markets", sub: [
@@ -81,15 +82,12 @@ export function Header() {
 
       {/* Main header row */}
       <div className="max-w-[1440px] mx-auto px-4 py-3 flex items-center gap-5">
-        <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
-          <div className="bg-red-600 rounded-lg p-2 group-hover:scale-105 transition-transform shadow-sm">
-            <TrendingUp className="h-5 w-5 text-white" />
-          </div>
+        <Link to="/" className="flex items-center gap-2 shrink-0 group">
+          <img src={logoImg} alt="InvestingIQ" className="h-9 w-auto group-hover:scale-105 transition-transform" />
           <div>
             <div className="font-black text-[22px] text-foreground tracking-tight leading-none">Investing IQ</div>
             <div className="text-[9px] font-bold text-muted-foreground tracking-[0.2em] uppercase">Financial Intelligence</div>
           </div>
-
         </Link>
 
         <SearchBar />

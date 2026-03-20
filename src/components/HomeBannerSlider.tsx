@@ -12,6 +12,7 @@ interface Banner {
   bg_color: string;
   banner_type: string;
   sort_order: number;
+  image_url: string | null;
 }
 
 const BG_MAP: Record<string, string> = {
@@ -97,32 +98,52 @@ export function HomeBannerSlider() {
       {/* ── Hero Banner Slider ── */}
       {heroBanners.length > 0 && (() => {
         const b = heroBanners[current];
-        return (
-          <div className={`relative rounded-2xl overflow-hidden bg-gradient-to-r ${BG_MAP[b.bg_color] ?? BG_MAP.blue} shadow-lg group`}>
-            {/* Pattern overlay */}
-            <div className="absolute inset-0 opacity-10"
-              style={{ backgroundImage: "radial-gradient(circle at 20% 80%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)", backgroundSize: "30px 30px" }}
-            />
+        const hasImage = !!b.image_url;
 
-            <div className="relative px-6 py-7 sm:px-10 sm:py-10 text-white">
+        return (
+          <div className="relative rounded-2xl overflow-hidden shadow-lg group" style={{ minHeight: '200px' }}>
+            {/* Background: Image or Gradient */}
+            {hasImage ? (
+              <>
+                <img
+                  src={b.image_url!}
+                  alt={b.title}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+              </>
+            ) : (
+              <>
+                <div className={`absolute inset-0 bg-gradient-to-r ${BG_MAP[b.bg_color] ?? BG_MAP.blue}`} />
+                <div className="absolute inset-0 opacity-10"
+                  style={{ backgroundImage: "radial-gradient(circle at 20% 80%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)", backgroundSize: "30px 30px" }}
+                />
+              </>
+            )}
+
+            <div className="relative px-6 py-8 sm:px-10 sm:py-12 text-white">
               {/* Dot indicators top-right */}
-              <div className="absolute top-4 right-4 flex items-center gap-1.5">
-                {heroBanners.map((_, i) => (
-                  <button key={i} onClick={() => go(i)}
-                    className={`rounded-full transition-all ${i === current ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/35 hover:bg-white/60'}`}
-                  />
-                ))}
-              </div>
+              {heroBanners.length > 1 && (
+                <div className="absolute top-4 right-4 flex items-center gap-1.5">
+                  {heroBanners.map((_, i) => (
+                    <button key={i} onClick={() => go(i)}
+                      className={`rounded-full transition-all ${i === current ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/35 hover:bg-white/60'}`}
+                    />
+                  ))}
+                </div>
+              )}
 
               {/* Content */}
               <div className="max-w-2xl">
-                <h2 className="font-black text-xl sm:text-2xl leading-snug mb-2">{b.title}</h2>
+                <h2 className="font-black text-xl sm:text-3xl leading-snug mb-2 drop-shadow-lg">{b.title}</h2>
                 {b.subtitle && (
-                  <p className="text-white/75 text-[13px] sm:text-sm leading-relaxed mb-5">{b.subtitle}</p>
+                  <p className="text-white/80 text-[13px] sm:text-sm leading-relaxed mb-5 drop-shadow">{b.subtitle}</p>
                 )}
                 {b.cta_url && b.cta_label && (
                   <Link to={b.cta_url}
-                    className={`inline-flex items-center gap-1.5 text-[13px] font-black px-5 py-2.5 rounded-xl transition-all hover:opacity-90 hover:scale-105 ${ACCENT_MAP[b.bg_color] ?? ACCENT_MAP.blue}`}
+                    className={`inline-flex items-center gap-1.5 text-[13px] font-black px-5 py-2.5 rounded-xl transition-all hover:opacity-90 hover:scale-105 shadow-md ${
+                      hasImage ? 'bg-white text-foreground' : (ACCENT_MAP[b.bg_color] ?? ACCENT_MAP.blue)
+                    }`}
                   >
                     {b.cta_label}
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -135,12 +156,12 @@ export function HomeBannerSlider() {
             {heroBanners.length > 1 && (
               <>
                 <button onClick={() => go(current - 1)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white rounded-full p-1.5 hover:bg-black/50 transition-all opacity-0 group-hover:opacity-100">
-                  <ChevronLeft className="h-4 w-4" />
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white rounded-full p-2 hover:bg-black/50 transition-all opacity-0 group-hover:opacity-100">
+                  <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button onClick={() => go(current + 1)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white rounded-full p-1.5 hover:bg-black/50 transition-all opacity-0 group-hover:opacity-100">
-                  <ChevronRight className="h-4 w-4" />
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white rounded-full p-2 hover:bg-black/50 transition-all opacity-0 group-hover:opacity-100">
+                  <ChevronRight className="h-5 w-5" />
                 </button>
                 <button onClick={() => setPlaying(p => !p)}
                   className="absolute bottom-3 right-4 bg-black/30 backdrop-blur-sm text-white rounded-full p-1.5 hover:bg-black/50 transition-all">

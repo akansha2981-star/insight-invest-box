@@ -82,6 +82,7 @@ export type Database = {
           cta_label: string | null
           cta_url: string | null
           id: string
+          image_url: string | null
           is_active: boolean
           sort_order: number
           subtitle: string | null
@@ -95,6 +96,7 @@ export type Database = {
           cta_label?: string | null
           cta_url?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           sort_order?: number
           subtitle?: string | null
@@ -108,6 +110,7 @@ export type Database = {
           cta_label?: string | null
           cta_url?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           sort_order?: number
           subtitle?: string | null
