@@ -119,6 +119,7 @@ export default function AdminDashboard() {
             { id: 'breaking-news',  label: 'Breaking News',     icon: Radio },
             { id: 'real-estate',    label: 'Real Estate',       icon: Home },
             { id: 'newsletter',     label: 'Subscribers',       icon: Mail },
+            { id: 'auth-analytics', label: 'Login Analytics',   icon: Users },
           ].map(item => (
             <button
               key={item.id}
