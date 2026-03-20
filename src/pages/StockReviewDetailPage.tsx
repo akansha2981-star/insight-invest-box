@@ -381,7 +381,9 @@ export default function StockReviewDetailPage() {
               </div>
             )}
 
-            {/* AI Analysis Panel */}
+            {/* AI Analysis - Show teaser for logged out, full panel for logged in */}
+            <AIInsightTeaser variant="stock" context={`AI insights for ${r.symbol}`} />
+
             <AIStreamingPanel
               title="AI Stock Analysis"
               subtitle={`Powered by AI for ${r.symbol}`}
