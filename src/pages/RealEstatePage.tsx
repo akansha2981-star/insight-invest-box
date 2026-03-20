@@ -155,6 +155,27 @@ function formatPrice(price: number): string {
   return `₹${price.toLocaleString('en-IN')}`;
 }
 
+/* Reusable horizontal slider for the RE page */
+function REPageSlider({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const scroll = (dir: number) => {
+    if (ref.current) ref.current.scrollBy({ left: dir * 300, behavior: "smooth" });
+  };
+  return (
+    <div className="relative group/slider">
+      <div ref={ref} className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide snap-x snap-mandatory" style={{ scrollbarWidth: "none" }}>
+        {children}
+      </div>
+      <button onClick={() => scroll(-1)} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white border border-border shadow-lg flex items-center justify-center text-foreground hover:bg-muted transition-all opacity-0 group-hover/slider:opacity-100 z-10">
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+      <button onClick={() => scroll(1)} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-10 h-10 rounded-full bg-white border border-border shadow-lg flex items-center justify-center text-foreground hover:bg-muted transition-all opacity-0 group-hover/slider:opacity-100 z-10">
+        <ChevronRight className="h-5 w-5" />
+      </button>
+    </div>
+  );
+}
+
 /* ══════════════════════════════════════
    MAIN PAGE
 ══════════════════════════════════════ */
