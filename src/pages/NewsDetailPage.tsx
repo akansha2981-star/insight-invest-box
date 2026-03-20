@@ -185,6 +185,8 @@ export default function NewsDetailPage() {
 
           {/* Sidebar */}
           <aside className="space-y-6">
+            {/* AI News Intelligence */}
+            <AIInsightTeaser variant="news" context="AI-powered article analysis" />
             {related.length > 0 && (
               <div className="bg-card border border-surface rounded-lg overflow-hidden">
                 <div className="border-b border-surface px-4 py-3">
