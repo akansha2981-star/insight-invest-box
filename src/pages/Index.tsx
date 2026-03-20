@@ -41,11 +41,11 @@ const MARKET_STATS = [
 ];
 
 const COMMODITIES = [
-  { name: "Gold", sub: "MCX Feb", price: "₹87,450", change: "+0.44%", chgAbs: "+₹380", up: true, emoji: "🥇", hi: "₹87,640", lo: "₹86,890" },
-  { name: "Silver", sub: "MCX Mar", price: "₹98,240", change: "+0.31%", chgAbs: "+₹305", up: true, emoji: "⚪", hi: "₹98,520", lo: "₹97,680" },
-  { name: "Crude Oil", sub: "MCX Feb", price: "₹6,124", change: "-0.78%", chgAbs: "-₹48", up: false, emoji: "🛢️", hi: "₹6,198", lo: "₹6,096" },
-  { name: "Natural Gas", sub: "MCX Feb", price: "₹238.40", change: "+1.24%", chgAbs: "+₹2.92", up: true, emoji: "🔥", hi: "₹240.80", lo: "₹235.60" },
-  { name: "Copper", sub: "MCX Feb", price: "₹856.70", change: "-0.36%", chgAbs: "-₹3.12", up: false, emoji: "🔶", hi: "₹862.00", lo: "₹852.40" },
+  { name: "Gold", sub: "MCX Feb", price: "₹87,450", change: "+0.44%", chgAbs: "+₹380", up: true, hi: "₹87,640", lo: "₹86,890" },
+  { name: "Silver", sub: "MCX Mar", price: "₹98,240", change: "+0.31%", chgAbs: "+₹305", up: true, hi: "₹98,520", lo: "₹97,680" },
+  { name: "Crude Oil", sub: "MCX Feb", price: "₹6,124", change: "-0.78%", chgAbs: "-₹48", up: false, hi: "₹6,198", lo: "₹6,096" },
+  { name: "Natural Gas", sub: "MCX Feb", price: "₹238.40", change: "+1.24%", chgAbs: "+₹2.92", up: true, hi: "₹240.80", lo: "₹235.60" },
+  { name: "Copper", sub: "MCX Feb", price: "₹856.70", change: "-0.36%", chgAbs: "-₹3.12", up: false, hi: "₹862.00", lo: "₹852.40" },
 ];
 
 const CURRENCIES = [
