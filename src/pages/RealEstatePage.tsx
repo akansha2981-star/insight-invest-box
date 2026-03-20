@@ -211,7 +211,8 @@ export default function RealEstatePage() {
   // Filtering logic
   const filteredProperties = properties.filter(p => {
     if (activeTab === "rent" && p.listing_type !== "rent") return false;
-    if (activeTab !== "rent" && p.listing_type === "rent") return false;
+    if (activeTab === "pg" && p.listing_type !== "pg") return false;
+    if (activeTab !== "rent" && activeTab !== "pg" && p.listing_type !== "buy") return false;
     if (selectedCity && p.city !== selectedCity) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
