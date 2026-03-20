@@ -11,6 +11,10 @@ import {
   Landmark, Key, Grid3X3, Store, Users, Award, Clock, Eye,
   Layers, Warehouse, TreePine, CircleDollarSign, Briefcase
 } from "lucide-react";
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  BarChart, Bar, CartesianGrid
+} from "recharts";
 
 /* ── Types ── */
 interface Property {
