@@ -135,13 +135,15 @@ export function SearchBar() {
   const typeIcon = (type: SearchResult["type"]) => {
     if (type === "stock") return <TrendingUp className="h-3.5 w-3.5 text-primary" />;
     if (type === "review") return <BarChart2 className="h-3.5 w-3.5 text-gain" />;
+    if (type === "property") return <Building2 className="h-3.5 w-3.5 text-emerald-500" />;
     return <FileText className="h-3.5 w-3.5 text-muted-foreground" />;
   };
 
   const typeLabel = (type: SearchResult["type"]) => {
-    if (type === "stock") return "Stock";
-    if (type === "review") return "Review";
-    return "Article";
+    if (type === "stock") return "Stocks";
+    if (type === "review") return "Stock Reviews";
+    if (type === "property") return "Properties";
+    return "Articles";
   };
 
   const showDropdown = focused && (query.trim().length > 0);
