@@ -57,14 +57,14 @@ const CURRENCIES = [
 ];
 
 const GLOBAL_MARKETS = [
-  { name: "Dow Jones",  value: "44,546", change: "+0.37%", chgPt: "+164", up: true,  country: "🇺🇸", region: "US" },
-  { name: "S&P 500",    value: "6,114",  change: "+0.24%", chgPt: "+15",  up: true,  country: "🇺🇸", region: "US" },
-  { name: "NASDAQ",     value: "19,732", change: "+0.07%", chgPt: "+14",  up: true,  country: "🇺🇸", region: "US" },
-  { name: "FTSE 100",   value: "8,718",  change: "+0.52%", chgPt: "+45",  up: true,  country: "🇬🇧", region: "UK" },
-  { name: "Nikkei 225", value: "38,487", change: "-0.32%", chgPt: "-124", up: false, country: "🇯🇵", region: "Asia" },
-  { name: "Hang Seng",  value: "22,614", change: "+2.64%", chgPt: "+582", up: true,  country: "🇭🇰", region: "Asia" },
-  { name: "Shanghai",   value: "3,346",  change: "+0.74%", chgPt: "+24",  up: true,  country: "🇨🇳", region: "Asia" },
-  { name: "DAX",        value: "22,438", change: "+0.86%", chgPt: "+191", up: true,  country: "🇩🇪", region: "EU" },
+  { name: "Dow Jones",  value: "44,546", change: "+0.37%", chgPt: "+164", up: true,  region: "US" },
+  { name: "S&P 500",    value: "6,114",  change: "+0.24%", chgPt: "+15",  up: true,  region: "US" },
+  { name: "NASDAQ",     value: "19,732", change: "+0.07%", chgPt: "+14",  up: true,  region: "US" },
+  { name: "FTSE 100",   value: "8,718",  change: "+0.52%", chgPt: "+45",  up: true,  region: "UK" },
+  { name: "Nikkei 225", value: "38,487", change: "-0.32%", chgPt: "-124", up: false, region: "Asia" },
+  { name: "Hang Seng",  value: "22,614", change: "+2.64%", chgPt: "+582", up: true,  region: "Asia" },
+  { name: "Shanghai",   value: "3,346",  change: "+0.74%", chgPt: "+24",  up: true,  region: "Asia" },
+  { name: "DAX",        value: "22,438", change: "+0.86%", chgPt: "+191", up: true,  region: "EU" },
 ];
 
 const SECTORS = [
