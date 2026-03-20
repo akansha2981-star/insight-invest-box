@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Sparkles, Send, Loader2, X, ArrowRight, Building2, TrendingUp, Newspaper, Shield, Brain, Search, BarChart3, Zap, MessageSquare, Cpu, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 
 interface ResultCard {
   type: "property" | "stock" | "article";
