@@ -202,7 +202,10 @@ export function AIAssistantBar() {
       if (finalCards.length > 0) setCards(finalCards);
     } catch (e: any) {
       if (e.name !== "AbortError") {
-        setError(e.message || "Something went wrong");
+        const msg = e.message === "Failed to fetch" 
+          ? "Network error — please check your connection and try again." 
+          : (e.message || "Something went wrong");
+        setError(msg);
       }
     } finally {
       setIsStreaming(false);
