@@ -469,10 +469,10 @@ export default function Index() {
                     : sideStories.map((post, i) => (
                       <Link key={post.id} to={`/news/${post.slug}`}
                         className="group flex gap-3 bg-card border border-border rounded-xl p-3 hover:shadow-md hover:border-primary/20 transition-all">
-                        <div className="relative w-[68px] h-[68px] rounded-lg overflow-hidden shrink-0 bg-muted flex items-center justify-center text-2xl">
+                        <div className="relative w-[68px] h-[68px] rounded-lg overflow-hidden shrink-0 bg-muted flex items-center justify-center">
                           {post.cover_image_url
                             ? <img src={post.cover_image_url} alt="" className="w-full h-full object-cover" />
-                            : <span>{EMOJI_MAP[post.category ?? ''] ?? EMOJI_MAP.default}</span>
+                            : (() => { const Icon = CATEGORY_ICON_MAP[post.category ?? ''] ?? CATEGORY_ICON_MAP.default; return <Icon className="h-6 w-6 text-muted-foreground" />; })()
                           }
                           {i === 0 && (
                             <span className="absolute top-0.5 left-0.5 text-[8px] bg-red-600 text-white font-black px-1 rounded uppercase">TOP</span>
