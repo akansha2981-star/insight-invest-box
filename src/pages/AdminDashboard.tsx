@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 import { AdminPageSections } from "@/components/AdminPageSections";
 import { AdminBreakingNews } from "@/components/AdminBreakingNews";
@@ -9,7 +9,7 @@ import { AdminStockReviews } from "@/components/AdminStockReviews";
 import { AdminHomeBanners } from "@/components/AdminHomeBanners";
 import { AdminNewsletterSubscribers } from "@/components/AdminNewsletterSubscribers";
 import { AdminRealEstate } from "@/components/AdminRealEstate";
-
+import { AdminAuthAnalytics } from "@/components/AdminAuthAnalytics";
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
@@ -19,7 +19,7 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -119,6 +119,7 @@ export default function AdminDashboard() {
             { id: 'breaking-news',  label: 'Breaking News',     icon: Radio },
             { id: 'real-estate',    label: 'Real Estate',       icon: Home },
             { id: 'newsletter',     label: 'Subscribers',       icon: Mail },
+            { id: 'auth-analytics', label: 'Login Analytics',   icon: Users },
           ].map(item => (
             <button
               key={item.id}
@@ -279,6 +280,7 @@ export default function AdminDashboard() {
         {view === 'home-banners' && <AdminHomeBanners />}
         {view === 'newsletter' && <AdminNewsletterSubscribers />}
         {view === 'real-estate' && <AdminRealEstate />}
+        {view === 'auth-analytics' && <AdminAuthAnalytics />}
 
       </main>
     </div>
