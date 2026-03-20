@@ -4,6 +4,7 @@ import { Bell, Menu, X, TrendingUp, ChevronDown, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchBar } from "@/components/SearchBar";
 import { MobileSearchModal } from "@/components/MobileSearchModal";
+import logoImg from "@/assets/logo-investingiq.png";
 
 const NAV_ITEMS = [
   { label: "Markets", href: "/markets", sub: [
