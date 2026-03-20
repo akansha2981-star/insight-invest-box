@@ -16,6 +16,7 @@ import CryptoPage from "./pages/CryptoPage";
 import PortfolioPage from "./pages/PortfolioPage";
 import StockReviewPage from "./pages/StockReviewPage";
 import StockReviewDetailPage from "./pages/StockReviewDetailPage";
+import RealEstatePage from "./pages/RealEstatePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
