@@ -64,7 +64,7 @@ export function MarketIndices() {
 
   useEffect(() => {
     fetchLive();
-    const liveInterval = setInterval(fetchLive, 5 * 1000);
+    const liveInterval = setInterval(fetchLive, 30 * 1000);
     return () => clearInterval(liveInterval);
   }, [fetchLive]);
 

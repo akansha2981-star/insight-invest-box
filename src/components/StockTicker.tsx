@@ -44,7 +44,7 @@ export function StockTicker() {
 
   useEffect(() => {
     fetchLiveData();
-    const liveInterval = setInterval(fetchLiveData, 5 * 1000);
+    const liveInterval = setInterval(fetchLiveData, 30 * 1000);
     return () => clearInterval(liveInterval);
   }, [fetchLiveData]);
 
