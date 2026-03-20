@@ -178,8 +178,8 @@ function NewsCarousel({ posts }: { posts: BlogPost[] }) {
           <img src={post.cover_image_url} alt={post.title}
             className="w-full h-full object-cover opacity-75 transition-transform duration-700 group-hover:scale-105" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-[100px] opacity-10">
-            {EMOJI_MAP[post.category ?? ''] ?? EMOJI_MAP.default}
+          <div className="w-full h-full flex items-center justify-center opacity-10">
+            {(() => { const Icon = CATEGORY_ICON_MAP[post.category ?? ''] ?? CATEGORY_ICON_MAP.default; return <Icon className="h-24 w-24" />; })()}
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
