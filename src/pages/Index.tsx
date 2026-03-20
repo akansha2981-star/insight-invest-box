@@ -13,6 +13,7 @@ import { TrendingTopics } from "@/components/TrendingTopics";
 import { TopAnalysts } from "@/components/TopAnalysts";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { HomeRealEstateSection } from "@/components/HomeRealEstateSection";
+import { AIAssistantBar } from "@/components/AIAssistantBar";
 import {
   RefreshCw, ArrowUp, ArrowDown, TrendingUp,
   Flame, Star, Globe, BarChart3, Zap, ChevronRight, Clock,
@@ -359,6 +360,7 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-[hsl(var(--section-bg))]">
       <Header />
+      <AIAssistantBar />
       <StockTicker />
 
       {/* ─── Breaking news bar ─── */}
