@@ -6,6 +6,7 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid
 } from "recharts";
+import { Star } from "lucide-react";
 import { TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 
 const TOP_FUNDS = [
