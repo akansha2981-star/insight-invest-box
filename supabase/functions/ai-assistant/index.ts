@@ -33,32 +33,20 @@ serve(async (req) => {
     const properties = (propertiesRes.data || []).map(p => `${p.title} | ${p.city} | ${p.price_display || ''} | ${p.bhk || ''} | ${p.property_type} | ${p.listing_type} | slug:${p.slug}`).join("\n");
     const stocks = (stocksRes.data || []).map(s => `${s.symbol} ${s.company_name} | ${s.sector} | Rating:${s.rating || 'N/A'} | CMP:${s.current_price || 'N/A'} Target:${s.target_price || 'N/A'}`).join("\n");
 
-    const systemPrompt = `You are InvestingIQ's AI assistant — an expert financial and real estate advisor for the Indian market.
+    const systemPrompt = `You are InvestingIQ's AI assistant — an expert financial and real estate advisor for the Indian market. Answer in the SAME LANGUAGE the user writes in. Be concise and actionable.
 
-You have access to current platform data:
-- ${contextData.properties.length} property listings
-- ${contextData.stocks.length} stock reviews
-- ${contextData.articles.length} articles
+PLATFORM DATA:
+PROPERTIES:
+${properties || "No properties listed yet."}
 
-AVAILABLE PROPERTIES (sample):
-${JSON.stringify(contextData.properties.slice(0, 15), null, 0)}
+STOCKS:
+${stocks || "No stock reviews yet."}
 
-AVAILABLE STOCK REVIEWS (sample):
-${JSON.stringify(contextData.stocks.slice(0, 10), null, 0)}
+When recommending items, include them as structured cards:
+<!--CARDS:[{"type":"property","title":"Name","subtitle":"City, BHK","price":"₹XX","link":"/real-estate/SLUG"},...]-->
+<!--CARDS:[{"type":"stock","title":"SYMBOL","subtitle":"Sector | Rating","price":"₹CMP","link":"/stocks/review/SYMBOL"},...]-->
 
-RECENT ARTICLES (sample):
-${JSON.stringify(contextData.articles.slice(0, 8), null, 0)}
-
-INSTRUCTIONS:
-1. Answer in the SAME LANGUAGE the user writes in.
-2. When recommending properties, stocks, or articles, include them as structured cards using this JSON format embedded in your response:
-   <!--CARDS:[{"type":"property","id":"...","title":"...","subtitle":"...","price":"...","image":"...","link":"/real-estate/SLUG"}]-->
-   <!--CARDS:[{"type":"stock","id":"...","title":"SYMBOL","subtitle":"...","price":"...","image":"...","link":"/stocks/review/SYMBOL"}]-->
-   <!--CARDS:[{"type":"article","id":"...","title":"...","subtitle":"...","image":"...","link":"/news/SLUG"}]-->
-3. Be concise, helpful, and actionable. Use bullet points for clarity.
-4. For investment questions, always add a disclaimer about consulting a financial advisor.
-5. If the query is unclear, ask a clarifying question.
-6. You can recommend multiple types — mix properties and stocks if relevant.`;
+For investment questions, add a brief disclaimer. Be helpful and direct.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
