@@ -25,17 +25,13 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const sb = createClient(supabaseUrl, supabaseKey);
 
-    const [propertiesRes, stocksRes, postsRes] = await Promise.all([
-      sb.from("properties").select("id,title,slug,city,locality,price,price_display,bhk,property_type,listing_type,cover_image_url,roi_projection,possession_status").limit(50),
-      sb.from("stock_reviews").select("id,symbol,company_name,sector,rating,current_price,target_price,summary,cover_image_url").eq("status", "published").limit(30),
-      sb.from("blog_posts").select("id,title,slug,category,excerpt,cover_image_url").eq("status", "published").limit(20),
+    const [propertiesRes, stocksRes] = await Promise.all([
+      sb.from("properties").select("title,slug,city,price_display,bhk,property_type,listing_type,cover_image_url,roi_projection").limit(20),
+      sb.from("stock_reviews").select("symbol,company_name,sector,rating,current_price,target_price,summary").eq("status", "published").limit(15),
     ]);
 
-    const contextData = {
-      properties: propertiesRes.data || [],
-      stocks: stocksRes.data || [],
-      articles: postsRes.data || [],
-    };
+    const properties = (propertiesRes.data || []).map(p => `${p.title} | ${p.city} | ${p.price_display || ''} | ${p.bhk || ''} | ${p.property_type} | ${p.listing_type} | slug:${p.slug}`).join("\n");
+    const stocks = (stocksRes.data || []).map(s => `${s.symbol} ${s.company_name} | ${s.sector} | Rating:${s.rating || 'N/A'} | CMP:${s.current_price || 'N/A'} Target:${s.target_price || 'N/A'}`).join("\n");
 
     const systemPrompt = `You are InvestingIQ's AI assistant — an expert financial and real estate advisor for the Indian market.
 
