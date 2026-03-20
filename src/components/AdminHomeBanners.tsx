@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit, Trash2, Eye, EyeOff, Save, X, Megaphone, Image } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, Save, X, Megaphone, Image, Upload, Loader2 } from "lucide-react";
 
 interface Banner {
   id: string;
@@ -12,11 +12,12 @@ interface Banner {
   banner_type: string;
   sort_order: number;
   is_active: boolean;
+  image_url: string | null;
 }
 
 const BLANK: Omit<Banner, "id"> = {
   title: "", subtitle: "", cta_label: "", cta_url: "",
-  bg_color: "blue", banner_type: "hero", sort_order: 0, is_active: true,
+  bg_color: "blue", banner_type: "hero", sort_order: 0, is_active: true, image_url: null,
 };
 
 const BG_OPTIONS = ["blue", "emerald", "amber", "red", "purple", "slate"];
@@ -38,6 +39,8 @@ export function AdminHomeBanners() {
   const [form, setForm] = useState<Omit<Banner, "id">>(BLANK);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"hero" | "announcement">("hero");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { fetchBanners(); }, []);
 
@@ -48,6 +51,17 @@ export function AdminHomeBanners() {
     setLoading(false);
   }
 
+  async function uploadImage(file: File) {
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const path = `banner-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("banners").upload(path, file, { upsert: true });
+    if (error) { alert("Upload failed: " + error.message); setUploading(false); return; }
+    const { data: { publicUrl } } = supabase.storage.from("banners").getPublicUrl(path);
+    setForm(f => ({ ...f, image_url: publicUrl }));
+    setUploading(false);
+  }
+
   async function save() {
     setSaving(true);
     const payload = {
@@ -55,6 +69,7 @@ export function AdminHomeBanners() {
       subtitle: form.subtitle || null,
       cta_label: form.cta_label || null,
       cta_url: form.cta_url || null,
+      image_url: form.image_url || null,
     };
     if (editing) {
       await (supabase as any).from("home_banners").update(payload).eq("id", editing.id);
@@ -82,7 +97,7 @@ export function AdminHomeBanners() {
   function startEdit(b: Banner) {
     setEditing(b);
     setCreating(false);
-    setForm({ title: b.title, subtitle: b.subtitle, cta_label: b.cta_label, cta_url: b.cta_url, bg_color: b.bg_color, banner_type: b.banner_type, sort_order: b.sort_order, is_active: b.is_active });
+    setForm({ title: b.title, subtitle: b.subtitle, cta_label: b.cta_label, cta_url: b.cta_url, bg_color: b.bg_color, banner_type: b.banner_type, sort_order: b.sort_order, is_active: b.is_active, image_url: b.image_url });
   }
 
   const filtered = banners.filter(b => b.banner_type === activeTab);
@@ -120,6 +135,42 @@ export function AdminHomeBanners() {
         <div className="bg-white border border-border rounded-xl shadow-card p-6 mb-6">
           <h2 className="font-bold text-foreground mb-4">{editing ? "Edit Banner" : "New Banner"}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {/* Image Upload (hero only) */}
+            {form.banner_type === "hero" && (
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Banner Image</label>
+                <div className="flex items-start gap-4">
+                  {form.image_url ? (
+                    <div className="relative w-48 h-24 rounded-lg overflow-hidden border border-border">
+                      <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => setForm(f => ({ ...f, image_url: null }))}
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 hover:bg-black/80"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => fileRef.current?.click()}
+                      disabled={uploading}
+                      className="flex items-center gap-2 border-2 border-dashed border-border rounded-lg px-6 py-4 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                    >
+                      {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                      {uploading ? "Uploading…" : "Upload Image"}
+                    </button>
+                  )}
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => { if (e.target.files?.[0]) uploadImage(e.target.files[0]); }}
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">Upload a banner image (recommended: 1440×400px). If no image, gradient colors are used.</p>
+                </div>
+              </div>
+            )}
             <div className="md:col-span-2">
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Title *</label>
               <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
@@ -131,26 +182,41 @@ export function AdminHomeBanners() {
                 placeholder="Supporting text (optional)..." className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">CTA Label</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">CTA Button Label</label>
               <input value={form.cta_label ?? ""} onChange={e => setForm(f => ({ ...f, cta_label: e.target.value }))}
                 placeholder="e.g. View Markets" className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">CTA URL</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">CTA Button URL</label>
               <input value={form.cta_url ?? ""} onChange={e => setForm(f => ({ ...f, cta_url: e.target.value }))}
                 placeholder="e.g. /markets" className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" />
             </div>
-            <div>
-              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Background Color</label>
-              <div className="flex gap-2 mt-1">
-                {BG_OPTIONS.map(c => (
-                  <button key={c} onClick={() => setForm(f => ({ ...f, bg_color: c }))}
-                    className={`w-7 h-7 rounded-full ${BG_PREVIEW[c]} transition-all ${form.bg_color === c ? "ring-2 ring-offset-2 ring-primary scale-110" : "opacity-60 hover:opacity-100"}`}
-                    title={c}
-                  />
-                ))}
+            {!form.image_url && form.banner_type === "hero" && (
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Fallback Color</label>
+                <div className="flex gap-2 mt-1">
+                  {BG_OPTIONS.map(c => (
+                    <button key={c} onClick={() => setForm(f => ({ ...f, bg_color: c }))}
+                      className={`w-7 h-7 rounded-full ${BG_PREVIEW[c]} transition-all ${form.bg_color === c ? "ring-2 ring-offset-2 ring-primary scale-110" : "opacity-60 hover:opacity-100"}`}
+                      title={c}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+            {form.banner_type === "announcement" && (
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Background Color</label>
+                <div className="flex gap-2 mt-1">
+                  {BG_OPTIONS.map(c => (
+                    <button key={c} onClick={() => setForm(f => ({ ...f, bg_color: c }))}
+                      className={`w-7 h-7 rounded-full ${BG_PREVIEW[c]} transition-all ${form.bg_color === c ? "ring-2 ring-offset-2 ring-primary scale-110" : "opacity-60 hover:opacity-100"}`}
+                      title={c}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Sort Order</label>
               <input type="number" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: parseInt(e.target.value) || 0 }))}
@@ -185,15 +251,23 @@ export function AdminHomeBanners() {
             <div key={b.id}
               className={`bg-white border border-border rounded-xl p-5 shadow-card flex items-start gap-4 ${!b.is_active ? "opacity-50" : ""}`}
             >
-              <div className={`shrink-0 w-10 h-10 rounded-xl ${BG_PREVIEW[b.bg_color]} flex items-center justify-center`}>
-                {b.banner_type === "hero" ? <Image className="h-4 w-4 text-white" /> : <Megaphone className="h-4 w-4 text-white" />}
-              </div>
+              {/* Thumbnail */}
+              {b.image_url ? (
+                <div className="shrink-0 w-16 h-10 rounded-lg overflow-hidden border border-border">
+                  <img src={b.image_url} alt="" className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className={`shrink-0 w-10 h-10 rounded-xl ${BG_PREVIEW[b.bg_color]} flex items-center justify-center`}>
+                  {b.banner_type === "hero" ? <Image className="h-4 w-4 text-white" /> : <Megaphone className="h-4 w-4 text-white" />}
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-foreground truncate">{b.title}</div>
                 {b.subtitle && <div className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{b.subtitle}</div>}
                 <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
                   <span>Order: {b.sort_order}</span>
                   {b.cta_label && <span>CTA: {b.cta_label} → {b.cta_url}</span>}
+                  {b.image_url && <span className="text-primary font-semibold">📷 Has Image</span>}
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
