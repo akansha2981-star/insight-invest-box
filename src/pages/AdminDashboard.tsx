@@ -280,6 +280,7 @@ export default function AdminDashboard() {
         {view === 'home-banners' && <AdminHomeBanners />}
         {view === 'newsletter' && <AdminNewsletterSubscribers />}
         {view === 'real-estate' && <AdminRealEstate />}
+        {view === 'auth-analytics' && <AdminAuthAnalytics />}
 
       </main>
     </div>
