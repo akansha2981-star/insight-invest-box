@@ -10,9 +10,13 @@ const AUTH_URL = "https://apiconnect.angelone.in/rest/auth/angelbroking/user/v1/
 const MARKET_DATA_URL = "https://apiconnect.angelone.in/rest/secure/angelbroking/market/v1/quote";
 const LOGOUT_URL = "https://apiconnect.angelone.in/rest/secure/angelbroking/user/v1/logout";
 
+const CACHE_TTL_MS = 20_000; // 20 seconds
+
+// In-memory cache
+let cachedResponse: { quotes: any[]; source: string; live: boolean; cachedAt: number } | null = null;
+
 // Token symbols mapped to Angel One exchange tokens
 const STOCK_TOKENS: Record<string, { token: string; exchange: string; symbol: string; displayName: string }> = {
-  // Stocks
   "RELIANCE":  { token: "2885",  exchange: "NSE", symbol: "RELIANCE-EQ",  displayName: "RELIANCE" },
   "TCS":       { token: "11536", exchange: "NSE", symbol: "TCS-EQ",       displayName: "TCS" },
   "HDFCBANK":  { token: "1333",  exchange: "NSE", symbol: "HDFCBANK-EQ",  displayName: "HDFC BANK" },
@@ -28,21 +32,16 @@ const STOCK_TOKENS: Record<string, { token: string; exchange: string; symbol: st
   "ITC":       { token: "1660",  exchange: "NSE", symbol: "ITC-EQ",       displayName: "ITC" },
   "SBIN":      { token: "3045",  exchange: "NSE", symbol: "SBIN-EQ",      displayName: "SBI" },
   "HCLTECH":   { token: "7229",  exchange: "NSE", symbol: "HCLTECH-EQ",   displayName: "HCL TECH" },
-  // Indices
   "NIFTY":     { token: "99926000", exchange: "NSE", symbol: "NIFTY",     displayName: "NIFTY 50" },
   "BANKNIFTY": { token: "99926009", exchange: "NSE", symbol: "BANKNIFTY", displayName: "BANK NIFTY" },
   "SENSEX":    { token: "99919000", exchange: "BSE", symbol: "SENSEX",    displayName: "SENSEX" },
   "NIFTYIT":   { token: "99926013", exchange: "NSE", symbol: "NIFTY IT",  displayName: "NIFTY IT" },
-  // MCX Commodities
   "GOLD":      { token: "66600", exchange: "MCX", symbol: "GOLD",         displayName: "GOLD" },
   "CRUDE":     { token: "66600", exchange: "MCX", symbol: "CRUDEOIL",     displayName: "CRUDE OIL" },
-  // Currency
   "USDINR":    { token: "99920002", exchange: "CDS", symbol: "USDINR",    displayName: "USD/INR" },
 };
 
-// Generate TOTP using the secret key (RFC 6238)
 async function generateTOTP(secret: string): Promise<string> {
-  // Base32 decode
   const base32Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
   const upperSecret = secret.toUpperCase().replace(/[^A-Z2-7]/g, "");
   const bits: number[] = [];
@@ -57,8 +56,6 @@ async function generateTOTP(secret: string): Promise<string> {
     for (let j = 0; j < 8; j++) byte = (byte << 1) | bits[i * 8 + j];
     keyBytes[i] = byte;
   }
-
-  // Time counter (30-second window)
   const counter = Math.floor(Date.now() / 30000);
   const counterBytes = new Uint8Array(8);
   let tmp = counter;
@@ -66,12 +63,8 @@ async function generateTOTP(secret: string): Promise<string> {
     counterBytes[i] = tmp & 0xff;
     tmp = Math.floor(tmp / 256);
   }
-
-  // HMAC-SHA1
   const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
   const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, counterBytes));
-
-  // Dynamic truncation
   const offset = sig[sig.length - 1] & 0x0f;
   const code = ((sig[offset] & 0x7f) << 24) | (sig[offset + 1] << 16) | (sig[offset + 2] << 8) | sig[offset + 3];
   return String(code % 1000000).padStart(6, "0");
@@ -79,36 +72,23 @@ async function generateTOTP(secret: string): Promise<string> {
 
 async function angelOneLogin(apiKey: string, clientId: string, pin: string, totpSecret: string): Promise<string | null> {
   const totp = await generateTOTP(totpSecret);
-  console.log("Generated TOTP code:", totp, "for client:", clientId, "secret length:", totpSecret.length);
-
+  console.log("Generated TOTP for client:", clientId);
   const res = await fetch(AUTH_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      "X-UserType": "USER",
-      "X-SourceID": "WEB",
-      "X-ClientLocalIP": "127.0.0.1",
-      "X-ClientPublicIP": "127.0.0.1",
-      "X-MACAddress": "00:00:00:00:00:00",
-      "X-PrivateKey": apiKey,
+      "Content-Type": "application/json", "Accept": "application/json",
+      "X-UserType": "USER", "X-SourceID": "WEB",
+      "X-ClientLocalIP": "127.0.0.1", "X-ClientPublicIP": "127.0.0.1",
+      "X-MACAddress": "00:00:00:00:00:00", "X-PrivateKey": apiKey,
     },
     body: JSON.stringify({ clientcode: clientId, password: pin, totp }),
   });
-
   const text = await res.text();
-  console.log("Angel One response status:", res.status, "body:", text.substring(0, 500));
-  
   try {
     const data = JSON.parse(text);
-    if (data?.data?.jwtToken) {
-      console.log("Angel One login successful");
-      return data.data.jwtToken;
-    }
-    console.error("Angel One login failed:", data?.message || text);
-  } catch {
-    console.error("Angel One non-JSON response:", text.substring(0, 300));
-  }
+    if (data?.data?.jwtToken) { console.log("Angel One login successful"); return data.data.jwtToken; }
+    console.error("Angel One login failed:", data?.message);
+  } catch { console.error("Angel One non-JSON response:", text.substring(0, 300)); }
   return null;
 }
 
@@ -116,63 +96,39 @@ async function fetchMarketQuotes(apiKey: string, jwtToken: string): Promise<any[
   const exchangeTokens: Record<string, string[]> = {};
   for (const info of Object.values(STOCK_TOKENS)) {
     if (!exchangeTokens[info.exchange]) exchangeTokens[info.exchange] = [];
-    exchangeTokens[info.exchange].push(info.token);
+    if (!exchangeTokens[info.exchange].includes(info.token)) exchangeTokens[info.exchange].push(info.token);
   }
-
   const res = await fetch(MARKET_DATA_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      "X-UserType": "USER",
-      "X-SourceID": "WEB",
-      "X-ClientLocalIP": "127.0.0.1",
-      "X-ClientPublicIP": "127.0.0.1",
-      "X-MACAddress": "00:00:00:00:00:00",
-      "X-PrivateKey": apiKey,
+      "Content-Type": "application/json", "Accept": "application/json",
+      "X-UserType": "USER", "X-SourceID": "WEB",
+      "X-ClientLocalIP": "127.0.0.1", "X-ClientPublicIP": "127.0.0.1",
+      "X-MACAddress": "00:00:00:00:00:00", "X-PrivateKey": apiKey,
       "Authorization": `Bearer ${jwtToken}`,
     },
-    body: JSON.stringify({
-      mode: "FULL",
-      exchangeTokens,
-    }),
+    body: JSON.stringify({ mode: "FULL", exchangeTokens }),
   });
-
   const data = await res.json();
   if (!data?.data?.fetched || !Array.isArray(data.data.fetched)) {
     console.error("Market data fetch failed:", data?.message || JSON.stringify(data));
     return [];
   }
-
   const results: any[] = [];
   for (const item of data.data.fetched) {
-    const token = item.symbolToken;
-    // Find our mapping
-    const entry = Object.entries(STOCK_TOKENS).find(([, v]) => v.token === token);
+    const entry = Object.entries(STOCK_TOKENS).find(([, v]) => v.token === item.symbolToken);
     if (!entry) continue;
-
     const [symbol, info] = entry;
     const ltp = parseFloat(item.ltp) || 0;
     const close = parseFloat(item.close) || ltp;
     const change = +(ltp - close).toFixed(2);
     const changePercent = close ? +((change / close) * 100).toFixed(2) : 0;
-    const high = parseFloat(item.high) || 0;
-    const low = parseFloat(item.low) || 0;
-    const open = parseFloat(item.open) || 0;
-
     results.push({
-      symbol,
-      displayName: info.displayName,
-      price: ltp,
-      change,
-      changePercent,
-      high,
-      low,
-      open,
-      exchange: info.exchange,
+      symbol, displayName: info.displayName, price: ltp, change, changePercent,
+      high: parseFloat(item.high) || 0, low: parseFloat(item.low) || 0,
+      open: parseFloat(item.open) || 0, exchange: info.exchange,
     });
   }
-
   return results;
 }
 
@@ -180,6 +136,14 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // Return cached data if fresh
+    if (cachedResponse && (Date.now() - cachedResponse.cachedAt) < CACHE_TTL_MS) {
+      console.log("Returning cached data, age:", Math.round((Date.now() - cachedResponse.cachedAt) / 1000), "s");
+      return new Response(JSON.stringify({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live, cached: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const apiKey = Deno.env.get("ANGELONE_API_KEY");
     const clientId = Deno.env.get("ANGELONE_CLIENT_ID");
     const pin = Deno.env.get("ANGELONE_PIN");
@@ -192,46 +156,60 @@ serve(async (req) => {
       );
     }
 
-    // Authenticate
     const jwtToken = await angelOneLogin(apiKey, clientId, pin, totpSecret);
     if (!jwtToken) {
+      // If we have stale cache, return it instead of failing
+      if (cachedResponse) {
+        console.log("Auth failed, returning stale cache");
+        return new Response(JSON.stringify({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live, cached: true, stale: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       return new Response(
         JSON.stringify({ error: "auth_failed", message: "Angel One authentication failed. Check credentials." }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Fetch quotes
     const quotes = await fetchMarketQuotes(apiKey, jwtToken);
 
     // Best-effort logout
     try {
       await fetch(LOGOUT_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-PrivateKey": apiKey,
-          "Authorization": `Bearer ${jwtToken}`,
-        },
+        headers: { "Content-Type": "application/json", "X-PrivateKey": apiKey, "Authorization": `Bearer ${jwtToken}` },
         body: JSON.stringify({ clientcode: clientId }),
       });
-    } catch { /* ignore logout errors */ }
+    } catch { /* ignore */ }
 
     if (quotes.length === 0) {
+      if (cachedResponse) {
+        return new Response(JSON.stringify({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live, cached: true, stale: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       return new Response(
-        JSON.stringify({ error: "no_data", message: "Could not fetch live data from Angel One. Market may be closed." }),
+        JSON.stringify({ error: "no_data", message: "Could not fetch live data. Market may be closed." }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Update cache
+    cachedResponse = { quotes, source: "angelone", live: true, cachedAt: Date.now() };
+    console.log("Cache updated with", quotes.length, "quotes");
 
     return new Response(JSON.stringify({ quotes, source: "angelone", live: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("stock-ticker error:", e);
+    if (cachedResponse) {
+      return new Response(JSON.stringify({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live, cached: true, stale: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
