@@ -20,7 +20,6 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    // Fetch context from DB
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const sb = createClient(supabaseUrl, supabaseKey);
@@ -48,24 +47,20 @@ When recommending items, include them as structured cards:
 
 For investment questions, add a brief disclaimer. Be helpful and direct.`;
 
-    const reqBody = {
-      model: "google/gemini-2.5-flash-lite",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: query },
-      ],
-      stream: true,
-    };
-    console.log("Sending request, body length:", JSON.stringify(reqBody).length);
-    console.log("API key present:", !!LOVABLE_API_KEY, "key length:", LOVABLE_API_KEY?.length);
-
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(reqBody),
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: query },
+        ],
+        stream: true,
+      }),
     });
 
     if (!response.ok) {
@@ -82,7 +77,7 @@ For investment questions, add a brief disclaimer. Be helpful and direct.`;
       }
       const t = await response.text();
       console.error("AI gateway error:", status, t);
-      return new Response(JSON.stringify({ error: "AI service temporarily unavailable" }), {
+      return new Response(JSON.stringify({ error: "AI service temporarily unavailable. Please try again shortly." }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
