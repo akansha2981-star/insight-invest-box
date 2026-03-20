@@ -116,6 +116,7 @@ export default function AdminDashboard() {
             { id: 'home-banners',   label: 'Homepage Banners',  icon: Image },
             { id: 'page-sections',  label: 'Page Sections',     icon: Layout },
             { id: 'breaking-news',  label: 'Breaking News',     icon: Radio },
+            { id: 'real-estate',    label: 'Real Estate',       icon: Home },
             { id: 'newsletter',     label: 'Subscribers',       icon: Mail },
           ].map(item => (
             <button
