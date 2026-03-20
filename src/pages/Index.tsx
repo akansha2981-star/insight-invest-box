@@ -41,30 +41,30 @@ const MARKET_STATS = [
 ];
 
 const COMMODITIES = [
-  { name: "Gold", sub: "MCX Feb", price: "₹87,450", change: "+0.44%", chgAbs: "+₹380", up: true, emoji: "🥇", hi: "₹87,640", lo: "₹86,890" },
-  { name: "Silver", sub: "MCX Mar", price: "₹98,240", change: "+0.31%", chgAbs: "+₹305", up: true, emoji: "⚪", hi: "₹98,520", lo: "₹97,680" },
-  { name: "Crude Oil", sub: "MCX Feb", price: "₹6,124", change: "-0.78%", chgAbs: "-₹48", up: false, emoji: "🛢️", hi: "₹6,198", lo: "₹6,096" },
-  { name: "Natural Gas", sub: "MCX Feb", price: "₹238.40", change: "+1.24%", chgAbs: "+₹2.92", up: true, emoji: "🔥", hi: "₹240.80", lo: "₹235.60" },
-  { name: "Copper", sub: "MCX Feb", price: "₹856.70", change: "-0.36%", chgAbs: "-₹3.12", up: false, emoji: "🔶", hi: "₹862.00", lo: "₹852.40" },
+  { name: "Gold", sub: "MCX Feb", price: "₹87,450", change: "+0.44%", chgAbs: "+₹380", up: true, hi: "₹87,640", lo: "₹86,890" },
+  { name: "Silver", sub: "MCX Mar", price: "₹98,240", change: "+0.31%", chgAbs: "+₹305", up: true, hi: "₹98,520", lo: "₹97,680" },
+  { name: "Crude Oil", sub: "MCX Feb", price: "₹6,124", change: "-0.78%", chgAbs: "-₹48", up: false, hi: "₹6,198", lo: "₹6,096" },
+  { name: "Natural Gas", sub: "MCX Feb", price: "₹238.40", change: "+1.24%", chgAbs: "+₹2.92", up: true, hi: "₹240.80", lo: "₹235.60" },
+  { name: "Copper", sub: "MCX Feb", price: "₹856.70", change: "-0.36%", chgAbs: "-₹3.12", up: false, hi: "₹862.00", lo: "₹852.40" },
 ];
 
 const CURRENCIES = [
-  { pair: "USD/INR", rate: "86.62", change: "-0.08", pct: "-0.09%", up: false, flag: "🇺🇸", name: "US Dollar" },
-  { pair: "EUR/INR", rate: "90.18", change: "+0.22", pct: "+0.24%", up: true,  flag: "🇪🇺", name: "Euro" },
-  { pair: "GBP/INR", rate: "109.42", change: "-0.18", pct: "-0.16%", up: false, flag: "🇬🇧", name: "British Pound" },
-  { pair: "JPY/INR", rate: "0.5748", change: "+0.01", pct: "+0.19%", up: true,  flag: "🇯🇵", name: "Japanese Yen" },
-  { pair: "AED/INR", rate: "23.59", change: "-0.03", pct: "-0.13%", up: false, flag: "🇦🇪", name: "UAE Dirham" },
+  { pair: "USD/INR", rate: "86.62", change: "-0.08", pct: "-0.09%", up: false, code: "USD", name: "US Dollar" },
+  { pair: "EUR/INR", rate: "90.18", change: "+0.22", pct: "+0.24%", up: true,  code: "EUR", name: "Euro" },
+  { pair: "GBP/INR", rate: "109.42", change: "-0.18", pct: "-0.16%", up: false, code: "GBP", name: "British Pound" },
+  { pair: "JPY/INR", rate: "0.5748", change: "+0.01", pct: "+0.19%", up: true,  code: "JPY", name: "Japanese Yen" },
+  { pair: "AED/INR", rate: "23.59", change: "-0.03", pct: "-0.13%", up: false, code: "AED", name: "UAE Dirham" },
 ];
 
 const GLOBAL_MARKETS = [
-  { name: "Dow Jones",  value: "44,546", change: "+0.37%", chgPt: "+164", up: true,  country: "🇺🇸", region: "US" },
-  { name: "S&P 500",    value: "6,114",  change: "+0.24%", chgPt: "+15",  up: true,  country: "🇺🇸", region: "US" },
-  { name: "NASDAQ",     value: "19,732", change: "+0.07%", chgPt: "+14",  up: true,  country: "🇺🇸", region: "US" },
-  { name: "FTSE 100",   value: "8,718",  change: "+0.52%", chgPt: "+45",  up: true,  country: "🇬🇧", region: "UK" },
-  { name: "Nikkei 225", value: "38,487", change: "-0.32%", chgPt: "-124", up: false, country: "🇯🇵", region: "Asia" },
-  { name: "Hang Seng",  value: "22,614", change: "+2.64%", chgPt: "+582", up: true,  country: "🇭🇰", region: "Asia" },
-  { name: "Shanghai",   value: "3,346",  change: "+0.74%", chgPt: "+24",  up: true,  country: "🇨🇳", region: "Asia" },
-  { name: "DAX",        value: "22,438", change: "+0.86%", chgPt: "+191", up: true,  country: "🇩🇪", region: "EU" },
+  { name: "Dow Jones",  value: "44,546", change: "+0.37%", chgPt: "+164", up: true,  region: "US" },
+  { name: "S&P 500",    value: "6,114",  change: "+0.24%", chgPt: "+15",  up: true,  region: "US" },
+  { name: "NASDAQ",     value: "19,732", change: "+0.07%", chgPt: "+14",  up: true,  region: "US" },
+  { name: "FTSE 100",   value: "8,718",  change: "+0.52%", chgPt: "+45",  up: true,  region: "UK" },
+  { name: "Nikkei 225", value: "38,487", change: "-0.32%", chgPt: "-124", up: false, region: "Asia" },
+  { name: "Hang Seng",  value: "22,614", change: "+2.64%", chgPt: "+582", up: true,  region: "Asia" },
+  { name: "Shanghai",   value: "3,346",  change: "+0.74%", chgPt: "+24",  up: true,  region: "Asia" },
+  { name: "DAX",        value: "22,438", change: "+0.86%", chgPt: "+191", up: true,  region: "EU" },
 ];
 
 const SECTORS = [
@@ -95,20 +95,20 @@ const IPO_DATA = [
 
 // Fallback breaking news (shown if DB is empty)
 const FALLBACK_BREAKING_NEWS = [
-  "🔴 SENSEX at 83,740 | NIFTY 50 at 25,437 | Feb 18, 2026",
-  "📊 RBI holds repo rate at 6.5%; rate cut signals expected in H2 FY26",
-  "💰 Gold hits ₹87,450/10g on MCX | USD/INR at 86.62",
+  "SENSEX at 83,740 | NIFTY 50 at 25,437 | Feb 18, 2026",
+  "RBI holds repo rate at 6.5%; rate cut signals expected in H2 FY26",
+  "Gold hits ₹87,450/10g on MCX | USD/INR at 86.62",
 ];
 
 
 
 const TOOLS = [
-  { name: "SIP Calculator",    emoji: "💰", desc: "Plan your SIP returns",   bg: "bg-emerald-50 border-emerald-200", hover: "hover:bg-emerald-100" },
-  { name: "EMI Calculator",    emoji: "🏠", desc: "Home & auto loan EMIs",   bg: "bg-blue-50 border-blue-200",     hover: "hover:bg-blue-100" },
-  { name: "Stock Screener",    emoji: "🔍", desc: "Filter & sort stocks",    bg: "bg-purple-50 border-purple-200", hover: "hover:bg-purple-100" },
-  { name: "Portfolio Tracker", emoji: "📊", desc: "Track your returns",      bg: "bg-amber-50 border-amber-200",   hover: "hover:bg-amber-100" },
-  { name: "Tax Calculator",    emoji: "📋", desc: "Capital gains & LTCG",   bg: "bg-rose-50 border-rose-200",    hover: "hover:bg-rose-100" },
-  { name: "FD Calculator",     emoji: "🏦", desc: "Fixed deposit yields",    bg: "bg-indigo-50 border-indigo-200", hover: "hover:bg-indigo-100" },
+  { name: "SIP Calculator",    icon: Calculator, desc: "Plan your SIP returns",   bg: "bg-emerald-50 border-emerald-200", hover: "hover:bg-emerald-100" },
+  { name: "EMI Calculator",    icon: Home, desc: "Home & auto loan EMIs",   bg: "bg-blue-50 border-blue-200",     hover: "hover:bg-blue-100" },
+  { name: "Stock Screener",    icon: Search, desc: "Filter & sort stocks",    bg: "bg-purple-50 border-purple-200", hover: "hover:bg-purple-100" },
+  { name: "Portfolio Tracker", icon: PieChart, desc: "Track your returns",      bg: "bg-amber-50 border-amber-200",   hover: "hover:bg-amber-100" },
+  { name: "Tax Calculator",    icon: Newspaper, desc: "Capital gains & LTCG",   bg: "bg-rose-50 border-rose-200",    hover: "hover:bg-rose-100" },
+  { name: "FD Calculator",     icon: Landmark, desc: "Fixed deposit yields",    bg: "bg-indigo-50 border-indigo-200", hover: "hover:bg-indigo-100" },
 ];
 
 const MARKET_SUMMARY = [
@@ -127,8 +127,8 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-const EMOJI_MAP: Record<string, string> = {
-  Markets: '📊', Economy: '🏛️', Stocks: '📈', Commodities: '🥇', Companies: '🏢', default: '📰'
+const CATEGORY_ICON_MAP: Record<string, any> = {
+  Markets: BarChart3, Economy: Landmark, Stocks: TrendingUp, Commodities: DollarSign, Companies: Building2, default: Newspaper
 };
 
 function SectionHeading({ icon: Icon, title, link, linkLabel = "View All", accent }: {
@@ -178,8 +178,8 @@ function NewsCarousel({ posts }: { posts: BlogPost[] }) {
           <img src={post.cover_image_url} alt={post.title}
             className="w-full h-full object-cover opacity-75 transition-transform duration-700 group-hover:scale-105" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-[100px] opacity-10">
-            {EMOJI_MAP[post.category ?? ''] ?? EMOJI_MAP.default}
+          <div className="w-full h-full flex items-center justify-center opacity-10">
+            {(() => { const Icon = CATEGORY_ICON_MAP[post.category ?? ''] ?? CATEGORY_ICON_MAP.default; return <Icon className="h-24 w-24" />; })()}
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
@@ -469,10 +469,10 @@ export default function Index() {
                     : sideStories.map((post, i) => (
                       <Link key={post.id} to={`/news/${post.slug}`}
                         className="group flex gap-3 bg-card border border-border rounded-xl p-3 hover:shadow-md hover:border-primary/20 transition-all">
-                        <div className="relative w-[68px] h-[68px] rounded-lg overflow-hidden shrink-0 bg-muted flex items-center justify-center text-2xl">
+                        <div className="relative w-[68px] h-[68px] rounded-lg overflow-hidden shrink-0 bg-muted flex items-center justify-center">
                           {post.cover_image_url
                             ? <img src={post.cover_image_url} alt="" className="w-full h-full object-cover" />
-                            : <span>{EMOJI_MAP[post.category ?? ''] ?? EMOJI_MAP.default}</span>
+                            : (() => { const Icon = CATEGORY_ICON_MAP[post.category ?? ''] ?? CATEGORY_ICON_MAP.default; return <Icon className="h-6 w-6 text-muted-foreground" />; })()
                           }
                           {i === 0 && (
                             <span className="absolute top-0.5 left-0.5 text-[8px] bg-red-600 text-white font-black px-1 rounded uppercase">TOP</span>
@@ -618,7 +618,7 @@ export default function Index() {
                 {liveGlobalMarkets.map(m => (
                   <div key={m.name} className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/20 transition-colors cursor-pointer">
                     <div className="flex items-center gap-2">
-                      <span className="text-base">{m.country}</span>
+                      <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[10px] font-black text-muted-foreground">{m.region}</div>
                       <div>
                         <div className="text-[12px] font-semibold text-foreground">{m.name}</div>
                         <div className="text-[9px] text-muted-foreground uppercase font-bold tracking-wide">{m.region}</div>
@@ -675,7 +675,7 @@ export default function Index() {
                 {liveCommodities.map(c => (
                   <div key={c.name} className="flex items-center justify-between px-5 py-3 hover:bg-muted/20 transition-colors cursor-pointer group">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{c.emoji}</span>
+                      <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center"><DollarSign className="h-4 w-4 text-muted-foreground" /></div>
                       <div>
                         <div className="text-[12px] font-semibold text-foreground group-hover:text-primary transition-colors">{c.name}</div>
                         <div className="text-[10px] text-muted-foreground">{c.sub}</div>
@@ -697,7 +697,7 @@ export default function Index() {
             {/* Currencies */}
             <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
               <div className="border-b border-border px-5 py-3 bg-muted/30 flex items-center justify-between">
-                <span className="font-black text-[13px] text-foreground">💱 Currency Rates (vs INR)</span>
+                <span className="font-black text-[13px] text-foreground">Currency Rates (vs INR)</span>
                 <div className="flex items-center gap-2">
                   {marketDataUpdatedAt && <span className="text-[9px] text-gain font-bold">● LIVE</span>}
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Interbank</span>
@@ -707,7 +707,7 @@ export default function Index() {
                 {liveCurrencies.map(c => (
                   <div key={c.pair} className="flex items-center justify-between px-5 py-3.5 hover:bg-muted/20 transition-colors cursor-pointer group">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{c.flag}</span>
+                      <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-[10px] font-black text-muted-foreground">{c.code}</div>
                       <div>
                         <div className="text-[12px] font-semibold text-foreground group-hover:text-primary transition-colors">{c.pair}</div>
                         <div className="text-[10px] text-muted-foreground">{c.name}</div>
@@ -894,16 +894,16 @@ export default function Index() {
           <SectionHeading icon={BookOpen} title="Learning Hub" accent="bg-primary" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { emoji: "📈", title: "Technical Analysis 101", desc: "Learn candlestick patterns, support & resistance, and moving averages", tag: "Beginner", tagColor: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-              { emoji: "🏦", title: "Mutual Fund Selection", desc: "How to pick the right MF scheme based on your goals and risk appetite", tag: "Guide", tagColor: "bg-blue-50 text-blue-700 border-blue-200" },
-              { emoji: "📊", title: "Reading Financial Statements", desc: "Understand balance sheets, P&L statements, and cash flow analysis", tag: "Intermediate", tagColor: "bg-amber-50 text-amber-700 border-amber-200" },
-              { emoji: "💰", title: "Tax-Saving Investments", desc: "Section 80C, ELSS funds, NPS benefits, and LTCG tax planning", tag: "Tax", tagColor: "bg-rose-50 text-rose-700 border-rose-200" },
-              { emoji: "🌐", title: "IPO Investing Guide", desc: "How to apply, GMP analysis, listing gains, and risks involved", tag: "Popular", tagColor: "bg-purple-50 text-purple-700 border-purple-200" },
-              { emoji: "⚡", title: "Options Trading Basics", desc: "Understand calls, puts, strike prices, and hedging strategies", tag: "Advanced", tagColor: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+              { icon: TrendingUp, title: "Technical Analysis 101", desc: "Learn candlestick patterns, support & resistance, and moving averages", tag: "Beginner", tagColor: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+              { icon: Landmark, title: "Mutual Fund Selection", desc: "How to pick the right MF scheme based on your goals and risk appetite", tag: "Guide", tagColor: "bg-blue-50 text-blue-700 border-blue-200" },
+              { icon: BarChart3, title: "Reading Financial Statements", desc: "Understand balance sheets, P&L statements, and cash flow analysis", tag: "Intermediate", tagColor: "bg-amber-50 text-amber-700 border-amber-200" },
+              { icon: DollarSign, title: "Tax-Saving Investments", desc: "Section 80C, ELSS funds, NPS benefits, and LTCG tax planning", tag: "Tax", tagColor: "bg-rose-50 text-rose-700 border-rose-200" },
+              { icon: Globe, title: "IPO Investing Guide", desc: "How to apply, GMP analysis, listing gains, and risks involved", tag: "Popular", tagColor: "bg-purple-50 text-purple-700 border-purple-200" },
+              { icon: Zap, title: "Options Trading Basics", desc: "Understand calls, puts, strike prices, and hedging strategies", tag: "Advanced", tagColor: "bg-indigo-50 text-indigo-700 border-indigo-200" },
             ].map(item => (
               <div key={item.title} className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md hover:border-primary/20 transition-all cursor-pointer group">
                 <div className="flex items-start gap-3">
-                  <span className="text-2xl">{item.emoji}</span>
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"><item.icon className="h-5 w-5 text-primary" /></div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${item.tagColor}`}>{item.tag}</span>
@@ -926,7 +926,7 @@ export default function Index() {
             {TOOLS.map(tool => (
               <div key={tool.name}
                 className={`${tool.bg} ${tool.hover} border rounded-xl p-4 transition-all cursor-pointer text-center group shadow-sm hover:shadow-md`}>
-                <div className="text-3xl mb-2">{tool.emoji}</div>
+                <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-white/60 flex items-center justify-center"><tool.icon className="h-5 w-5 text-foreground" /></div>
                 <div className="text-[12px] font-bold text-foreground group-hover:text-primary transition-colors">{tool.name}</div>
                 <div className="text-[10px] text-muted-foreground mt-0.5">{tool.desc}</div>
               </div>

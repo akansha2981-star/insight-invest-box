@@ -1,4 +1,5 @@
-import { Clock, Eye, Tag } from "lucide-react";
+import { Clock, Eye, Tag, BarChart3, Landmark, TrendingUp, Building2, Newspaper } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface BlogPost {
@@ -41,9 +42,13 @@ function CategoryBadge({ category }: { category: string | null }) {
   );
 }
 
-const EMOJI_MAP: Record<string, string> = {
-  Markets: '📊', Economy: '🏛️', Stocks: '📈', Commodities: '🥇', Companies: '🏢', default: '📰'
+const CATEGORY_ICON: Record<string, LucideIcon> = {
+  Markets: BarChart3, Economy: Landmark, Stocks: TrendingUp, Companies: Building2
 };
+function CategoryIcon({ category, className = "h-8 w-8 text-muted-foreground/30" }: { category?: string | null; className?: string }) {
+  const Icon = CATEGORY_ICON[category ?? ''] ?? Newspaper;
+  return <Icon className={className} />;
+}
 
 /* ─── Hero (large featured card) ─── */
 export function NewsCardHero({ post }: { post: BlogPost }) {
@@ -53,8 +58,8 @@ export function NewsCardHero({ post }: { post: BlogPost }) {
         {post.cover_image_url ? (
           <img src={post.cover_image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-8xl opacity-20">
-            {EMOJI_MAP[post.category ?? ''] ?? EMOJI_MAP.default}
+          <div className="w-full h-full flex items-center justify-center">
+            <CategoryIcon category={post.category} className="h-16 w-16 text-muted-foreground/15" />
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
@@ -85,8 +90,8 @@ export function NewsCard({ post, featured = false }: { post: BlogPost; featured?
           {post.cover_image_url ? (
             <img src={post.cover_image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-5xl opacity-20">
-              {EMOJI_MAP[post.category ?? ''] ?? EMOJI_MAP.default}
+            <div className="w-full h-full flex items-center justify-center">
+              <CategoryIcon category={post.category} className="h-10 w-10 text-muted-foreground/15" />
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -112,8 +117,8 @@ export function NewsCard({ post, featured = false }: { post: BlogPost; featured?
         {post.cover_image_url ? (
           <img src={post.cover_image_url} alt={post.title} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-2xl">
-            {EMOJI_MAP[post.category ?? ''] ?? EMOJI_MAP.default}
+          <div className="w-full h-full flex items-center justify-center">
+            <CategoryIcon category={post.category} className="h-6 w-6 text-muted-foreground/30" />
           </div>
         )}
       </div>

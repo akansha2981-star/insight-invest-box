@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { StockTicker } from "@/components/StockTicker";
 import { Footer } from "@/components/Footer";
 import { NewsCard } from "@/components/NewsCard";
-import { Search } from "lucide-react";
+import { Search, Newspaper } from "lucide-react";
 
 interface BlogPost {
   id: string; title: string; slug: string; excerpt: string | null;
@@ -88,7 +88,7 @@ export default function NewsPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-24 text-muted-foreground">
-            <div className="text-6xl mb-4">📰</div>
+            <Newspaper className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
             <div className="text-lg font-bold text-foreground">No articles found</div>
             <div className="text-sm mt-2">Try a different category or search term</div>
           </div>
