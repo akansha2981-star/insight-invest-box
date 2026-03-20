@@ -64,7 +64,7 @@ async function generateTOTP(secret: string): Promise<string> {
 
 async function angelOneLogin(apiKey: string, clientId: string, pin: string, totpSecret: string): Promise<string | null> {
   const totp = await generateTOTP(totpSecret);
-  console.log("Generated TOTP, attempting Angel One login for client:", clientId);
+  console.log("Generated TOTP code:", totp, "for client:", clientId, "secret length:", totpSecret.length);
 
   const res = await fetch(AUTH_URL, {
     method: "POST",
@@ -81,12 +81,19 @@ async function angelOneLogin(apiKey: string, clientId: string, pin: string, totp
     body: JSON.stringify({ clientcode: clientId, password: pin, totp }),
   });
 
-  const data = await res.json();
-  if (data?.data?.jwtToken) {
-    console.log("Angel One login successful");
-    return data.data.jwtToken;
+  const text = await res.text();
+  console.log("Angel One response status:", res.status, "body:", text.substring(0, 500));
+  
+  try {
+    const data = JSON.parse(text);
+    if (data?.data?.jwtToken) {
+      console.log("Angel One login successful");
+      return data.data.jwtToken;
+    }
+    console.error("Angel One login failed:", data?.message || text);
+  } catch {
+    console.error("Angel One non-JSON response:", text.substring(0, 300));
   }
-  console.error("Angel One login failed:", data?.message || JSON.stringify(data));
   return null;
 }
 
