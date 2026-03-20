@@ -8,3 +8,24 @@ verify_jwt = false
 
 [functions.ai-assistant]
 verify_jwt = false
+
+[functions.ai-stock-analysis]
+verify_jwt = false
+
+[functions.ai-blog-writer]
+verify_jwt = false
+
+[functions.ai-property-advisor]
+verify_jwt = false
+
+[functions.ai-smart-search]
+verify_jwt = false
+
+[functions.market-data-refresh]
+verify_jwt = false
+
+[functions.re-price-trends-ai]
+verify_jwt = false
+
+[functions.claim-first-admin]
+verify_jwt = false

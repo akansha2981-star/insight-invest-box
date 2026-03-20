@@ -6,6 +6,7 @@ import { StockTicker } from "@/components/StockTicker";
 import { Footer } from "@/components/Footer";
 import { Clock, User, Eye, Tag, ArrowLeft, Share2, Newspaper } from "lucide-react";
 import { AIInsightTeaser } from "@/components/AIInsightTeaser";
+import { AIArticleSummary } from "@/components/AIArticleSummary";
 
 interface BlogPost {
   id: string;
@@ -185,6 +186,8 @@ export default function NewsDetailPage() {
 
           {/* Sidebar */}
           <aside className="space-y-6">
+            {/* AI Article Summary */}
+            <AIArticleSummary title={post.title} content={post.content} category={post.category} />
             {/* AI News Intelligence */}
             <AIInsightTeaser variant="news" context="AI-powered article analysis" />
             {related.length > 0 && (

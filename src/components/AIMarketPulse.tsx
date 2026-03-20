@@ -1,9 +1,16 @@
-import { useState, useEffect } from "react";
-import { Brain, TrendingUp, TrendingDown, Activity, Lock, ArrowRight } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Brain, TrendingUp, TrendingDown, Activity, Lock, ArrowRight, RefreshCw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
-const SENTIMENT_DATA = [
+interface SentimentItem {
+  label: string;
+  sentiment: string;
+  score: number;
+  trend: string;
+}
+
+const FALLBACK_DATA: SentimentItem[] = [
   { label: "NIFTY 50", sentiment: "Bullish", score: 72, trend: "up" },
   { label: "BANK NIFTY", sentiment: "Neutral", score: 51, trend: "neutral" },
   { label: "IT Sector", sentiment: "Bullish", score: 78, trend: "up" },
@@ -14,6 +21,9 @@ const SENTIMENT_DATA = [
 
 export function AIMarketPulse() {
   const [user, setUser] = useState<any>(null);
+  const [data, setData] = useState<SentimentItem[]>(FALLBACK_DATA);
+  const [loading, setLoading] = useState(false);
+  const [fetched, setFetched] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
@@ -21,9 +31,82 @@ export function AIMarketPulse() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const fetchSentiment = useCallback(async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          query: "Give me current market sentiment scores (0-100) for NIFTY 50, BANK NIFTY, IT Sector, Pharma, Auto, Real Estate in Indian markets. For each, provide: label, sentiment (Bullish/Bearish/Neutral), score (0-100), trend (up/down/neutral). Return ONLY a JSON array, no markdown, no explanation. Example: [{\"label\":\"NIFTY 50\",\"sentiment\":\"Bullish\",\"score\":72,\"trend\":\"up\"}]"
+        }),
+      });
+
+      if (!resp.ok || !resp.body) throw new Error("Failed");
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let idx: number;
+        while ((idx = buffer.indexOf("\n")) !== -1) {
+          let line = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const c = parsed.choices?.[0]?.delta?.content;
+            if (c) fullText += c;
+          } catch {}
+        }
+      }
+
+      // Try to parse the JSON from the response
+      const jsonMatch = fullText.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]) as SentimentItem[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setData(parsed.map(item => ({
+            label: item.label || "Unknown",
+            sentiment: item.sentiment || "Neutral",
+            score: Math.max(0, Math.min(100, Number(item.score) || 50)),
+            trend: item.trend || "neutral",
+          })));
+        }
+      }
+      setFetched(true);
+    } catch {
+      // Keep fallback data
+      setFetched(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    if (user && !fetched) fetchSentiment();
+  }, [user, fetched, fetchSentiment]);
+
+  const handleRefresh = () => {
+    setFetched(false);
+    fetchSentiment();
+  };
+
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-cyan-500/15">
-      {/* Background */}
+    <div className="relative overflow-hidden rounded-2xl border border-[hsl(var(--primary))]/15">
       <div className="absolute inset-0 bg-gradient-to-br from-[#0a0f1e] via-[#0d1526] to-[#0a1628]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(6,182,212,0.06),transparent_50%)]" />
 
@@ -31,23 +114,27 @@ export function AIMarketPulse() {
         {/* Header */}
         <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
               <Activity className="h-4 w-4 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-white font-bold text-sm">AI Market Pulse</h3>
-                <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">LIVE</span>
+                <h3 className="text-white font-bold text-sm">AI Sentiment Analysis</h3>
+                <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">LIVE</span>
               </div>
-              <p className="text-white/20 text-[10px]">AI-powered sentiment analysis</p>
+              <p className="text-white/20 text-[10px]">AI-powered market mood scanner</p>
             </div>
           </div>
-          <Brain className="h-5 w-5 text-white/10" />
+          {user && (
+            <button onClick={handleRefresh} disabled={loading} className="text-white/20 hover:text-white/60 p-1.5 rounded-lg hover:bg-white/[0.06] transition-all disabled:opacity-30">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            </button>
+          )}
         </div>
 
         {/* Sentiment bars */}
         <div className="px-5 py-4 space-y-3">
-          {SENTIMENT_DATA.map((item) => {
+          {data.map((item) => {
             const barColor = item.score >= 60 ? "from-emerald-500 to-green-400" :
                            item.score <= 40 ? "from-red-500 to-rose-400" :
                            "from-amber-500 to-yellow-400";
@@ -98,7 +185,7 @@ export function AIMarketPulse() {
               <p className="text-white/30 text-[11px] mb-2">Login to see AI sentiment scores</p>
               <Link
                 to="/login"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-600 text-white text-[11px] font-bold hover:opacity-90 transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-[11px] font-bold hover:opacity-90 transition-all"
               >
                 Unlock AI Insights
                 <ArrowRight className="h-3 w-3" />
