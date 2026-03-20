@@ -16,6 +16,7 @@ import { HomeRealEstateSection } from "@/components/HomeRealEstateSection";
 import { AIAssistantBar } from "@/components/AIAssistantBar";
 import { AIInsightTeaser } from "@/components/AIInsightTeaser";
 import { AIMarketPulse } from "@/components/AIMarketPulse";
+import { AIStockRecommendations } from "@/components/AIStockRecommendations";
 import {
   RefreshCw, ArrowUp, ArrowDown, TrendingUp,
   Flame, Star, Globe, BarChart3, Zap, ChevronRight, Clock,
