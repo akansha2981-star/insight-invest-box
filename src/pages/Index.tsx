@@ -618,7 +618,7 @@ export default function Index() {
                 {liveGlobalMarkets.map(m => (
                   <div key={m.name} className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/20 transition-colors cursor-pointer">
                     <div className="flex items-center gap-2">
-                      <span className="text-base">{m.country}</span>
+                      <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[10px] font-black text-muted-foreground">{m.region}</div>
                       <div>
                         <div className="text-[12px] font-semibold text-foreground">{m.name}</div>
                         <div className="text-[9px] text-muted-foreground uppercase font-bold tracking-wide">{m.region}</div>
