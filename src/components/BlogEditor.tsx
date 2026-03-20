@@ -107,7 +107,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
       if (data?.error) throw new Error(data.error);
       if (data?.excerpt) setExcerpt(data.excerpt);
       if (data?.meta_description) setMetaDescription(data.meta_description);
-      setAiToast("✓ AI generated excerpt & meta description!");
+      setAiToast("AI generated excerpt & meta description successfully");
     } catch (e) {
       setAiToast("AI error: " + (e instanceof Error ? e.message : "Unknown error"));
     } finally {
