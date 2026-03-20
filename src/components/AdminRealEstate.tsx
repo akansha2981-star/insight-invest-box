@@ -244,6 +244,7 @@ function PropertyForm({ property, onChange, onSave, onCancel, onUpload }: {
               className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
               <option value="buy">Buy</option>
               <option value="rent">Rent</option>
+              <option value="pg">PG / Paying Guest</option>
             </select>
           </div>
         </div>
