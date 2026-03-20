@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Brain, Lock, Sparkles, TrendingUp, BarChart2, Shield, Zap, ArrowRight, Loader2 } from "lucide-react";
+import { Brain, Lock, Sparkles, TrendingUp, BarChart2, Shield, Zap, ArrowRight, Loader2, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
@@ -65,8 +65,9 @@ export function AIInsightTeaser({ variant, context }: AIInsightTeaserProps) {
   }, []);
 
   const fetchInsight = useCallback(async () => {
-    if (loaded || loading) return;
+    if (loading) return;
     setLoading(true);
+    setAiInsight("");
     try {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`;
       const resp = await fetch(url, {
@@ -114,79 +115,83 @@ export function AIInsightTeaser({ variant, context }: AIInsightTeaserProps) {
     } finally {
       setLoading(false);
     }
-  }, [variant, loaded, loading]);
+  }, [variant, loading]);
 
-  // Auto-fetch for logged-in users
   useEffect(() => {
     if (user && !loaded) {
       fetchInsight();
     }
   }, [user, loaded, fetchInsight]);
 
+  const handleRefresh = () => {
+    setLoaded(false);
+    fetchInsight();
+  };
+
   const content = TEASER_CONTENT[variant];
   const isHomepage = variant === "homepage";
 
   return (
     <div className={`relative overflow-hidden rounded-2xl border ${isHomepage ? 'border-[hsl(var(--primary))]/20' : 'border-[hsl(var(--border))]'}`}>
-      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0a0f1e] via-[#0d1526] to-[#0a1628]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(6,182,212,0.08),transparent_60%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(139,92,246,0.06),transparent_60%)]" />
 
-      {/* Animated dots */}
       <div className="absolute top-4 right-4 flex gap-1">
-        <span className="w-1.5 h-1.5 rounded-full bg-cyan-500/40 animate-pulse" />
-        <span className="w-1.5 h-1.5 rounded-full bg-violet-500/40 animate-pulse" style={{ animationDelay: "0.5s" }} />
-        <span className="w-1.5 h-1.5 rounded-full bg-cyan-500/40 animate-pulse" style={{ animationDelay: "1s" }} />
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 animate-pulse" />
+        <span className="w-1.5 h-1.5 rounded-full bg-teal-500/40 animate-pulse" style={{ animationDelay: "0.5s" }} />
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 animate-pulse" style={{ animationDelay: "1s" }} />
       </div>
 
       <div className="relative px-5 py-5">
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
             <Brain className="h-5 w-5 text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <div className="flex items-center gap-2">
               <h3 className="text-white font-black text-[15px]">{content.title}</h3>
-              <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">AI</span>
+              <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AI</span>
             </div>
             {context && <p className="text-white/25 text-[11px]">{context}</p>}
           </div>
         </div>
 
         {user ? (
-          /* Logged in: show real AI insights */
           <div className="mb-4">
             {loading && !aiInsight ? (
               <div className="flex items-center gap-3 py-6 justify-center">
-                <Loader2 className="h-5 w-5 text-cyan-400 animate-spin" />
+                <Loader2 className="h-5 w-5 text-emerald-400 animate-spin" />
                 <span className="text-white/40 text-sm font-medium">AI is analyzing markets...</span>
               </div>
             ) : aiInsight ? (
               <div className="bg-white/[0.04] rounded-xl border border-white/[0.08] p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">Live AI Insights</span>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Live AI Insights</span>
+                  </div>
+                  <button
+                    onClick={handleRefresh}
+                    disabled={loading}
+                    className="text-white/20 hover:text-white/60 p-1 rounded-lg hover:bg-white/[0.06] transition-all disabled:opacity-30"
+                    title="Refresh insights"
+                  >
+                    {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                  </button>
                 </div>
-                <div className="text-white/70 text-[13px] leading-relaxed [&_p]:mb-2 [&_li]:mb-1 [&_strong]:text-white/90 [&_ul]:space-y-1 [&_li]:relative [&_li]:pl-3 [&_li]:before:content-[''] [&_li]:before:absolute [&_li]:before:left-0 [&_li]:before:top-[8px] [&_li]:before:w-1.5 [&_li]:before:h-1.5 [&_li]:before:rounded-full [&_li]:before:bg-cyan-500/40">
+                <div className="text-white/70 text-[13px] leading-relaxed [&_p]:mb-2 [&_li]:mb-1 [&_strong]:text-white/90 [&_ul]:space-y-1 [&_li]:relative [&_li]:pl-3 [&_li]:before:content-[''] [&_li]:before:absolute [&_li]:before:left-0 [&_li]:before:top-[8px] [&_li]:before:w-1.5 [&_li]:before:h-1.5 [&_li]:before:rounded-full [&_li]:before:bg-emerald-500/40">
                   <ReactMarkdown>{aiInsight}</ReactMarkdown>
                 </div>
-                <button
-                  onClick={() => { setLoaded(false); setAiInsight(""); }}
-                  className="mt-3 text-[10px] font-bold text-cyan-400/60 hover:text-cyan-400 transition-colors flex items-center gap-1"
-                >
-                  <Sparkles className="h-3 w-3" /> Refresh Insights
-                </button>
               </div>
             ) : null}
 
-            {/* Feature links */}
             <div className={`${isHomepage ? 'grid grid-cols-2 gap-2' : 'space-y-2'} mt-4`}>
               {content.features.map((f) => (
                 <div key={f.label} className={`flex items-start gap-3 ${isHomepage ? 'bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]' : ''}`}>
                   <div className="w-7 h-7 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center shrink-0 mt-0.5">
-                    <f.icon className="h-3.5 w-3.5 text-cyan-400" />
+                    <f.icon className="h-3.5 w-3.5 text-emerald-400" />
                   </div>
                   <div>
                     <div className="text-white/80 text-[12px] font-semibold">{f.label}</div>
@@ -197,13 +202,12 @@ export function AIInsightTeaser({ variant, context }: AIInsightTeaserProps) {
             </div>
           </div>
         ) : (
-          /* Not logged in: show teaser */
           <>
             <div className={`${isHomepage ? 'grid grid-cols-2 gap-3' : 'space-y-2.5'} mb-5`}>
               {content.features.map((f) => (
                 <div key={f.label} className={`flex items-start gap-3 ${isHomepage ? 'bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]' : ''}`}>
                   <div className="w-7 h-7 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center shrink-0 mt-0.5">
-                    <f.icon className="h-3.5 w-3.5 text-cyan-400" />
+                    <f.icon className="h-3.5 w-3.5 text-emerald-400" />
                   </div>
                   <div>
                     <div className="text-white/80 text-[12px] font-semibold">{f.label}</div>
@@ -215,7 +219,7 @@ export function AIInsightTeaser({ variant, context }: AIInsightTeaserProps) {
 
             <Link
               to="/login"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 text-white text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-cyan-500/20"
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-emerald-500/20"
             >
               <Lock className="h-3.5 w-3.5" />
               Login to Unlock AI Features

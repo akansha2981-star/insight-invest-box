@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Brain, X, Send, Loader2, Sparkles, Lock } from "lucide-react";
+import { Brain, X, Send, Loader2, Sparkles, Lock, RotateCcw, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
@@ -130,6 +130,14 @@ export function FloatingAIButton() {
     setOpen(false);
   };
 
+  const handleRestart = () => {
+    abortRef.current?.abort();
+    setMessages([]);
+    setStreamText("");
+    setStreaming(false);
+    setInput("");
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -157,9 +165,16 @@ export function FloatingAIButton() {
                   </div>
                 </div>
               </div>
-              <button onClick={handleClose} className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] p-1.5 rounded-lg hover:bg-[hsl(var(--muted))] transition-all">
-                <X className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                {user && messages.length > 0 && (
+                  <button onClick={handleRestart} title="Restart Chat" className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] p-1.5 rounded-lg hover:bg-[hsl(var(--muted))] transition-all">
+                    <RotateCcw className="h-4 w-4" />
+                  </button>
+                )}
+                <button onClick={handleClose} className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] p-1.5 rounded-lg hover:bg-[hsl(var(--muted))] transition-all">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -258,6 +273,11 @@ export function FloatingAIButton() {
                   >
                     {streaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   </button>
+                </div>
+                {/* Disclaimer */}
+                <div className="mt-2 flex items-start gap-1.5 text-[9px] text-[hsl(var(--muted-foreground))] leading-tight">
+                  <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
+                  <span>This is not a recommendation from Investing IQ. For learning purposes only. Do not make investment decisions based on this. AI may provide incorrect information.</span>
                 </div>
               </div>
             </>
