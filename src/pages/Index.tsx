@@ -697,7 +697,7 @@ export default function Index() {
             {/* Currencies */}
             <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
               <div className="border-b border-border px-5 py-3 bg-muted/30 flex items-center justify-between">
-                <span className="font-black text-[13px] text-foreground">💱 Currency Rates (vs INR)</span>
+                <span className="font-black text-[13px] text-foreground">Currency Rates (vs INR)</span>
                 <div className="flex items-center gap-2">
                   {marketDataUpdatedAt && <span className="text-[9px] text-gain font-bold">● LIVE</span>}
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Interbank</span>
