@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Eye, EyeOff, Clock, Send, Tag, User, Hash, FileText, Search, ListOrdered, UploadCloud, Trash2, Sparkles, Loader2, AlertCircle } from "lucide-react";
+import { X, Eye, EyeOff, Clock, Send, Tag, User, Hash, FileText, Search, ListOrdered, UploadCloud, Trash2, Sparkles, Loader2, AlertCircle, Brain, PenTool, ListChecks, Lightbulb } from "lucide-react";
 import { RichTextEditor } from "./RichTextEditor";
 
 interface BlogPost {
@@ -68,7 +68,88 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
   const [aiToast,         setAiToast]         = useState("");
   const [error,           setError]           = useState("");
   const [preview,         setPreview]         = useState(false);
+  const [aiWriterOpen,    setAiWriterOpen]    = useState(false);
+  const [aiWriterStream,  setAiWriterStream]  = useState("");
+  const [aiWriterLoading, setAiWriterLoading] = useState(false);
+  const [aiWriterAction,  setAiWriterAction]  = useState<string | null>(null);
+  const [aiTopic,         setAiTopic]         = useState("");
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const aiAbortRef = useRef<AbortController | null>(null);
+
+  const handleAiWriter = useCallback(async (action: string) => {
+    setAiWriterOpen(true);
+    setAiWriterAction(action);
+    setAiWriterLoading(true);
+    setAiWriterStream("");
+
+    const controller = new AbortController();
+    aiAbortRef.current = controller;
+
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-blog-writer`;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          action,
+          topic: aiTopic || title,
+          category,
+          keywords: tags,
+          existingContent: content,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!resp.ok || !resp.body) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || `Error ${resp.status}`);
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let idx: number;
+        while ((idx = buffer.indexOf("\n")) !== -1) {
+          let line = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const c = parsed.choices?.[0]?.delta?.content;
+            if (c) { fullText += c; setAiWriterStream(fullText); }
+          } catch {}
+        }
+      }
+    } catch (e: any) {
+      if (e.name !== "AbortError") {
+        setAiWriterStream(`Error: ${e.message}`);
+      }
+    } finally {
+      setAiWriterLoading(false);
+      aiAbortRef.current = null;
+    }
+  }, [title, category, tags, content, aiTopic]);
+
+  const applyAiContent = () => {
+    // Strip code fences if present
+    let cleaned = aiWriterStream.replace(/^```html\n?/i, "").replace(/\n?```$/i, "").trim();
+    setContent(cleaned);
+    setAiWriterOpen(false);
+    setAiToast("AI content applied to editor");
+    setTimeout(() => setAiToast(""), 4000);
+  };
 
   function handleTitleChange(val: string) {
     setTitle(val);
@@ -380,6 +461,67 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* ── AI Blog Writer ── */}
+                <div className="border-t border-border pt-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-3.5 w-3.5 text-violet-500" />
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-foreground">AI Blog Writer</span>
+                  </div>
+                  <SideInput
+                    value={aiTopic}
+                    onChange={e => setAiTopic(e.target.value)}
+                    placeholder="Topic (or uses article title)"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => handleAiWriter("generate-draft")} disabled={aiWriterLoading}
+                      className="flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors disabled:opacity-40">
+                      <PenTool className="h-3 w-3" /> Draft Article
+                    </button>
+                    <button onClick={() => handleAiWriter("generate-outline")} disabled={aiWriterLoading}
+                      className="flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors disabled:opacity-40">
+                      <ListChecks className="h-3 w-3" /> Outline
+                    </button>
+                    <button onClick={() => handleAiWriter("improve-content")} disabled={aiWriterLoading || !content.trim()}
+                      className="flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-40">
+                      <Sparkles className="h-3 w-3" /> Improve
+                    </button>
+                    <button onClick={() => handleAiWriter("suggest-topics")} disabled={aiWriterLoading}
+                      className="flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors disabled:opacity-40">
+                      <Lightbulb className="h-3 w-3" /> Ideas
+                    </button>
+                  </div>
+
+                  {aiWriterOpen && (
+                    <div className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">
+                      <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700">
+                        <span className="text-[10px] font-bold text-white/60 uppercase tracking-wide">
+                          {aiWriterLoading ? "Generating..." : "AI Output"}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {!aiWriterLoading && aiWriterStream && aiWriterAction !== "suggest-topics" && (
+                            <button onClick={applyAiContent}
+                              className="text-[10px] font-bold bg-emerald-500 text-white px-2 py-1 rounded hover:bg-emerald-600 transition-colors">
+                              Apply to Editor
+                            </button>
+                          )}
+                          <button onClick={() => { aiAbortRef.current?.abort(); setAiWriterOpen(false); }}
+                            className="text-white/30 hover:text-white/60 p-1">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="px-3 py-3 max-h-60 overflow-y-auto text-[11px] text-white/70 leading-relaxed whitespace-pre-wrap">
+                        {aiWriterLoading && !aiWriterStream && (
+                          <div className="flex items-center gap-2 text-white/40">
+                            <Loader2 className="h-3 w-3 animate-spin" /> Writing...
+                          </div>
+                        )}
+                        {aiWriterStream}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* ── Article Stats ── */}

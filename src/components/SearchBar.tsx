@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, TrendingUp, FileText, X, BarChart2 } from "lucide-react";
+import { Search, TrendingUp, FileText, X, BarChart2, Brain, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { TOP_GAINERS, TOP_LOSERS } from "@/data/mockStocks";
@@ -7,7 +7,7 @@ import { TOP_GAINERS, TOP_LOSERS } from "@/data/mockStocks";
 const ALL_STOCKS = [...TOP_GAINERS, ...TOP_LOSERS];
 
 interface SearchResult {
-  type: "stock" | "article" | "review";
+  type: "stock" | "article" | "review" | "property";
   title: string;
   subtitle: string;
   href: string;
@@ -97,6 +97,24 @@ export function SearchBar() {
       });
     });
 
+    // Properties search from DB
+    const { data: properties } = await supabase
+      .from("properties")
+      .select("title, slug, city, locality, bhk, property_type, price_display")
+      .eq("status", "active")
+      .or(`title.ilike.%${q}%,city.ilike.%${q}%,locality.ilike.%${q}%,developer_name.ilike.%${q}%`)
+      .limit(3);
+
+    ((properties as any[]) ?? []).forEach((p: any) => {
+      out.push({
+        type: "property",
+        title: p.title,
+        subtitle: `${p.city}${p.locality ? ", " + p.locality : ""} | ${p.bhk || "-"} BHK`,
+        href: `/real-estate/${p.slug}`,
+        badge: p.price_display || p.property_type,
+      });
+    });
+
     setResults(out);
     setLoading(false);
     setSelected(-1);
@@ -117,13 +135,15 @@ export function SearchBar() {
   const typeIcon = (type: SearchResult["type"]) => {
     if (type === "stock") return <TrendingUp className="h-3.5 w-3.5 text-primary" />;
     if (type === "review") return <BarChart2 className="h-3.5 w-3.5 text-gain" />;
+    if (type === "property") return <Building2 className="h-3.5 w-3.5 text-emerald-500" />;
     return <FileText className="h-3.5 w-3.5 text-muted-foreground" />;
   };
 
   const typeLabel = (type: SearchResult["type"]) => {
-    if (type === "stock") return "Stock";
-    if (type === "review") return "Review";
-    return "Article";
+    if (type === "stock") return "Stocks";
+    if (type === "review") return "Stock Reviews";
+    if (type === "property") return "Properties";
+    return "Articles";
   };
 
   const showDropdown = focused && (query.trim().length > 0);
@@ -160,13 +180,13 @@ export function SearchBar() {
           ) : (
             <div>
               {/* Group by type */}
-              {(["stock", "review", "article"] as const).map(type => {
+              {(["stock", "review", "property", "article"] as const).map(type => {
                 const group = results.filter(r => r.type === type);
                 if (!group.length) return null;
                 return (
                   <div key={type}>
                     <div className="px-4 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      {type === "stock" ? "Stocks" : type === "review" ? "Stock Reviews" : "Articles"}
+                      {typeLabel(type)}
                     </div>
                     {group.map((r, i) => {
                       const globalIdx = results.indexOf(r);

@@ -4,9 +4,10 @@ import { Header } from "@/components/Header";
 import { StockTicker } from "@/components/StockTicker";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
+import { AIStreamingPanel } from "@/components/AIStreamingPanel";
 import {
   TrendingUp, TrendingDown, ChevronRight, Eye, Calendar,
-  BarChart2, Target, AlertTriangle, Star, User, Tag, ArrowUpRight
+  BarChart2, Target, AlertTriangle, Star, User, Tag, ArrowUpRight, Brain, Scale, LineChart as LineChartIcon, Shield
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -378,6 +379,21 @@ export default function StockReviewDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* AI Analysis Panel */}
+            <AIStreamingPanel
+              title="AI Stock Analysis"
+              subtitle={`Powered by AI for ${r.symbol}`}
+              functionName="ai-stock-analysis"
+              payload={{ symbol: r.symbol }}
+              accentColor="cyan"
+              actions={[
+                { key: "full-analysis", label: "Full Analysis", icon: <Brain className="h-3 w-3" /> },
+                { key: "risk-assessment", label: "Risk Assessment", icon: <Shield className="h-3 w-3" /> },
+                { key: "peer-comparison", label: "Peer Compare", icon: <Scale className="h-3 w-3" /> },
+                { key: "earnings-preview", label: "Earnings Preview", icon: <LineChartIcon className="h-3 w-3" /> },
+              ]}
+            />
 
             {/* Back link */}
             <Link to="/stocks/reviews"
