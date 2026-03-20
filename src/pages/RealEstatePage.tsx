@@ -822,7 +822,7 @@ export default function RealEstatePage() {
           <p className="text-sm text-muted-foreground mb-5">What homebuyers are saying about popular properties</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {properties.filter(p => (p.rating ?? 0) >= 4).slice(0, 6).map(prop => (
-              <div key={prop.id} className="bg-card border border-border rounded-2xl p-5 hover:shadow-md transition-all">
+              <Link to={`/real-estate/${prop.slug}`} key={prop.id} className="bg-card border border-border rounded-2xl p-5 hover:shadow-md transition-all block group">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-yellow-50 rounded-xl flex items-center justify-center">
                     <Award className="h-6 w-6 text-amber-500" />
