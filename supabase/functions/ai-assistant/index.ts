@@ -49,7 +49,7 @@ When recommending items, include them as structured cards:
 For investment questions, add a brief disclaimer. Be helpful and direct.`;
 
     const reqBody = {
-      model: "openai/gpt-5-nano",
+      model: "google/gemini-2.5-flash-lite",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: query },
