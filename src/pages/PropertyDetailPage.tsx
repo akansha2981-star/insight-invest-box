@@ -383,6 +383,21 @@ export default function PropertyDetailPage() {
                 })}
               </div>
             </div>
+
+            {/* AI Property Advisor */}
+            <AIStreamingPanel
+              title="AI Property Advisor"
+              subtitle={`Analysis for ${property.title}`}
+              functionName="ai-property-advisor"
+              payload={{ slug: property.slug }}
+              accentColor="emerald"
+              actions={[
+                { key: "investment-analysis", label: "Investment Analysis", icon: <Brain className="h-3 w-3" /> },
+                { key: "locality-insights", label: "Locality Insights", icon: <Map className="h-3 w-3" /> },
+                { key: "compare-similar", label: "Compare Similar", icon: <Scale className="h-3 w-3" /> },
+                { key: "price-prediction", label: "Price Prediction", icon: <LineChartIcon className="h-3 w-3" /> },
+              ]}
+            />
           </div>
         </div>
       </main>
