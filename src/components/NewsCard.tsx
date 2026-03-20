@@ -42,9 +42,13 @@ function CategoryBadge({ category }: { category: string | null }) {
   );
 }
 
-const CATEGORY_ICONS: Record<string, string> = {
-  Markets: 'BarChart3', Economy: 'Landmark', Stocks: 'TrendingUp', Commodities: 'CircleDollarSign', Companies: 'Building2', default: 'Newspaper'
+const CATEGORY_ICON: Record<string, LucideIcon> = {
+  Markets: BarChart3, Economy: Landmark, Stocks: TrendingUp, Companies: Building2
 };
+function CategoryIcon({ category, className = "h-8 w-8 text-muted-foreground/30" }: { category?: string | null; className?: string }) {
+  const Icon = CATEGORY_ICON[category ?? ''] ?? Newspaper;
+  return <Icon className={className} />;
+}
 
 /* ─── Hero (large featured card) ─── */
 export function NewsCardHero({ post }: { post: BlogPost }) {
