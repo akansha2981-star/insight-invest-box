@@ -22,17 +22,42 @@ export function Footer() {
           </div>
 
           {[
-            { title: "Markets", links: ["BSE / NSE", "F&O", "Commodities", "Currency", "Global Markets", "IPO"] },
-            { title: "News & Analysis", links: ["Market News", "Economy", "Companies", "Budget 2025", "Mutual Funds", "Crypto"] },
-            { title: "Tools", links: ["SIP Calculator", "EMI Calculator", "Stock Screener", "Portfolio Tracker", "Tax Calculator", "FD Calculator"] },
-            { title: "Company", links: ["About Us", "Careers", "Contact", "Privacy Policy", "Terms of Use", "Sitemap"] },
+            { title: "Markets", links: [
+              { label: "Market Overview", to: "/markets" },
+              { label: "Stocks", to: "/stocks" },
+              { label: "Stock Reviews", to: "/stocks/reviews" },
+              { label: "Mutual Funds", to: "/mf" },
+              { label: "Crypto", to: "/crypto" },
+            ]},
+            { title: "News & Analysis", links: [
+              { label: "Market News", to: "/news" },
+              { label: "Economy", to: "/economy" },
+              { label: "Real Estate", to: "/real-estate" },
+              { label: "Portfolio", to: "/portfolio" },
+            ]},
+            { title: "Tools", links: [
+              { label: "SIP Calculator", to: "/tools/sip" },
+              { label: "EMI Calculator", to: "/tools/emi" },
+              { label: "Stock Screener", to: "/tools/screener" },
+              { label: "Portfolio Tester", to: "/tools/portfolio" },
+              { label: "Tax Calculator", to: "/tools/tax" },
+              { label: "FD Calculator", to: "/tools/fd" },
+            ]},
+            { title: "Company", links: [
+              { label: "About Us", to: "/about" },
+              { label: "Careers", to: "/careers" },
+              { label: "Contact", to: "/contact" },
+              { label: "Privacy Policy", to: "/privacy" },
+              { label: "Terms of Use", to: "/terms" },
+              { label: "Sitemap", to: "/sitemap" },
+            ]},
           ].map((col) => (
             <div key={col.title}>
               <h4 className="text-white font-bold text-sm mb-4">{col.title}</h4>
               <ul className="space-y-2.5">
                 {col.links.map((link) => (
-                  <li key={link}>
-                    <a href="#" className="text-xs text-white/50 hover:text-white transition-colors">{link}</a>
+                  <li key={link.label}>
+                    <Link to={link.to} className="text-xs text-white/50 hover:text-white transition-colors">{link.label}</Link>
                   </li>
                 ))}
               </ul>
@@ -41,7 +66,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/30">© 2026 Investing IQ Financial Media Pvt. Ltd. All rights reserved.</p>
+          <p className="text-xs text-white/30">&copy; 2026 Investing IQ Financial Media Pvt. Ltd. All rights reserved.</p>
           <div className="flex items-center gap-6 text-xs">
             <span className="text-white/30">BSE: <span className="text-emerald-400">LIVE</span></span>
             <span className="text-white/30">NSE: <span className="text-emerald-400">LIVE</span></span>
