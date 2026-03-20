@@ -128,7 +128,7 @@ export function TrendingTopics() {
             >
               <Hash className="h-2.5 w-2.5 opacity-50" />
               {item.tag}
-              {item.heat >= 85 && <span className="text-[8px] ml-0.5">🔥</span>}
+              {item.heat >= 85 && <Flame className="h-2.5 w-2.5 text-red-500 ml-0.5" />}
             </Link>
           ))
         )}

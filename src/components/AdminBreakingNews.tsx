@@ -175,7 +175,7 @@ export function AdminBreakingNews() {
             >
               <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 cursor-grab" />
               <span className="text-[11px] font-bold text-muted-foreground w-5 shrink-0">{idx + 1}</span>
-              <span className="text-red-500 text-sm shrink-0">🔴</span>
+              <span className="text-red-500 text-sm shrink-0">●</span>
               <input
                 value={item.text}
                 onChange={e => updateText(item.id, e.target.value)}

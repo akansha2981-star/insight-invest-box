@@ -41,8 +41,8 @@ function CategoryBadge({ category }: { category: string | null }) {
   );
 }
 
-const EMOJI_MAP: Record<string, string> = {
-  Markets: '📊', Economy: '🏛️', Stocks: '📈', Commodities: '🥇', Companies: '🏢', default: '📰'
+const CATEGORY_ICONS: Record<string, string> = {
+  Markets: 'BarChart3', Economy: 'Landmark', Stocks: 'TrendingUp', Commodities: 'CircleDollarSign', Companies: 'Building2', default: 'Newspaper'
 };
 
 /* ─── Hero (large featured card) ─── */

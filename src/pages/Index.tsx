@@ -894,16 +894,16 @@ export default function Index() {
           <SectionHeading icon={BookOpen} title="Learning Hub" accent="bg-primary" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { emoji: "📈", title: "Technical Analysis 101", desc: "Learn candlestick patterns, support & resistance, and moving averages", tag: "Beginner", tagColor: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-              { emoji: "🏦", title: "Mutual Fund Selection", desc: "How to pick the right MF scheme based on your goals and risk appetite", tag: "Guide", tagColor: "bg-blue-50 text-blue-700 border-blue-200" },
-              { emoji: "📊", title: "Reading Financial Statements", desc: "Understand balance sheets, P&L statements, and cash flow analysis", tag: "Intermediate", tagColor: "bg-amber-50 text-amber-700 border-amber-200" },
-              { emoji: "💰", title: "Tax-Saving Investments", desc: "Section 80C, ELSS funds, NPS benefits, and LTCG tax planning", tag: "Tax", tagColor: "bg-rose-50 text-rose-700 border-rose-200" },
-              { emoji: "🌐", title: "IPO Investing Guide", desc: "How to apply, GMP analysis, listing gains, and risks involved", tag: "Popular", tagColor: "bg-purple-50 text-purple-700 border-purple-200" },
-              { emoji: "⚡", title: "Options Trading Basics", desc: "Understand calls, puts, strike prices, and hedging strategies", tag: "Advanced", tagColor: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+              { icon: TrendingUp, title: "Technical Analysis 101", desc: "Learn candlestick patterns, support & resistance, and moving averages", tag: "Beginner", tagColor: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+              { icon: Landmark, title: "Mutual Fund Selection", desc: "How to pick the right MF scheme based on your goals and risk appetite", tag: "Guide", tagColor: "bg-blue-50 text-blue-700 border-blue-200" },
+              { icon: BarChart3, title: "Reading Financial Statements", desc: "Understand balance sheets, P&L statements, and cash flow analysis", tag: "Intermediate", tagColor: "bg-amber-50 text-amber-700 border-amber-200" },
+              { icon: DollarSign, title: "Tax-Saving Investments", desc: "Section 80C, ELSS funds, NPS benefits, and LTCG tax planning", tag: "Tax", tagColor: "bg-rose-50 text-rose-700 border-rose-200" },
+              { icon: Globe, title: "IPO Investing Guide", desc: "How to apply, GMP analysis, listing gains, and risks involved", tag: "Popular", tagColor: "bg-purple-50 text-purple-700 border-purple-200" },
+              { icon: Zap, title: "Options Trading Basics", desc: "Understand calls, puts, strike prices, and hedging strategies", tag: "Advanced", tagColor: "bg-indigo-50 text-indigo-700 border-indigo-200" },
             ].map(item => (
               <div key={item.title} className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md hover:border-primary/20 transition-all cursor-pointer group">
                 <div className="flex items-start gap-3">
-                  <span className="text-2xl">{item.emoji}</span>
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"><item.icon className="h-5 w-5 text-primary" /></div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${item.tagColor}`}>{item.tag}</span>
