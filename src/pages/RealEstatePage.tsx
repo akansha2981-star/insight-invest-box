@@ -688,11 +688,32 @@ export default function RealEstatePage() {
               </div>
               <h2 className="text-2xl font-black text-foreground">Price Drop Deals</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <REPageSlider>
               {priceDropProps.map(prop => (
-                <PropertyCard key={prop.id} property={prop} showPriceDrop />
+                <div key={prop.id} className="shrink-0 w-[280px] snap-start">
+                  <PropertyCard property={prop} showPriceDrop />
+                </div>
               ))}
+            </REPageSlider>
+          </section>
+        )}
+
+        {/* Featured Properties Slider */}
+        {properties.filter(p => p.is_featured).length > 0 && (
+          <section>
+            <div className="flex items-center gap-3 mb-5">
+              <div className="bg-[#ffd700] text-[#1a1a2e] text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide flex items-center gap-1">
+                <Star className="h-3 w-3" /> Featured
+              </div>
+              <h2 className="text-2xl font-black text-foreground">Featured Properties</h2>
             </div>
+            <REPageSlider>
+              {properties.filter(p => p.is_featured).map(prop => (
+                <div key={prop.id} className="shrink-0 w-[280px] snap-start">
+                  <PropertyCard property={prop} />
+                </div>
+              ))}
+            </REPageSlider>
           </section>
         )}
 
