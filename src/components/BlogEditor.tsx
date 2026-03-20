@@ -463,6 +463,67 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
                   </div>
                 </div>
 
+                {/* ── AI Blog Writer ── */}
+                <div className="border-t border-border pt-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-3.5 w-3.5 text-violet-500" />
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-foreground">AI Blog Writer</span>
+                  </div>
+                  <SideInput
+                    value={aiTopic}
+                    onChange={e => setAiTopic(e.target.value)}
+                    placeholder="Topic (or uses article title)"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => handleAiWriter("generate-draft")} disabled={aiWriterLoading}
+                      className="flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors disabled:opacity-40">
+                      <PenTool className="h-3 w-3" /> Draft Article
+                    </button>
+                    <button onClick={() => handleAiWriter("generate-outline")} disabled={aiWriterLoading}
+                      className="flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors disabled:opacity-40">
+                      <ListChecks className="h-3 w-3" /> Outline
+                    </button>
+                    <button onClick={() => handleAiWriter("improve-content")} disabled={aiWriterLoading || !content.trim()}
+                      className="flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-40">
+                      <Sparkles className="h-3 w-3" /> Improve
+                    </button>
+                    <button onClick={() => handleAiWriter("suggest-topics")} disabled={aiWriterLoading}
+                      className="flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors disabled:opacity-40">
+                      <Lightbulb className="h-3 w-3" /> Ideas
+                    </button>
+                  </div>
+
+                  {aiWriterOpen && (
+                    <div className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">
+                      <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700">
+                        <span className="text-[10px] font-bold text-white/60 uppercase tracking-wide">
+                          {aiWriterLoading ? "Generating..." : "AI Output"}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {!aiWriterLoading && aiWriterStream && aiWriterAction !== "suggest-topics" && (
+                            <button onClick={applyAiContent}
+                              className="text-[10px] font-bold bg-emerald-500 text-white px-2 py-1 rounded hover:bg-emerald-600 transition-colors">
+                              Apply to Editor
+                            </button>
+                          )}
+                          <button onClick={() => { aiAbortRef.current?.abort(); setAiWriterOpen(false); }}
+                            className="text-white/30 hover:text-white/60 p-1">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="px-3 py-3 max-h-60 overflow-y-auto text-[11px] text-white/70 leading-relaxed whitespace-pre-wrap">
+                        {aiWriterLoading && !aiWriterStream && (
+                          <div className="flex items-center gap-2 text-white/40">
+                            <Loader2 className="h-3 w-3 animate-spin" /> Writing...
+                          </div>
+                        )}
+                        {aiWriterStream}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* ── Article Stats ── */}
                 <div className="bg-white border border-border rounded-xl p-4 space-y-2">
                   <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-3">Article Stats</div>
