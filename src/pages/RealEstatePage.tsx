@@ -463,7 +463,7 @@ export default function RealEstatePage() {
       <main className="max-w-[1440px] mx-auto px-4 py-8 space-y-12">
 
         {/* ═══════════════════════════════════
-            HOT SELLING PROJECTS — City Tabs
+            HOT SELLING PROJECTS — Slider
         ═══════════════════════════════════ */}
         <section>
           <div className="mb-6">
@@ -481,41 +481,14 @@ export default function RealEstatePage() {
                 }`}>{city}</button>
             ))}
           </div>
-          {/* Property cards grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {(hotCityProperties.length > 0 ? hotCityProperties : properties.filter(p => p.listing_type === "buy")).slice(0, 5).map((prop, idx) => (
-              <Link to={`/real-estate/${prop.slug}`} key={prop.id} className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-all block">
-                {/* Rank number */}
-                <div className="absolute top-3 left-3 z-10 bg-[#1a1a2e] text-white text-xs font-black w-7 h-7 rounded-full flex items-center justify-center shadow-lg">
-                  {idx + 1}
-                </div>
-                <div className="aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-50 overflow-hidden relative">
-                  {prop.cover_image_url ? (
-                    <img src={prop.cover_image_url} alt={prop.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
-                      <Building2 className="h-12 w-12 text-blue-200" />
-                    </div>
-                  )}
-                  {prop.is_price_drop && (
-                    <span className="absolute top-3 right-3 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-lg">PRICE DROP</span>
-                  )}
-                </div>
-                <div className="p-3.5">
-                  <h3 className="font-bold text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors">{prop.title}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> {prop.locality}, {prop.city}
-                  </p>
-                  <div className="mt-2 number-font text-base font-black text-foreground">
-                    {prop.price_display || formatPrice(prop.price)}
-                  </div>
-                  {prop.developer_name && (
-                    <p className="text-[10px] text-muted-foreground mt-1">by {prop.developer_name}</p>
-                  )}
-                </div>
-              </Link>
+          {/* Slider */}
+          <REPageSlider>
+            {(hotCityProperties.length > 0 ? hotCityProperties : properties.filter(p => p.listing_type === "buy")).slice(0, 10).map((prop) => (
+              <div key={prop.id} className="shrink-0 w-[280px] snap-start">
+                <PropertyCard property={prop} />
+              </div>
             ))}
-          </div>
+          </REPageSlider>
         </section>
 
         {/* ═══════════════════════════════════
