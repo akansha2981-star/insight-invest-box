@@ -287,7 +287,10 @@ function PropertyForm({ property, onChange, onSave, onCancel, onUpload }: {
               <option value="villa">Villa</option>
               <option value="plot">Plot</option>
               <option value="penthouse">Penthouse</option>
+              <option value="builder_floor">Builder Floor</option>
+              <option value="independent">Independent House</option>
               <option value="studio">Studio</option>
+              <option value="pg">PG Room</option>
             </select>
           </div>
           <div>
