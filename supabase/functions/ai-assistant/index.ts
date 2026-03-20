@@ -288,7 +288,8 @@ CRITICAL RULES:
 2. If NO relevant data exists in our database, use your own knowledge to answer helpfully about Indian markets, stocks, real estate, mutual funds, etc.
 3. Answer in the SAME LANGUAGE the user writes in.
 4. Be concise, helpful, and actionable. Use bullet points and headers.
-5. For investment info, ALWAYS end with: "Data sourced from official exchanges (NSE/BSE) and trusted platforms. This is informational only — not a recommendation. Consult a certified financial advisor."
+5. NEVER use emojis. Use clean professional formatting only.
+6. Do NOT include any disclaimer text — the UI adds it automatically.
 
 ${dbSearchSummary}
 
