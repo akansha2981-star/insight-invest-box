@@ -7,7 +7,7 @@ import { TOP_GAINERS, TOP_LOSERS } from "@/data/mockStocks";
 const ALL_STOCKS = [...TOP_GAINERS, ...TOP_LOSERS];
 
 interface SearchResult {
-  type: "stock" | "article" | "review";
+  type: "stock" | "article" | "review" | "property";
   title: string;
   subtitle: string;
   href: string;
