@@ -77,36 +77,51 @@ CARD FORMAT — When recommending items from our database, embed structured card
 
 If the user asks about something NOT in our database, say: "I don't have that in our current listings. Here's what we do have that might interest you:" and suggest relevant alternatives from our data.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: query },
-        ],
-        stream: true,
-      }),
-    });
+    const models = ["google/gemini-2.5-flash", "openai/gpt-5-mini", "google/gemini-3-flash-preview"];
+    let response: Response | null = null;
 
-    if (!response.ok) {
-      const status = response.status;
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit reached. Please try again in a moment." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    for (const model of models) {
+      try {
+        const attempt = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: query },
+            ],
+            stream: true,
+          }),
         });
+
+        if (attempt.ok) {
+          response = attempt;
+          break;
+        }
+
+        const status = attempt.status;
+        if (status === 429) {
+          return new Response(JSON.stringify({ error: "Rate limit reached. Please try again in a moment." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (status === 402) {
+          return new Response(JSON.stringify({ error: "AI credits exhausted. Please contact support." }), {
+            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        console.error(`Model ${model} failed with status ${status}, trying next...`);
+      } catch (err) {
+        console.error(`Model ${model} fetch error:`, err);
       }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please contact support." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", status, t);
+    }
+
+    if (!response) {
       return new Response(JSON.stringify({ error: "AI service temporarily unavailable. Please try again shortly." }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
