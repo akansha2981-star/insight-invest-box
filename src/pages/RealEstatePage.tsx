@@ -847,7 +847,7 @@ export default function RealEstatePage() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <MapPin className="h-3 w-3" /> {prop.locality}, {prop.city}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
