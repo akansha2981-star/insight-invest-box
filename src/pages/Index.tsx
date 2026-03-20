@@ -49,11 +49,11 @@ const COMMODITIES = [
 ];
 
 const CURRENCIES = [
-  { pair: "USD/INR", rate: "86.62", change: "-0.08", pct: "-0.09%", up: false, flag: "🇺🇸", name: "US Dollar" },
-  { pair: "EUR/INR", rate: "90.18", change: "+0.22", pct: "+0.24%", up: true,  flag: "🇪🇺", name: "Euro" },
-  { pair: "GBP/INR", rate: "109.42", change: "-0.18", pct: "-0.16%", up: false, flag: "🇬🇧", name: "British Pound" },
-  { pair: "JPY/INR", rate: "0.5748", change: "+0.01", pct: "+0.19%", up: true,  flag: "🇯🇵", name: "Japanese Yen" },
-  { pair: "AED/INR", rate: "23.59", change: "-0.03", pct: "-0.13%", up: false, flag: "🇦🇪", name: "UAE Dirham" },
+  { pair: "USD/INR", rate: "86.62", change: "-0.08", pct: "-0.09%", up: false, code: "USD", name: "US Dollar" },
+  { pair: "EUR/INR", rate: "90.18", change: "+0.22", pct: "+0.24%", up: true,  code: "EUR", name: "Euro" },
+  { pair: "GBP/INR", rate: "109.42", change: "-0.18", pct: "-0.16%", up: false, code: "GBP", name: "British Pound" },
+  { pair: "JPY/INR", rate: "0.5748", change: "+0.01", pct: "+0.19%", up: true,  code: "JPY", name: "Japanese Yen" },
+  { pair: "AED/INR", rate: "23.59", change: "-0.03", pct: "-0.13%", up: false, code: "AED", name: "UAE Dirham" },
 ];
 
 const GLOBAL_MARKETS = [
