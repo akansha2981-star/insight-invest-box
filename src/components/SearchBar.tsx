@@ -97,6 +97,24 @@ export function SearchBar() {
       });
     });
 
+    // Properties search from DB
+    const { data: properties } = await supabase
+      .from("properties")
+      .select("title, slug, city, locality, bhk, property_type, price_display")
+      .eq("status", "active")
+      .or(`title.ilike.%${q}%,city.ilike.%${q}%,locality.ilike.%${q}%,developer_name.ilike.%${q}%`)
+      .limit(3);
+
+    ((properties as any[]) ?? []).forEach((p: any) => {
+      out.push({
+        type: "property",
+        title: p.title,
+        subtitle: `${p.city}${p.locality ? ", " + p.locality : ""} | ${p.bhk || "-"} BHK`,
+        href: `/real-estate/${p.slug}`,
+        badge: p.price_display || p.property_type,
+      });
+    });
+
     setResults(out);
     setLoading(false);
     setSelected(-1);
