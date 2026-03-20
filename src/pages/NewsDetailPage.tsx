@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { StockTicker } from "@/components/StockTicker";
 import { Footer } from "@/components/Footer";
-import { Clock, User, Eye, Tag, ArrowLeft, Share2 } from "lucide-react";
+import { Clock, User, Eye, Tag, ArrowLeft, Share2, Newspaper } from "lucide-react";
 
 interface BlogPost {
   id: string;

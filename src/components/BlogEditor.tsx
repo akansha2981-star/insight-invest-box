@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Eye, EyeOff, Clock, Send, Tag, User, Hash, FileText, Search, ListOrdered, UploadCloud, Trash2, Sparkles, Loader2 } from "lucide-react";
+import { X, Eye, EyeOff, Clock, Send, Tag, User, Hash, FileText, Search, ListOrdered, UploadCloud, Trash2, Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { RichTextEditor } from "./RichTextEditor";
 
 interface BlogPost {
