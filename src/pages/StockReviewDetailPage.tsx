@@ -4,9 +4,10 @@ import { Header } from "@/components/Header";
 import { StockTicker } from "@/components/StockTicker";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
+import { AIStreamingPanel } from "@/components/AIStreamingPanel";
 import {
   TrendingUp, TrendingDown, ChevronRight, Eye, Calendar,
-  BarChart2, Target, AlertTriangle, Star, User, Tag, ArrowUpRight
+  BarChart2, Target, AlertTriangle, Star, User, Tag, ArrowUpRight, Brain, Scale, LineChart as LineChartIcon, Shield
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
