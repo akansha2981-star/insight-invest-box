@@ -77,11 +77,14 @@ CARD FORMAT — When recommending items from our database, embed structured card
 
 If the user asks about something NOT in our database, say: "I don't have that in our current listings. Here's what we do have that might interest you:" and suggest relevant alternatives from our data.`;
 
-    const models = ["google/gemini-2.5-flash", "openai/gpt-5-mini", "google/gemini-3-flash-preview"];
+    const models = ["google/gemini-2.5-flash", "google/gemini-3-flash-preview", "openai/gpt-5-mini"];
     let response: Response | null = null;
 
     for (const model of models) {
       try {
+        const ac = new AbortController();
+        const timer = setTimeout(() => ac.abort(), 25000);
+        
         const attempt = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -96,14 +99,20 @@ If the user asks about something NOT in our database, say: "I don't have that in
             ],
             stream: true,
           }),
+          signal: ac.signal,
         });
+
+        clearTimeout(timer);
 
         if (attempt.ok) {
           response = attempt;
+          console.log(`Using model: ${model}`);
           break;
         }
 
         const status = attempt.status;
+        await attempt.text().catch(() => {});
+        
         if (status === 429) {
           return new Response(JSON.stringify({ error: "Rate limit reached. Please try again in a moment." }), {
             status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -115,9 +124,9 @@ If the user asks about something NOT in our database, say: "I don't have that in
           });
         }
 
-        console.error(`Model ${model} failed with status ${status}, trying next...`);
+        console.error(`Model ${model} failed: ${status}`);
       } catch (err) {
-        console.error(`Model ${model} fetch error:`, err);
+        console.error(`Model ${model} error:`, err instanceof Error ? err.message : err);
       }
     }
 
