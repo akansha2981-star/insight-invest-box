@@ -45,11 +45,15 @@ const TEASER_CONTENT = {
   },
 };
 
-const INSIGHT_PROMPTS: Record<string, string> = {
-  homepage: "Give a brief daily Indian market overview in 3-4 bullet points covering NIFTY trend, top sector, one stock to watch, and a key risk. Be concise, no more than 100 words total.",
-  stock: "Give 3 quick stock market insights for Indian investors today. Cover one large-cap, one mid-cap trend, and one risk factor. Maximum 80 words.",
-  news: "Summarize the most important financial news themes for Indian markets today in 3 bullet points. Maximum 60 words.",
-  property: "Give 3 brief Indian real estate market insights covering price trends, top city, and investment outlook. Maximum 80 words.",
+const getInsightPrompt = (variant: string): string => {
+  const ts = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  const prompts: Record<string, string> = {
+    homepage: `As of ${ts}, give a brief daily Indian market overview in 3-4 bullet points covering NIFTY trend, top sector, one stock to watch, and a key risk. Be concise, max 100 words.`,
+    stock: `As of ${ts}, give 3 quick stock market insights for Indian investors. Cover one large-cap, one mid-cap trend, and one risk factor. Max 80 words.`,
+    news: `As of ${ts}, summarize the most important financial news themes for Indian markets in 3 bullet points. Max 60 words.`,
+    property: `As of ${ts}, give 3 brief Indian real estate market insights covering price trends, top city, and investment outlook. Max 80 words.`,
+  };
+  return prompts[variant] || prompts.homepage;
 };
 
 export function AIInsightTeaser({ variant, context }: AIInsightTeaserProps) {
@@ -76,7 +80,7 @@ export function AIInsightTeaser({ variant, context }: AIInsightTeaserProps) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ query: INSIGHT_PROMPTS[variant] }),
+        body: JSON.stringify({ query: getInsightPrompt(variant) }),
       });
 
       if (!resp.ok || !resp.body) throw new Error("Failed");

@@ -6,6 +6,38 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function callAI(systemPrompt: string, userPrompt: string): Promise<Response | null> {
+  const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY");
+  if (OPENAI_KEY) {
+    try {
+      const ac = new AbortController();
+      const timer = setTimeout(() => ac.abort(), 30000);
+      const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }], stream: true }),
+        signal: ac.signal,
+      });
+      clearTimeout(timer);
+      if (resp.ok) return resp;
+      await resp.text().catch(() => {});
+    } catch (e) { console.error("OpenAI error:", e instanceof Error ? e.message : e); }
+  }
+  const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (LOVABLE_KEY) {
+    try {
+      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "google/gemini-3-flash-preview", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }], stream: true }),
+      });
+      if (resp.ok) return resp;
+      await resp.text().catch(() => {});
+    } catch (e) { console.error("Lovable AI error:", e instanceof Error ? e.message : e); }
+  }
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -24,12 +56,8 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // Fetch all data for AI context
     const [propsRes, stocksRes, postsRes, trendsRes] = await Promise.all([
       sb.from("properties").select("title,slug,city,locality,price_display,bhk,property_type,listing_type,developer_name,area_sqft,price,amenities,roi_projection,is_featured").eq("status", "active").limit(50),
       sb.from("stock_reviews").select("symbol,company_name,sector,rating,current_price,target_price,summary,tags").eq("status", "published").limit(40),
@@ -50,47 +78,29 @@ ${(postsRes.data || []).map(a => `${a.title} | ${a.category} | slug:${a.slug}`).
 PRICE TRENDS:
 ${(trendsRes.data || []).map(t => `${t.city}${t.locality ? '/' + t.locality : ''} | ₹${t.avg_price_sqft}/sqft | ${t.change_pct}%`).join("\n")}`;
 
-    const systemPrompt = `You are InvestingIQ's smart search engine. The user typed a natural language search query.
-Your job is to understand their INTENT and return the most relevant results from our database, plus AI-generated insights.
+    const systemPrompt = `You are InvestingIQ's smart search engine. Understand user INTENT and return relevant results.
+Current date: ${new Date().toISOString().split('T')[0]}
 
 RULES:
-1. Search semantically — "affordable homes near tech hubs" should match Bangalore/Pune properties
-2. "dividend stocks" should match stocks with relevant sectors/tags
-3. Return results as structured cards using this format:
+1. Search semantically across properties, stocks, articles
+2. Return results as CARD FORMAT
+3. Add brief AI summary after cards
+4. NEVER use emojis. Professional formatting only.
+5. If nothing matches, use your knowledge and suggest what to explore.
+
+CARD FORMAT:
 <!--CARDS:[{"type":"property","title":"Name","subtitle":"City, BHK","price":"₹XX","link":"/real-estate/SLUG"}]-->
 <!--CARDS:[{"type":"stock","title":"SYMBOL","subtitle":"Sector | Rating","price":"₹CMP","link":"/stocks/review/SYMBOL"}]-->
 <!--CARDS:[{"type":"article","title":"Title","subtitle":"Category","link":"/news/SLUG"}]-->
-4. After cards, add a brief AI summary explaining WHY these results match
-5. NEVER use emojis. Professional formatting only.
-6. If nothing matches well, use your knowledge to answer and suggest what to explore.
 
 DATABASE:
 ${dbContext}`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: query },
-        ],
-        stream: true,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-      throw new Error("AI gateway error: " + response.status);
+    const response = await callAI(systemPrompt, query);
+    if (!response) {
+      return new Response(JSON.stringify({ error: "AI service temporarily unavailable" }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(response.body, {

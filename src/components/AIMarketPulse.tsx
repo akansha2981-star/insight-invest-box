@@ -43,7 +43,7 @@ export function AIMarketPulse() {
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({
-          query: "Give me current market sentiment scores (0-100) for NIFTY 50, BANK NIFTY, IT Sector, Pharma, Auto, Real Estate in Indian markets. For each, provide: label, sentiment (Bullish/Bearish/Neutral), score (0-100), trend (up/down/neutral). Return ONLY a JSON array, no markdown, no explanation. Example: [{\"label\":\"NIFTY 50\",\"sentiment\":\"Bullish\",\"score\":72,\"trend\":\"up\"}]"
+          query: `As of ${new Date().toISOString()}, give me current market sentiment scores (0-100) for NIFTY 50, BANK NIFTY, IT Sector, Pharma, Auto, Real Estate in Indian markets. For each: label, sentiment (Bullish/Bearish/Neutral), score (0-100), trend (up/down/neutral). Return ONLY a JSON array. Example: [{"label":"NIFTY 50","sentiment":"Bullish","score":72,"trend":"up"}]`
         }),
       });
 
