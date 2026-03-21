@@ -29,7 +29,7 @@ export function AIStockRecommendations() {
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({
-          query: "Suggest 5 Indian stocks worth watching right now across different sectors. For each stock give: name, symbol, sector, current sentiment (Bullish/Neutral/Bearish), and a one-line reason. Focus on a mix of large-cap and mid-cap. Format as a numbered list with bold stock names. Maximum 150 words.",
+          query: `As of ${new Date().toISOString()}, suggest 5 Indian stocks worth watching right now across different sectors. For each: name, symbol, sector, current sentiment (Bullish/Neutral/Bearish), and a one-line reason. Mix of large-cap and mid-cap. Numbered list with bold names. Max 150 words.`,
         }),
       });
 

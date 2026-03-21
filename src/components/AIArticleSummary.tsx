@@ -42,7 +42,8 @@ Write a 2-3 sentence summary that captures the essence of this article.
 Article Title: ${title}
 Article Content: ${truncatedContent}
 
-RULES: Be concise. No emojis. Use clean markdown. Focus on actionable insights for Indian investors.`;
+RULES: Be concise. No emojis. Use clean markdown. Focus on actionable insights for Indian investors.
+Timestamp: ${Date.now()}`;
 
     try {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`;
