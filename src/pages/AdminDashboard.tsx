@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users, Menu, X } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 import { AdminPageSections } from "@/components/AdminPageSections";
 import { AdminBreakingNews } from "@/components/AdminBreakingNews";
@@ -21,6 +21,20 @@ interface BlogPost {
 
 type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics';
 
+const NAV_ITEMS = [
+  { id: 'dashboard',      label: 'Dashboard',        icon: BarChart2 },
+  { id: 'posts',          label: 'All Articles',      icon: Newspaper },
+  { id: 'create',         label: 'Write Article',     icon: PenSquare },
+  { id: 'stock-reviews',  label: 'Stock Reviews',     icon: LineChart },
+  { id: 'home-banners',   label: 'Homepage Banners',  icon: Image },
+  { id: 'pages',          label: 'Pages Content',     icon: FileText },
+  { id: 'page-sections',  label: 'Section Blocks',    icon: Layout },
+  { id: 'breaking-news',  label: 'Breaking News',     icon: Radio },
+  { id: 'real-estate',    label: 'Real Estate',       icon: Home },
+  { id: 'newsletter',     label: 'Subscribers',       icon: Mail },
+  { id: 'auth-analytics', label: 'Login Analytics',   icon: Users },
+];
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -29,6 +43,7 @@ export default function AdminDashboard() {
   const [view, setView] = useState<AdminView>('dashboard');
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => { checkAuth(); }, []);
 
@@ -80,7 +95,6 @@ export default function AdminDashboard() {
         <h2 className="text-xl font-bold text-foreground mb-2">Access Denied</h2>
         <p className="text-muted-foreground text-sm mb-6">You don't have admin privileges. Contact your administrator.</p>
         <Link to="/" className="text-primary hover:text-primary/80 font-semibold text-sm">← Back to Investing IQ</Link>
-
       </div>
     </div>
   );
@@ -89,86 +103,106 @@ export default function AdminDashboard() {
   const drafts = posts.filter(p => p.status === 'draft');
   const totalViews = posts.reduce((s, p) => s + (p.views_count ?? 0), 0);
 
+  function handleNavClick(id: string) {
+    setView(id as AdminView);
+    setEditingPost(null);
+    setSidebarOpen(false);
+  }
+
+  const sidebarContent = (
+    <>
+      <div className="px-5 py-5 border-b border-white/10 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="bg-red-600 rounded-lg p-1.5">
+            <TrendingUp className="h-4 w-4 text-white" />
+          </div>
+          <div>
+            <div className="font-black text-[15px] leading-none">Investing IQ</div>
+            <div className="text-[9px] text-white/40 tracking-wider uppercase mt-0.5">Admin Portal</div>
+          </div>
+        </div>
+        <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1.5 text-white/60 hover:text-white rounded-lg">
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+
+      <nav className="px-3 py-4 flex-1 overflow-y-auto">
+        <div className="text-[9px] text-white/30 font-bold uppercase tracking-widest px-2 mb-2">Content</div>
+        {NAV_ITEMS.map(item => (
+          <button
+            key={item.id}
+            onClick={() => handleNavClick(item.id)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors mb-1 ${
+              view === item.id
+                ? 'bg-primary text-white font-semibold'
+                : 'text-white/60 hover:text-white hover:bg-white/8'
+            }`}
+          >
+            <item.icon className="h-4 w-4" />
+            {item.label}
+          </button>
+        ))}
+
+        <div className="text-[9px] text-white/30 font-bold uppercase tracking-widest px-2 mb-2 mt-5">Site</div>
+        <Link
+          to="/"
+          target="_blank"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/8 transition-colors mb-1"
+        >
+          <Eye className="h-4 w-4" /> View Live Site
+        </Link>
+      </nav>
+
+      <div className="px-3 py-4 border-t border-white/10">
+        <div className="flex items-center gap-3 px-2 mb-3">
+          <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-sm">
+            {user?.email?.[0]?.toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold text-white truncate">{user?.email?.split('@')[0]}</div>
+            <div className="text-[10px] text-white/40">Administrator</div>
+          </div>
+        </div>
+        <button
+          onClick={() => { supabase.auth.signOut(); navigate('/admin/login'); }}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+        >
+          <LogOut className="h-3.5 w-3.5" /> Sign Out
+        </button>
+      </div>
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-background flex">
-      {/* ─── Sidebar ─── */}
-      <aside className="w-60 bg-slate-900 text-white flex flex-col shrink-0 shadow-xl">
-        <div className="px-5 py-5 border-b border-white/10">
-          <div className="flex items-center gap-2.5">
-            <div className="bg-red-600 rounded-lg p-1.5">
-              <TrendingUp className="h-4 w-4 text-white" />
-            </div>
-            <div>
-            <div className="font-black text-[15px] leading-none">Investing IQ</div>
-              <div className="text-[9px] text-white/40 tracking-wider uppercase mt-0.5">Admin Portal</div>
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
 
-            </div>
-          </div>
-        </div>
-
-        <nav className="px-3 py-4 flex-1">
-          <div className="text-[9px] text-white/30 font-bold uppercase tracking-widest px-2 mb-2">Content</div>
-          {[
-            { id: 'dashboard',      label: 'Dashboard',        icon: BarChart2 },
-            { id: 'posts',          label: 'All Articles',      icon: Newspaper },
-            { id: 'create',         label: 'Write Article',     icon: PenSquare },
-            { id: 'stock-reviews',  label: 'Stock Reviews',     icon: LineChart },
-            { id: 'home-banners',   label: 'Homepage Banners',  icon: Image },
-            { id: 'pages',          label: 'Pages Content',     icon: FileText },
-            { id: 'page-sections',  label: 'Section Blocks',    icon: Layout },
-            { id: 'breaking-news',  label: 'Breaking News',     icon: Radio },
-            { id: 'real-estate',    label: 'Real Estate',       icon: Home },
-            { id: 'newsletter',     label: 'Subscribers',       icon: Mail },
-            { id: 'auth-analytics', label: 'Login Analytics',   icon: Users },
-          ].map(item => (
-            <button
-              key={item.id}
-              onClick={() => { setView(item.id as AdminView); setEditingPost(null); }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors mb-1 ${
-                view === item.id
-                  ? 'bg-primary text-white font-semibold'
-                  : 'text-white/60 hover:text-white hover:bg-white/8'
-              }`}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </button>
-          ))}
-
-
-          <div className="text-[9px] text-white/30 font-bold uppercase tracking-widest px-2 mb-2 mt-5">Site</div>
-          <Link
-            to="/"
-            target="_blank"
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/8 transition-colors mb-1"
-          >
-            <Eye className="h-4 w-4" /> View Live Site
-          </Link>
-        </nav>
-
-        <div className="px-3 py-4 border-t border-white/10">
-          <div className="flex items-center gap-3 px-2 mb-3">
-            <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-sm">
-              {user?.email?.[0]?.toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-semibold text-white truncate">{user?.email?.split('@')[0]}</div>
-              <div className="text-[10px] text-white/40">Administrator</div>
-            </div>
-          </div>
-          <button
-            onClick={() => { supabase.auth.signOut(); navigate('/admin/login'); }}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-          >
-            <LogOut className="h-3.5 w-3.5" /> Sign Out
-          </button>
-        </div>
+      {/* Sidebar - hidden on mobile, shown on lg+ */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col shadow-xl transition-transform duration-300 lg:static lg:translate-x-0 lg:shrink-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        {sidebarContent}
       </aside>
 
+      {/* Mobile top bar */}
+      <div className="fixed top-0 left-0 right-0 z-30 bg-slate-900 text-white flex items-center gap-3 px-4 py-3 lg:hidden shadow-lg">
+        <button onClick={() => setSidebarOpen(true)} className="p-1">
+          <Menu className="h-5 w-5" />
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="bg-red-600 rounded-lg p-1">
+            <TrendingUp className="h-3.5 w-3.5 text-white" />
+          </div>
+          <span className="font-bold text-sm">Investing IQ Admin</span>
+        </div>
+      </div>
       {/* ─── Main content ─── */}
-      <main className="flex-1 overflow-auto bg-background">
+      <main className="flex-1 overflow-auto bg-background pt-14 lg:pt-0">
         {view === 'dashboard' && (
-          <div className="p-8 max-w-5xl">
+          <div className="p-4 sm:p-6 lg:p-8 max-w-5xl">
             <div className="mb-8">
               <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
               <p className="text-muted-foreground text-sm mt-1">Manage Investing IQ content</p>
@@ -241,15 +275,15 @@ export default function AdminDashboard() {
         )}
 
         {view === 'posts' && (
-          <div className="p-8">
-            <div className="flex items-center justify-between mb-6">
+          <div className="p-4 sm:p-6 lg:p-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
               <div>
-                <h1 className="text-2xl font-bold text-foreground">All Articles</h1>
-                <p className="text-sm text-muted-foreground mt-1">{posts.length} total · {published.length} published · {drafts.length} drafts</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">All Articles</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">{posts.length} total · {published.length} published · {drafts.length} drafts</p>
               </div>
               <button
                 onClick={() => setView('create')}
-                className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card"
+                className="flex items-center justify-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card w-full sm:w-auto"
               >
                 <Plus className="h-4 w-4" /> Write Article
               </button>
@@ -303,60 +337,103 @@ function PostsTable({ posts, onEdit, onDelete, onTogglePublish }: {
   );
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-muted/30 border-b border-border">
-            {["Article", "Category", "Author", "Status", "Views", "Date", "Actions"].map(h => (
-              <th key={h} className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {posts.map((post) => (
-            <tr key={post.id} className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors group">
-              <td className="px-5 py-3.5 max-w-xs">
-                <div className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">{post.title}</div>
-                <div className="text-xs text-muted-foreground font-mono mt-0.5">/news/{post.slug}</div>
-              </td>
-              <td className="px-5 py-3.5">
-                <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold">{post.category}</span>
-              </td>
-              <td className="px-5 py-3.5 text-sm text-muted-foreground whitespace-nowrap">{post.author_name}</td>
-              <td className="px-5 py-3.5">
-                <button
-                  onClick={() => onTogglePublish(post)}
-                  className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
-                    post.status === 'published' ? 'badge-gain' : 'badge-neutral'
-                  }`}
-                >
-                  {post.status === 'published' ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                  {post.status}
-                </button>
-              </td>
-              <td className="px-5 py-3.5 number-font text-sm text-muted-foreground">
-                {(post.views_count ?? 0).toLocaleString()}
-              </td>
-              <td className="px-5 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
-                {new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </td>
-              <td className="px-5 py-3.5">
-                <div className="flex items-center gap-1">
-                  <button onClick={() => onEdit(post)} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit">
-                    <Edit className="h-3.5 w-3.5" />
-                  </button>
-                  <Link to={`/news/${post.slug}`} target="_blank" className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors" title="Preview">
-                    <Eye className="h-3.5 w-3.5" />
-                  </Link>
-                  <button onClick={() => onDelete(post.id)} className="p-1.5 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </td>
+    <>
+      {/* Mobile card layout */}
+      <div className="lg:hidden divide-y divide-border">
+        {posts.map((post) => (
+          <div key={post.id} className="p-4 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-foreground text-sm line-clamp-2">{post.title}</div>
+                <div className="text-[11px] text-muted-foreground font-mono mt-0.5">/news/{post.slug}</div>
+              </div>
+              <button
+                onClick={() => onTogglePublish(post)}
+                className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                  post.status === 'published' ? 'badge-gain' : 'badge-neutral'
+                }`}
+              >
+                {post.status === 'published' ? <CheckCircle className="h-2.5 w-2.5" /> : <Clock className="h-2.5 w-2.5" />}
+                {post.status}
+              </button>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              {post.category && <span className="bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded text-[10px] font-semibold">{post.category}</span>}
+              {post.author_name && <span>{post.author_name}</span>}
+              <span className="number-font">{(post.views_count ?? 0).toLocaleString()} views</span>
+              <span>{new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+            </div>
+            <div className="flex items-center gap-1 pt-1">
+              <button onClick={() => onEdit(post)} className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit">
+                <Edit className="h-4 w-4" />
+              </button>
+              <Link to={`/news/${post.slug}`} target="_blank" className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors" title="Preview">
+                <Eye className="h-4 w-4" />
+              </Link>
+              <button onClick={() => onDelete(post.id)} className="p-2 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden lg:block overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-muted/30 border-b border-border">
+              {["Article", "Category", "Author", "Status", "Views", "Date", "Actions"].map(h => (
+                <th key={h} className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {posts.map((post) => (
+              <tr key={post.id} className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors group">
+                <td className="px-5 py-3.5 max-w-xs">
+                  <div className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">{post.title}</div>
+                  <div className="text-xs text-muted-foreground font-mono mt-0.5">/news/{post.slug}</div>
+                </td>
+                <td className="px-5 py-3.5">
+                  <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold">{post.category}</span>
+                </td>
+                <td className="px-5 py-3.5 text-sm text-muted-foreground whitespace-nowrap">{post.author_name}</td>
+                <td className="px-5 py-3.5">
+                  <button
+                    onClick={() => onTogglePublish(post)}
+                    className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
+                      post.status === 'published' ? 'badge-gain' : 'badge-neutral'
+                    }`}
+                  >
+                    {post.status === 'published' ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                    {post.status}
+                  </button>
+                </td>
+                <td className="px-5 py-3.5 number-font text-sm text-muted-foreground">
+                  {(post.views_count ?? 0).toLocaleString()}
+                </td>
+                <td className="px-5 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
+                  {new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </td>
+                <td className="px-5 py-3.5">
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => onEdit(post)} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit">
+                      <Edit className="h-3.5 w-3.5" />
+                    </button>
+                    <Link to={`/news/${post.slug}`} target="_blank" className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors" title="Preview">
+                      <Eye className="h-3.5 w-3.5" />
+                    </Link>
+                    <button onClick={() => onDelete(post.id)} className="p-1.5 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
