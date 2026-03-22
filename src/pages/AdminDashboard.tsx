@@ -275,15 +275,15 @@ export default function AdminDashboard() {
         )}
 
         {view === 'posts' && (
-          <div className="p-8">
-            <div className="flex items-center justify-between mb-6">
+          <div className="p-4 sm:p-6 lg:p-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
               <div>
-                <h1 className="text-2xl font-bold text-foreground">All Articles</h1>
-                <p className="text-sm text-muted-foreground mt-1">{posts.length} total · {published.length} published · {drafts.length} drafts</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">All Articles</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">{posts.length} total · {published.length} published · {drafts.length} drafts</p>
               </div>
               <button
                 onClick={() => setView('create')}
-                className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card"
+                className="flex items-center justify-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card w-full sm:w-auto"
               >
                 <Plus className="h-4 w-4" /> Write Article
               </button>
