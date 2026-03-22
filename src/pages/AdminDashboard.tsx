@@ -337,60 +337,103 @@ function PostsTable({ posts, onEdit, onDelete, onTogglePublish }: {
   );
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-muted/30 border-b border-border">
-            {["Article", "Category", "Author", "Status", "Views", "Date", "Actions"].map(h => (
-              <th key={h} className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {posts.map((post) => (
-            <tr key={post.id} className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors group">
-              <td className="px-5 py-3.5 max-w-xs">
-                <div className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">{post.title}</div>
-                <div className="text-xs text-muted-foreground font-mono mt-0.5">/news/{post.slug}</div>
-              </td>
-              <td className="px-5 py-3.5">
-                <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold">{post.category}</span>
-              </td>
-              <td className="px-5 py-3.5 text-sm text-muted-foreground whitespace-nowrap">{post.author_name}</td>
-              <td className="px-5 py-3.5">
-                <button
-                  onClick={() => onTogglePublish(post)}
-                  className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
-                    post.status === 'published' ? 'badge-gain' : 'badge-neutral'
-                  }`}
-                >
-                  {post.status === 'published' ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                  {post.status}
-                </button>
-              </td>
-              <td className="px-5 py-3.5 number-font text-sm text-muted-foreground">
-                {(post.views_count ?? 0).toLocaleString()}
-              </td>
-              <td className="px-5 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
-                {new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </td>
-              <td className="px-5 py-3.5">
-                <div className="flex items-center gap-1">
-                  <button onClick={() => onEdit(post)} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit">
-                    <Edit className="h-3.5 w-3.5" />
-                  </button>
-                  <Link to={`/news/${post.slug}`} target="_blank" className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors" title="Preview">
-                    <Eye className="h-3.5 w-3.5" />
-                  </Link>
-                  <button onClick={() => onDelete(post.id)} className="p-1.5 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </td>
+    <>
+      {/* Mobile card layout */}
+      <div className="lg:hidden divide-y divide-border">
+        {posts.map((post) => (
+          <div key={post.id} className="p-4 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-foreground text-sm line-clamp-2">{post.title}</div>
+                <div className="text-[11px] text-muted-foreground font-mono mt-0.5">/news/{post.slug}</div>
+              </div>
+              <button
+                onClick={() => onTogglePublish(post)}
+                className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                  post.status === 'published' ? 'badge-gain' : 'badge-neutral'
+                }`}
+              >
+                {post.status === 'published' ? <CheckCircle className="h-2.5 w-2.5" /> : <Clock className="h-2.5 w-2.5" />}
+                {post.status}
+              </button>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              {post.category && <span className="bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded text-[10px] font-semibold">{post.category}</span>}
+              {post.author_name && <span>{post.author_name}</span>}
+              <span className="number-font">{(post.views_count ?? 0).toLocaleString()} views</span>
+              <span>{new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+            </div>
+            <div className="flex items-center gap-1 pt-1">
+              <button onClick={() => onEdit(post)} className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit">
+                <Edit className="h-4 w-4" />
+              </button>
+              <Link to={`/news/${post.slug}`} target="_blank" className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors" title="Preview">
+                <Eye className="h-4 w-4" />
+              </Link>
+              <button onClick={() => onDelete(post.id)} className="p-2 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden lg:block overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-muted/30 border-b border-border">
+              {["Article", "Category", "Author", "Status", "Views", "Date", "Actions"].map(h => (
+                <th key={h} className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {posts.map((post) => (
+              <tr key={post.id} className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors group">
+                <td className="px-5 py-3.5 max-w-xs">
+                  <div className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">{post.title}</div>
+                  <div className="text-xs text-muted-foreground font-mono mt-0.5">/news/{post.slug}</div>
+                </td>
+                <td className="px-5 py-3.5">
+                  <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold">{post.category}</span>
+                </td>
+                <td className="px-5 py-3.5 text-sm text-muted-foreground whitespace-nowrap">{post.author_name}</td>
+                <td className="px-5 py-3.5">
+                  <button
+                    onClick={() => onTogglePublish(post)}
+                    className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
+                      post.status === 'published' ? 'badge-gain' : 'badge-neutral'
+                    }`}
+                  >
+                    {post.status === 'published' ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                    {post.status}
+                  </button>
+                </td>
+                <td className="px-5 py-3.5 number-font text-sm text-muted-foreground">
+                  {(post.views_count ?? 0).toLocaleString()}
+                </td>
+                <td className="px-5 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
+                  {new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </td>
+                <td className="px-5 py-3.5">
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => onEdit(post)} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit">
+                      <Edit className="h-3.5 w-3.5" />
+                    </button>
+                    <Link to={`/news/${post.slug}`} target="_blank" className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors" title="Preview">
+                      <Eye className="h-3.5 w-3.5" />
+                    </Link>
+                    <button onClick={() => onDelete(post.id)} className="p-1.5 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
