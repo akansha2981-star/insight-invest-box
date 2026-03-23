@@ -58,10 +58,10 @@ export function AdminStockReviews() {
   const [saving, setSaving] = useState(false);
   const { generating, generateContent } = useAdminAI();
 
-  async function aiGenerateReview(symbol?: string) {
+  async function aiGenerateReview(symbol?: string, publishNow = false) {
     const result = await generateContent({ action: "generate-stock-review", context: { symbol: symbol || "" } });
     if (result) {
-      setForm({
+      const formData = {
         ...EMPTY_FORM,
         symbol: result.symbol || "",
         company_name: result.company_name || "",
@@ -75,9 +75,38 @@ export function AdminStockReviews() {
         risks: result.risks || "",
         analyst_name: result.analyst_name || "AI Analyst",
         tags: result.tags || "",
-      });
+        financials: result.financials || EMPTY_FORM.financials,
+        key_metrics: result.key_metrics || EMPTY_FORM.key_metrics,
+      };
+      setForm(formData);
       setEditingReview(null);
       setView("form");
+
+      if (publishNow) {
+        // Auto-publish
+        const payload: any = {
+          symbol: (result.symbol || "").toUpperCase().trim(),
+          company_name: (result.company_name || "").trim(),
+          sector: result.sector || "IT",
+          exchange: result.exchange || "NSE",
+          current_price: result.current_price || null,
+          target_price: result.target_price || null,
+          rating: result.rating || "HOLD",
+          analyst_name: result.analyst_name || "AI Analyst",
+          summary: result.summary || null,
+          investment_thesis: result.investment_thesis || null,
+          risks: result.risks || null,
+          tags: result.tags ? result.tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
+          financials: result.financials || {},
+          key_metrics: result.key_metrics || {},
+          status: "published",
+          published_at: new Date().toISOString(),
+          is_featured: false,
+        };
+        await supabase.from("stock_reviews" as any).insert(payload);
+        fetchReviews();
+        setView("list");
+      }
     }
   }
   useEffect(() => { fetchReviews(); }, []);
