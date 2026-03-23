@@ -332,11 +332,14 @@ serve(async (req) => {
       });
     }
 
+    // Use stronger model for article and stock review generation
+    const useStrongModel = action === "generate-full-article" || action === "generate-stock-review" || action === "generate-property";
     const aiData = await callAINonStream(
       config.system,
       config.prompt(context || {}),
       config.tools,
-      { type: "function", function: { name: config.toolName } }
+      { type: "function", function: { name: config.toolName } },
+      useStrongModel
     );
 
     if (!aiData) {
