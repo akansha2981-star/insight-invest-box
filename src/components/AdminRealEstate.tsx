@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Plus, Edit, Trash2, Building2, TrendingUp, Paintbrush, Shield,
-  Save, X, Upload, RefreshCw, Sparkles, Eye, BarChart3
+  Save, X, Upload, RefreshCw, Sparkles, Eye, BarChart3, Loader2, Zap
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminAI } from "@/hooks/useAdminAI";
 
 type Tab = "properties" | "services" | "trends" | "interior";
 
