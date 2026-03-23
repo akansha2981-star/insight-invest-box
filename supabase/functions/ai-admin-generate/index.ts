@@ -203,7 +203,9 @@ MANDATORY RULES:
 7. Include a "What Should Investors Do?" section
 8. Tone: Authoritative, data-driven, helpful. No emojis. No fluff.
 9. Tags: 5-8 relevant tags covering topic, sector, and related keywords
-10. Date context: ${new Date().toISOString().split('T')[0]}`,
+10. Date context: ${new Date().toISOString().split('T')[0]}
+
+CRITICAL: You MUST generate ALL fields without exception - title, slug, content, excerpt, category, tags, meta_title, meta_description, author_name. NEVER leave any field empty or null. The excerpt MUST be 2 compelling sentences (30-50 words). The meta_description MUST be under 160 chars with a CTA. The meta_title MUST be under 60 chars.`,
     prompt: (ctx) => {
       const topic = ctx.topic || "trending investment opportunity in Indian markets today";
       const cat = ctx.category || "Markets";
