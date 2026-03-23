@@ -210,7 +210,7 @@ export function AdminStockReviews() {
           {/* Basic Info */}
           <div className="bg-white border border-border rounded-xl p-6 shadow-card">
             <h2 className="font-bold text-foreground mb-4 flex items-center gap-2"><BarChart2 className="h-4 w-4 text-primary" /> Basic Information</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1.5 block">Stock Symbol *</label>
                 <input value={form.symbol} onChange={e => setForm((f: any) => ({ ...f, symbol: e.target.value }))}
