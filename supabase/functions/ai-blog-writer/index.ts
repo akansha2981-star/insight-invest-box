@@ -6,15 +6,27 @@ const corsHeaders = {
 };
 
 async function callAI(systemPrompt: string, userPrompt: string, stream = true): Promise<Response | null> {
+  const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (LOVABLE_KEY) {
+    try {
+      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }], stream, max_tokens: 8000 }),
+      });
+      if (resp.ok) return resp;
+      await resp.text().catch(() => {});
+    } catch (e) { console.error("Lovable AI error:", e instanceof Error ? e.message : e); }
+  }
   const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY");
   if (OPENAI_KEY) {
     try {
       const ac = new AbortController();
-      const timer = setTimeout(() => ac.abort(), 30000);
+      const timer = setTimeout(() => ac.abort(), 60000);
       const resp = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }], stream }),
+        body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }], stream, max_tokens: 8000 }),
         signal: ac.signal,
       });
       clearTimeout(timer);
@@ -22,18 +34,6 @@ async function callAI(systemPrompt: string, userPrompt: string, stream = true): 
       console.error("OpenAI failed:", resp.status);
       await resp.text().catch(() => {});
     } catch (e) { console.error("OpenAI error:", e instanceof Error ? e.message : e); }
-  }
-  const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY");
-  if (LOVABLE_KEY) {
-    try {
-      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${LOVABLE_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "google/gemini-3-flash-preview", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }], stream }),
-      });
-      if (resp.ok) return resp;
-      await resp.text().catch(() => {});
-    } catch (e) { console.error("Lovable AI error:", e instanceof Error ? e.message : e); }
   }
   return null;
 }
