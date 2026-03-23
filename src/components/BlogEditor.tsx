@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Eye, EyeOff, Clock, Send, Tag, User, Hash, FileText, Search, ListOrdered, UploadCloud, Trash2, Sparkles, Loader2, AlertCircle, Brain, PenTool, ListChecks, Lightbulb } from "lucide-react";
+import { X, Eye, EyeOff, Clock, Send, Tag, User, Hash, FileText, Search, ListOrdered, UploadCloud, Trash2, Sparkles, Loader2, AlertCircle, Brain, PenTool, ListChecks, Lightbulb, Zap } from "lucide-react";
 import { RichTextEditor } from "./RichTextEditor";
+import { useAdminAI } from "@/hooks/useAdminAI";
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
@@ -75,6 +76,50 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
   const [aiTopic,         setAiTopic]         = useState("");
   const coverInputRef = useRef<HTMLInputElement>(null);
   const aiAbortRef = useRef<AbortController | null>(null);
+  const { generating, generateContent } = useAdminAI();
+
+  // AI Auto-Generate Full Article
+  async function aiAutoGenerate(publishNow = false) {
+    const result = await generateContent({ 
+      action: "generate-full-article", 
+      context: { topic: aiTopic || "", category } 
+    });
+    if (result) {
+      setTitle(result.title || "");
+      setSlug(result.slug || generateSlug(result.title || ""));
+      setContent(result.content || "");
+      setExcerpt(result.excerpt || "");
+      setCategory(result.category || category);
+      setTags(result.tags || "");
+      setMetaTitle(result.meta_title || "");
+      setMetaDescription(result.meta_description || "");
+      setAuthorName(result.author_name || "Editorial Team");
+      setAiToast("AI generated full article!");
+      setTimeout(() => setAiToast(""), 4000);
+
+      if (publishNow) {
+        // Save and publish directly
+        const payload = {
+          title: (result.title || "").trim(),
+          slug: result.slug || generateSlug(result.title || ""),
+          content: (result.content || "").trim(),
+          excerpt: (result.excerpt || "").trim() || null,
+          category: result.category || category,
+          author_name: result.author_name || "Editorial Team",
+          cover_image_url: null,
+          tags: (result.tags || "").split(",").map((t: string) => t.trim()).filter(Boolean),
+          status: "published",
+          published_at: new Date().toISOString(),
+          meta_title: (result.meta_title || "").trim() || null,
+          meta_description: (result.meta_description || "").trim() || null,
+          sequence_number: 0,
+        };
+        await supabase.from("blog_posts").insert(payload);
+        setAiToast("Article published live!");
+        setTimeout(() => { setAiToast(""); onSave(); }, 1500);
+      }
+    }
+  }
 
   const handleAiWriter = useCallback(async (action: string) => {
     setAiWriterOpen(true);
@@ -143,7 +188,6 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
   }, [title, category, tags, content, aiTopic]);
 
   const applyAiContent = () => {
-    // Strip code fences if present
     let cleaned = aiWriterStream.replace(/^```html\n?/i, "").replace(/\n?```$/i, "").trim();
     setContent(cleaned);
     setAiWriterOpen(false);
@@ -154,7 +198,6 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
   function handleTitleChange(val: string) {
     setTitle(val);
     if (!post) setSlug(generateSlug(val));
-    // Auto-fill meta title if empty
     if (!metaTitle) setMetaTitle(val);
   }
 
@@ -230,21 +273,20 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
   return (
     <div className="flex flex-col h-screen">
       {/* ─── Toolbar ─── */}
-      <div className="bg-white border-b border-border px-6 py-3 flex items-center justify-between shrink-0 shadow-sm">
-        <div className="flex items-center gap-3">
+      <div className="bg-white border-b border-border px-3 sm:px-6 py-3 flex items-center justify-between shrink-0 shadow-sm overflow-x-auto gap-2">
+        <div className="flex items-center gap-3 shrink-0">
           <button onClick={onCancel} className="text-muted-foreground hover:text-foreground transition-colors">
             <X className="h-4 w-4" />
           </button>
-          <div className="h-4 w-px bg-border" />
-          <div>
+          <div className="h-4 w-px bg-border hidden sm:block" />
+          <div className="hidden sm:block">
             <div className="text-sm font-bold text-foreground">{post ? 'Edit Article' : 'New Article'}</div>
             <div className="text-[10px] text-muted-foreground">{wordCount} words · ~{readTime} min read</div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {/* AI Toast notification */}
+        <div className="flex items-center gap-2 shrink-0">
           {aiToast && (
-            <span className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all ${aiToast.startsWith('AI generated') ? 'bg-accent text-accent-foreground border border-border' : 'bg-destructive/10 text-destructive border border-destructive/20'}`}>
+            <span className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all hidden sm:inline-flex ${aiToast.startsWith('AI generated') || aiToast.startsWith('Article published') ? 'bg-accent text-accent-foreground border border-border' : 'bg-destructive/10 text-destructive border border-destructive/20'}`}>
               {aiToast}
             </span>
           )}
@@ -254,7 +296,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
             title="AI: Auto-generate excerpt & meta description"
           >
             {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            {aiLoading ? 'Generating…' : 'AI Assist'}
+            <span className="hidden sm:inline">{aiLoading ? 'Generating…' : 'AI Assist'}</span>
           </button>
           <button
             onClick={() => setPreview(!preview)}
@@ -263,27 +305,27 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
             }`}
           >
             {preview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            {preview ? 'Edit' : 'Preview'}
+            <span className="hidden sm:inline">{preview ? 'Edit' : 'Preview'}</span>
           </button>
           <button
             onClick={() => handleSave(false)} disabled={saving}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm border border-border bg-white text-foreground hover:bg-muted transition-colors disabled:opacity-50 font-medium"
+            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-sm border border-border bg-white text-foreground hover:bg-muted transition-colors disabled:opacity-50 font-medium"
           >
-            <Clock className="h-4 w-4 text-primary" /> Save Draft
+            <Clock className="h-4 w-4 text-primary" /> <span className="hidden sm:inline">Save Draft</span>
           </button>
           <button
             onClick={() => handleSave(true)} disabled={saving}
-            className="flex items-center gap-1.5 px-5 py-2 rounded-lg text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-bold shadow-card disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-lg text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-bold shadow-card disabled:opacity-50"
           >
             <Send className="h-4 w-4" />
-            {saving ? 'Saving…' : post?.status === 'published' ? 'Update Article' : 'Publish Now'}
+            <span className="hidden sm:inline">{saving ? 'Saving…' : post?.status === 'published' ? 'Update' : 'Publish'}</span>
           </button>
         </div>
       </div>
 
       <div className="flex-1 overflow-auto">
         {error && (
-          <div className="mx-6 mt-4 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl">
+          <div className="mx-4 sm:mx-6 mt-4 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl">
             <AlertCircle className="h-3.5 w-3.5 inline mr-1" /> {error}
           </div>
         )}
@@ -291,7 +333,41 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
         {!preview ? (
           <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] h-full">
             {/* ─── Writing area ─── */}
-            <div className="p-8 overflow-auto space-y-5 max-w-4xl">
+            <div className="p-4 sm:p-8 overflow-auto space-y-5 max-w-4xl">
+              {/* AI Auto-Generate Section */}
+              {!post && (
+                <div className="bg-gradient-to-r from-violet-50 to-blue-50 border border-violet-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="h-4 w-4 text-violet-600" />
+                    <span className="text-sm font-bold text-violet-900">AI Auto-Generate Article</span>
+                  </div>
+                  <p className="text-xs text-violet-600 mb-3">AI picks a trending topic, writes SEO-friendly content, and fills everything automatically</p>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      value={aiTopic} onChange={e => setAiTopic(e.target.value)}
+                      placeholder="Topic (optional — AI picks trending if empty)"
+                      className="flex-1 px-3 py-2.5 border border-violet-200 rounded-lg text-sm focus:outline-none focus:border-violet-500 bg-white"
+                    />
+                    <select value={category} onChange={e => setCategory(e.target.value)}
+                      className="px-3 py-2.5 border border-violet-200 rounded-lg text-sm bg-white focus:outline-none">
+                      {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                    <button onClick={() => aiAutoGenerate(false)} disabled={generating}
+                      className="flex items-center justify-center gap-2 bg-violet-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 transition-colors flex-1">
+                      {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                      Generate & Edit
+                    </button>
+                    <button onClick={() => aiAutoGenerate(true)} disabled={generating}
+                      className="flex items-center justify-center gap-2 bg-violet-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-violet-900 disabled:opacity-50 transition-colors flex-1">
+                      {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                      Generate & Publish Live
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Category & status pills */}
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-2 bg-muted rounded-lg px-3 py-1.5">
@@ -315,7 +391,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
               <textarea
                 value={title} onChange={e => handleTitleChange(e.target.value)}
                 placeholder="Article headline…" rows={2}
-                className="w-full text-3xl font-black text-foreground placeholder:text-muted-foreground/40 focus:outline-none resize-none border-0 bg-transparent leading-tight"
+                className="w-full text-2xl sm:text-3xl font-black text-foreground placeholder:text-muted-foreground/40 focus:outline-none resize-none border-0 bg-transparent leading-tight"
               />
 
               {/* Excerpt */}
@@ -371,7 +447,6 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
                 {/* ── Cover Image ── */}
                 <div>
                   <SideLabel icon={UploadCloud}>Cover Image</SideLabel>
-                  {/* Upload button */}
                   <button
                     type="button"
                     onClick={() => coverInputRef.current?.click()}
@@ -383,7 +458,6 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
                   </button>
                   <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
 
-                  {/* OR paste URL */}
                   <div className="flex items-center gap-2 my-2">
                     <div className="flex-1 h-px bg-border" />
                     <span className="text-[10px] text-muted-foreground">or paste URL</span>
@@ -451,7 +525,6 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
                     <div className={`text-[10px] mt-1 text-right font-mono ${metaDescLen > 160 ? 'text-destructive' : metaDescLen > 140 ? 'text-primary' : 'text-muted-foreground'}`}>
                       {metaDescLen}/160 chars
                     </div>
-                    {/* Google SERP preview */}
                     {(metaTitle || title) && (
                       <div className="mt-3 p-3 bg-white border border-border rounded-lg">
                         <p className="text-[10px] font-bold text-muted-foreground mb-1.5 uppercase tracking-wide">Google Preview</p>
@@ -544,19 +617,19 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
           </div>
         ) : (
           /* ─── Preview ─── */
-          <div className="max-w-3xl mx-auto p-8">
+          <div className="max-w-3xl mx-auto p-4 sm:p-8">
             <div className="bg-white rounded-2xl border border-border shadow-card overflow-hidden">
-              {coverImageUrl && <img src={coverImageUrl} alt="" className="w-full h-72 object-cover" />}
-              <div className="p-8">
-                <div className="flex items-center gap-2 mb-4">
+              {coverImageUrl && <img src={coverImageUrl} alt="" className="w-full h-48 sm:h-72 object-cover" />}
+              <div className="p-4 sm:p-8">
+                <div className="flex items-center gap-2 mb-4 flex-wrap">
                   <span className="text-xs font-bold bg-accent text-accent-foreground border border-border px-2.5 py-1 rounded">{category}</span>
                   {tags.split(',').filter(t => t.trim()).slice(0, 3).map(tag => (
                     <span key={tag} className="text-xs bg-muted text-muted-foreground px-2.5 py-1 rounded">{tag.trim()}</span>
                   ))}
                 </div>
-                <h1 className="text-3xl font-black text-foreground leading-tight mb-4">{title || 'Untitled Article'}</h1>
-                {excerpt && <p className="text-lg text-muted-foreground leading-relaxed mb-6 border-l-4 border-primary/40 pl-4 italic">{excerpt}</p>}
-                <div className="flex items-center gap-3 text-sm text-muted-foreground mb-8 pb-6 border-b border-border">
+                <h1 className="text-2xl sm:text-3xl font-black text-foreground leading-tight mb-4">{title || 'Untitled Article'}</h1>
+                {excerpt && <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-6 border-l-4 border-primary/40 pl-4 italic">{excerpt}</p>}
+                <div className="flex items-center gap-3 text-sm text-muted-foreground mb-8 pb-6 border-b border-border flex-wrap">
                   <span className="font-semibold text-foreground">{authorName}</span>
                   <span>·</span>
                   <span>~{readTime} min read</span>
@@ -568,7 +641,6 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
               </div>
             </div>
 
-            {/* SEO preview in preview mode */}
             {(metaTitle || metaDescription) && (
               <div className="mt-6 p-5 bg-white border border-border rounded-2xl">
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">

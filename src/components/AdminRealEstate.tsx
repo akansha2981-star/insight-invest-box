@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Plus, Edit, Trash2, Building2, TrendingUp, Paintbrush, Shield,
-  Save, X, Upload, RefreshCw, Sparkles, Eye, BarChart3
+  Save, X, Upload, RefreshCw, Sparkles, Eye, BarChart3, Loader2, Zap
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminAI } from "@/hooks/useAdminAI";
 
 type Tab = "properties" | "services" | "trends" | "interior";
 
@@ -63,7 +64,11 @@ function PropertiesAdmin() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [editing, setEditing] = useState<Partial<Property> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [aiCity, setAiCity] = useState("Mumbai");
+  const [aiListingType, setAiListingType] = useState("buy");
+  const [aiPropertyType, setAiPropertyType] = useState("apartment");
   const { toast } = useToast();
+  const { generating, generateContent } = useAdminAI();
 
   useEffect(() => { fetchProperties(); }, []);
 
@@ -71,6 +76,53 @@ function PropertiesAdmin() {
     const { data } = await supabase.from("properties").select("*").order("created_at", { ascending: false });
     setProperties((data ?? []) as any);
     setLoading(false);
+  }
+
+  async function aiGenerateProperty(publishNow = false) {
+    const result = await generateContent({
+      action: "generate-property",
+      context: { listing_type: aiListingType, city: aiCity, property_type: aiPropertyType }
+    });
+    if (result) {
+      if (publishNow) {
+        const payload = {
+          title: result.title, slug: result.slug || result.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          developer_name: result.developer_name || null, city: result.city || aiCity,
+          locality: result.locality || null, property_type: result.property_type || aiPropertyType,
+          listing_type: result.listing_type || aiListingType, bhk: result.bhk || null,
+          area_sqft: result.area_sqft || null, price: result.price || 0,
+          price_display: result.price_display || null, original_price: result.original_price || null,
+          description: result.description || null, overview: result.overview || null,
+          amenities: result.amenities || [], highlights: result.highlights || [],
+          possession_status: result.possession_status || "under_construction",
+          rera_id: result.rera_id || null, total_floors: result.total_floors || null,
+          green_area_pct: result.green_area_pct || null, density: result.density || null,
+          roi_projection: result.roi_projection || null, investment_plan: result.investment_plan || null,
+          rating: result.rating || 0, is_featured: result.is_featured || false,
+          is_price_drop: result.is_price_drop || false, status: "active",
+        };
+        await supabase.from("properties").insert(payload);
+        toast({ title: "Property published!", description: `${result.title} is now live` });
+        fetchProperties();
+      } else {
+        setEditing({
+          title: result.title, slug: result.slug,
+          developer_name: result.developer_name, city: result.city || aiCity,
+          locality: result.locality, property_type: result.property_type || aiPropertyType,
+          listing_type: result.listing_type || aiListingType, bhk: result.bhk,
+          area_sqft: result.area_sqft, price: result.price || 0,
+          price_display: result.price_display, original_price: result.original_price,
+          description: result.description, overview: result.overview,
+          amenities: result.amenities || [], highlights: result.highlights || [],
+          possession_status: result.possession_status || "under_construction",
+          rera_id: result.rera_id, total_floors: result.total_floors,
+          green_area_pct: result.green_area_pct, density: result.density,
+          roi_projection: result.roi_projection, investment_plan: result.investment_plan,
+          rating: result.rating || 0, is_featured: result.is_featured || false,
+          is_price_drop: result.is_price_drop || false, status: "active",
+        } as any);
+      }
+    }
   }
 
   async function saveProperty() {
@@ -123,6 +175,47 @@ function PropertiesAdmin() {
 
   return (
     <div>
+      {/* AI Quick Actions */}
+      <div className="bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-xl p-4 mb-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="h-4 w-4 text-emerald-600" />
+          <span className="text-sm font-bold text-emerald-900">AI Auto-Generate Property</span>
+        </div>
+        <p className="text-xs text-emerald-600 mb-3">Select category — AI fills all details including price, amenities, RERA, ROI</p>
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <select value={aiCity} onChange={e => setAiCity(e.target.value)}
+            className="px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+            {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select value={aiListingType} onChange={e => setAiListingType(e.target.value)}
+            className="px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+            <option value="buy">Buy</option>
+            <option value="rent">Rent</option>
+            <option value="pg">PG</option>
+          </select>
+          <select value={aiPropertyType} onChange={e => setAiPropertyType(e.target.value)}
+            className="px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+            <option value="apartment">Apartment</option>
+            <option value="villa">Villa</option>
+            <option value="plot">Plot</option>
+            <option value="penthouse">Penthouse</option>
+            <option value="independent">Independent House</option>
+          </select>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button onClick={() => aiGenerateProperty(false)} disabled={generating}
+            className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 transition-colors flex-1">
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Generate & Edit
+          </button>
+          <button onClick={() => aiGenerateProperty(true)} disabled={generating}
+            className="flex items-center justify-center gap-2 bg-emerald-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-900 disabled:opacity-50 transition-colors flex-1">
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+            Generate & Publish Live
+          </button>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-muted-foreground">{properties.length} properties</p>
         <button onClick={() => setEditing({ listing_type: "buy", property_type: "apartment", city: "Mumbai", status: "active" })}

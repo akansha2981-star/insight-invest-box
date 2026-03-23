@@ -58,10 +58,10 @@ export function AdminStockReviews() {
   const [saving, setSaving] = useState(false);
   const { generating, generateContent } = useAdminAI();
 
-  async function aiGenerateReview(symbol?: string) {
+  async function aiGenerateReview(symbol?: string, publishNow = false) {
     const result = await generateContent({ action: "generate-stock-review", context: { symbol: symbol || "" } });
     if (result) {
-      setForm({
+      const formData = {
         ...EMPTY_FORM,
         symbol: result.symbol || "",
         company_name: result.company_name || "",
@@ -75,9 +75,38 @@ export function AdminStockReviews() {
         risks: result.risks || "",
         analyst_name: result.analyst_name || "AI Analyst",
         tags: result.tags || "",
-      });
+        financials: result.financials || EMPTY_FORM.financials,
+        key_metrics: result.key_metrics || EMPTY_FORM.key_metrics,
+      };
+      setForm(formData);
       setEditingReview(null);
       setView("form");
+
+      if (publishNow) {
+        // Auto-publish
+        const payload: any = {
+          symbol: (result.symbol || "").toUpperCase().trim(),
+          company_name: (result.company_name || "").trim(),
+          sector: result.sector || "IT",
+          exchange: result.exchange || "NSE",
+          current_price: result.current_price || null,
+          target_price: result.target_price || null,
+          rating: result.rating || "HOLD",
+          analyst_name: result.analyst_name || "AI Analyst",
+          summary: result.summary || null,
+          investment_thesis: result.investment_thesis || null,
+          risks: result.risks || null,
+          tags: result.tags ? result.tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
+          financials: result.financials || {},
+          key_metrics: result.key_metrics || {},
+          status: "published",
+          published_at: new Date().toISOString(),
+          is_featured: false,
+        };
+        await supabase.from("stock_reviews" as any).insert(payload);
+        fetchReviews();
+        setView("list");
+      }
     }
   }
   useEffect(() => { fetchReviews(); }, []);
@@ -380,14 +409,19 @@ export function AdminStockReviews() {
           <Sparkles className="h-4 w-4 text-purple-600" />
           <span className="text-sm font-bold text-purple-900">AI Auto-Generate Stock Review</span>
         </div>
+        <p className="text-xs text-purple-600 mb-3">AI picks a trending stock, fills ALL fields including financials & key metrics</p>
         <div className="flex flex-col sm:flex-row gap-2">
           <button onClick={() => aiGenerateReview()} disabled={generating}
             className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors flex-1">
             {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Generate Trending Stock Review
+            Generate & Edit
+          </button>
+          <button onClick={() => aiGenerateReview(undefined, true)} disabled={generating}
+            className="flex items-center justify-center gap-2 bg-purple-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-900 disabled:opacity-50 transition-colors flex-1">
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Generate & Publish Live
           </button>
         </div>
-        <p className="text-[10px] text-purple-600 mt-2">AI picks a trending stock and fills in the review — edit and publish</p>
       </div>
 
       {loading ? (
