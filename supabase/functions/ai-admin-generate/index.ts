@@ -5,14 +5,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-async function callAINonStream(systemPrompt: string, userPrompt: string, tools?: any[], toolChoice?: any): Promise<any | null> {
+async function callAINonStream(systemPrompt: string, userPrompt: string, tools?: any[], toolChoice?: any, useStrongModel = false): Promise<any | null> {
   const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (LOVABLE_KEY) {
     try {
+      const model = useStrongModel ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview";
       const body: any = {
-        model: "google/gemini-3-flash-preview",
+        model,
         messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
         stream: false,
+        max_tokens: useStrongModel ? 8000 : 4000,
       };
       if (tools) { body.tools = tools; body.tool_choice = toolChoice; }
       const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -23,6 +25,7 @@ async function callAINonStream(systemPrompt: string, userPrompt: string, tools?:
       if (resp.ok) return await resp.json();
       await resp.text().catch(() => {});
     } catch (e) { console.error("Lovable AI error:", e instanceof Error ? e.message : e); }
+  }
   }
   const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY");
   if (OPENAI_KEY) {
