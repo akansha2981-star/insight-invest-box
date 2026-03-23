@@ -56,7 +56,30 @@ export function AdminStockReviews() {
   const [editingReview, setEditingReview] = useState<StockReview | null>(null);
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const { generating, generateContent } = useAdminAI();
 
+  async function aiGenerateReview(symbol?: string) {
+    const result = await generateContent({ action: "generate-stock-review", context: { symbol: symbol || "" } });
+    if (result) {
+      setForm({
+        ...EMPTY_FORM,
+        symbol: result.symbol || "",
+        company_name: result.company_name || "",
+        sector: result.sector || "IT",
+        exchange: result.exchange || "NSE",
+        current_price: result.current_price?.toString() || "",
+        target_price: result.target_price?.toString() || "",
+        rating: result.rating || "HOLD",
+        summary: result.summary || "",
+        investment_thesis: result.investment_thesis || "",
+        risks: result.risks || "",
+        analyst_name: result.analyst_name || "AI Analyst",
+        tags: result.tags || "",
+      });
+      setEditingReview(null);
+      setView("form");
+    }
+  }
   useEffect(() => { fetchReviews(); }, []);
 
   async function fetchReviews() {
