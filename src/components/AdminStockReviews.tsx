@@ -409,14 +409,31 @@ export function AdminStockReviews() {
           <Sparkles className="h-4 w-4 text-purple-600" />
           <span className="text-sm font-bold text-purple-900">AI Auto-Generate Stock Review</span>
         </div>
-        <p className="text-xs text-purple-600 mb-3">AI picks a trending stock, fills ALL fields including financials & key metrics</p>
+        <p className="text-xs text-purple-600 mb-3">Enter a stock symbol or leave empty — AI picks a trending stock and fills ALL fields</p>
+        <div className="flex flex-col sm:flex-row gap-2 mb-3">
+          <input
+            id="ai-stock-symbol-input"
+            placeholder="Stock symbol (e.g. TCS, RELIANCE, INFY)"
+            className="flex-1 px-3 py-2.5 border border-purple-200 rounded-lg text-sm bg-white focus:outline-none focus:border-purple-500 uppercase placeholder:normal-case"
+          />
+          <select id="ai-stock-sector-input" className="px-3 py-2.5 border border-purple-200 rounded-lg text-sm bg-white focus:outline-none">
+            <option value="">Any Sector</option>
+            {SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <button onClick={() => aiGenerateReview()} disabled={generating}
+          <button onClick={() => {
+            const sym = (document.getElementById('ai-stock-symbol-input') as HTMLInputElement)?.value?.trim() || '';
+            aiGenerateReview(sym || undefined);
+          }} disabled={generating}
             className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors flex-1">
             {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             Generate & Edit
           </button>
-          <button onClick={() => aiGenerateReview(undefined, true)} disabled={generating}
+          <button onClick={() => {
+            const sym = (document.getElementById('ai-stock-symbol-input') as HTMLInputElement)?.value?.trim() || '';
+            aiGenerateReview(sym || undefined, true);
+          }} disabled={generating}
             className="flex items-center justify-center gap-2 bg-purple-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-900 disabled:opacity-50 transition-colors flex-1">
             {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             Generate & Publish Live
