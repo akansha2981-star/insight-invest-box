@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Plus, Edit, Trash2, Eye, CheckCircle, Clock, Star, TrendingUp,
-  TrendingDown, Minus, BarChart2, X, Save, ChevronDown
+  TrendingDown, Minus, BarChart2, X, Save, ChevronDown, Sparkles, Loader2
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAdminAI } from "@/hooks/useAdminAI";
 
 interface StockReview {
   id: string;
