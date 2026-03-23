@@ -362,16 +362,32 @@ export function AdminStockReviews() {
   const drafts = reviews.filter(r => r.status === "draft");
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Stock Reviews</h1>
-          <p className="text-sm text-muted-foreground mt-1">{reviews.length} total · {published.length} published · {drafts.length} drafts</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Stock Reviews</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">{reviews.length} total · {published.length} published · {drafts.length} drafts</p>
         </div>
         <button onClick={openCreate}
-          className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card">
+          className="flex items-center justify-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card w-full sm:w-auto">
           <Plus className="h-4 w-4" /> Add Stock Review
         </button>
+      </div>
+
+      {/* AI Quick Actions */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-4 mb-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="h-4 w-4 text-purple-600" />
+          <span className="text-sm font-bold text-purple-900">AI Auto-Generate Stock Review</span>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button onClick={() => aiGenerateReview()} disabled={generating}
+            className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors flex-1">
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Generate Trending Stock Review
+          </button>
+        </div>
+        <p className="text-[10px] text-purple-600 mt-2">AI picks a trending stock and fills in the review — edit and publish</p>
       </div>
 
       {loading ? (
