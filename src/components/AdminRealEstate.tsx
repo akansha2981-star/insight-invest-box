@@ -175,6 +175,47 @@ function PropertiesAdmin() {
 
   return (
     <div>
+      {/* AI Quick Actions */}
+      <div className="bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-xl p-4 mb-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="h-4 w-4 text-emerald-600" />
+          <span className="text-sm font-bold text-emerald-900">AI Auto-Generate Property</span>
+        </div>
+        <p className="text-xs text-emerald-600 mb-3">Select category — AI fills all details including price, amenities, RERA, ROI</p>
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <select value={aiCity} onChange={e => setAiCity(e.target.value)}
+            className="px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+            {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select value={aiListingType} onChange={e => setAiListingType(e.target.value)}
+            className="px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+            <option value="buy">Buy</option>
+            <option value="rent">Rent</option>
+            <option value="pg">PG</option>
+          </select>
+          <select value={aiPropertyType} onChange={e => setAiPropertyType(e.target.value)}
+            className="px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+            <option value="apartment">Apartment</option>
+            <option value="villa">Villa</option>
+            <option value="plot">Plot</option>
+            <option value="penthouse">Penthouse</option>
+            <option value="independent">Independent House</option>
+          </select>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button onClick={() => aiGenerateProperty(false)} disabled={generating}
+            className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 transition-colors flex-1">
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Generate & Edit
+          </button>
+          <button onClick={() => aiGenerateProperty(true)} disabled={generating}
+            className="flex items-center justify-center gap-2 bg-emerald-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-900 disabled:opacity-50 transition-colors flex-1">
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+            Generate & Publish Live
+          </button>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-muted-foreground">{properties.length} properties</p>
         <button onClick={() => setEditing({ listing_type: "buy", property_type: "apartment", city: "Mumbai", status: "active" })}

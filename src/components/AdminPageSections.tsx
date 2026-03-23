@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit, Trash2, Eye, EyeOff, Save, X } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, Save, X, Sparkles, Loader2, Zap } from "lucide-react";
+import { useAdminAI } from "@/hooks/useAdminAI";
 
 interface PageSection {
   id: string;
@@ -43,6 +44,7 @@ export function AdminPageSections() {
   const [form, setForm] = useState<Omit<PageSection, "id">>(BLANK);
   const [selectedPage, setSelectedPage] = useState("markets");
   const [saving, setSaving] = useState(false);
+  const { generating, generateContent } = useAdminAI();
 
   useEffect(() => { fetchSections(); }, []);
 
@@ -107,30 +109,76 @@ export function AdminPageSections() {
     setForm(BLANK);
   }
 
+  async function aiGenerateSection(publishNow = false) {
+    const result = await generateContent({
+      action: "generate-page-section",
+      context: { page_key: selectedPage, section_type: form.section_type || "banner" }
+    });
+    if (result) {
+      if (publishNow) {
+        const payload = {
+          page_key: selectedPage,
+          title: result.title || "AI Generated Section",
+          content: result.content || "",
+          section_type: "banner",
+          sort_order: sections.filter(s => s.page_key === selectedPage).length,
+          is_visible: true,
+        };
+        await supabase.from("page_sections").insert(payload);
+        fetchSections();
+      } else {
+        setForm(f => ({ ...f, title: result.title || "", content: result.content || "", page_key: selectedPage }));
+        setCreating(true);
+        setEditing(null);
+      }
+    }
+  }
+
   const filteredSections = sections.filter(s => s.page_key === selectedPage);
 
   return (
-    <div className="p-8 max-w-5xl">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Page Content Sections</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage editable banners and text blocks shown on each section page</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Page Content Sections</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Manage editable banners and text blocks shown on each section page</p>
         </div>
         <button
           onClick={startCreate}
-          className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card"
+          className="flex items-center justify-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" /> Add Section
         </button>
       </div>
 
+      {/* AI Quick Actions */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-4 mb-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="h-4 w-4 text-purple-600" />
+          <span className="text-sm font-bold text-purple-900">AI Auto-Generate Section</span>
+        </div>
+        <p className="text-xs text-purple-600 mb-3">AI creates relevant content for the selected page</p>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button onClick={() => aiGenerateSection(false)} disabled={generating}
+            className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors flex-1">
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Generate & Edit
+          </button>
+          <button onClick={() => aiGenerateSection(true)} disabled={generating}
+            className="flex items-center justify-center gap-2 bg-purple-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-900 disabled:opacity-50 transition-colors flex-1">
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+            Generate & Publish
+          </button>
+        </div>
+      </div>
+
       {/* Page tabs */}
-      <div className="flex gap-1 mb-6 bg-muted p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-6 bg-muted p-1 rounded-xl overflow-x-auto">
         {PAGE_OPTIONS.map((p) => (
           <button
             key={p.key}
             onClick={() => setSelectedPage(p.key)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+            className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap ${
               selectedPage === p.key ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -141,7 +189,7 @@ export function AdminPageSections() {
 
       {/* Form */}
       {(creating || editing) && (
-        <div className="bg-white border border-border rounded-xl shadow-card p-6 mb-6">
+        <div className="bg-white border border-border rounded-xl shadow-card p-4 sm:p-6 mb-6">
           <h2 className="font-bold text-foreground mb-4">{editing ? "Edit Section" : "New Section"}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
@@ -195,16 +243,16 @@ export function AdminPageSections() {
               className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row gap-2">
             <button
               onClick={saveSection}
               disabled={saving || !form.title}
-              className="flex items-center gap-2 bg-primary text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              className="flex items-center justify-center gap-2 bg-primary text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex-1 sm:flex-initial"
             >
               <Save className="h-3.5 w-3.5" />
               {saving ? "Saving…" : "Save Section"}
             </button>
-            <button onClick={cancelForm} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+            <button onClick={cancelForm} className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
               <X className="h-3.5 w-3.5" /> Cancel
             </button>
           </div>
@@ -219,14 +267,14 @@ export function AdminPageSections() {
       ) : filteredSections.length === 0 ? (
         <div className="text-center py-16 bg-white border border-border rounded-xl text-muted-foreground">
           <p className="font-medium">No sections for this page yet</p>
-          <p className="text-sm mt-1">Click "Add Section" to create one</p>
+          <p className="text-sm mt-1">Click "Add Section" or use AI to create one</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filteredSections.map((section) => (
             <div
               key={section.id}
-              className={`bg-white border border-border rounded-xl p-5 shadow-card flex items-start gap-4 ${!section.is_visible ? "opacity-50" : ""}`}
+              className={`bg-white border border-border rounded-xl p-4 sm:p-5 shadow-card flex items-start gap-3 sm:gap-4 ${!section.is_visible ? "opacity-50" : ""}`}
             >
               <div className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded border ${
                 section.section_type === "alert" ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-primary/8 text-primary border-primary/20"
@@ -234,8 +282,8 @@ export function AdminPageSections() {
                 {section.section_type.toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-foreground">{section.title}</div>
-                <div className="text-sm text-muted-foreground mt-0.5 line-clamp-2">{section.content}</div>
+                <div className="font-bold text-foreground text-sm">{section.title}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground mt-0.5 line-clamp-2">{section.content}</div>
                 <div className="text-[10px] text-muted-foreground mt-1">Order: {section.sort_order}</div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
