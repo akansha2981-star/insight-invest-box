@@ -405,64 +405,83 @@ export function AdminStockReviews() {
           </button>
         </div>
       ) : (
-        <div className="bg-white border border-border rounded-xl shadow-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-muted/30 border-b border-border">
-                  {["Stock", "Sector", "Price", "Target", "Rating", "Analyst", "Status", "Views", "Actions"].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {reviews.map(r => (
-                  <tr key={r.id} className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-3.5">
-                      <div className="font-bold text-foreground">{r.symbol}</div>
-                      <div className="text-xs text-muted-foreground truncate max-w-[120px]">{r.company_name}</div>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold">{r.sector}</span>
-                    </td>
-                    <td className="px-4 py-3.5 number-font font-semibold text-foreground">
-                      {r.current_price ? `₹${r.current_price.toLocaleString("en-IN")}` : "—"}
-                    </td>
-                    <td className="px-4 py-3.5 number-font text-gain font-semibold">
-                      {r.target_price ? `₹${r.target_price.toLocaleString("en-IN")}` : "—"}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${ratingColor(r.rating)}`}>{r.rating ?? "—"}</span>
-                    </td>
-                    <td className="px-4 py-3.5 text-muted-foreground text-sm">{r.analyst_name ?? "—"}</td>
-                    <td className="px-4 py-3.5">
-                      <button onClick={() => togglePublish(r)}
-                        className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors ${r.status === "published" ? "badge-gain" : "badge-neutral"}`}>
-                        {r.status === "published" ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                        {r.status}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3.5 number-font text-sm text-muted-foreground">{(r.views_count ?? 0).toLocaleString()}</td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => openEdit(r)} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit">
-                          <Edit className="h-3.5 w-3.5" />
-                        </button>
-                        <Link to={`/stocks/review/${r.symbol.toLowerCase()}`} target="_blank"
-                          className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors" title="Preview">
-                          <Eye className="h-3.5 w-3.5" />
-                        </Link>
-                        <button onClick={() => deleteReview(r.id)} className="p-1.5 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          {/* Mobile card layout */}
+          <div className="sm:hidden space-y-2.5">
+            {reviews.map(r => (
+              <div key={r.id} className="bg-white border border-border rounded-xl p-3 shadow-card">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-foreground text-sm">{r.symbol}</div>
+                    <div className="text-xs text-muted-foreground truncate">{r.company_name}</div>
+                  </div>
+                  <button onClick={() => togglePublish(r)}
+                    className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${r.status === "published" ? "badge-gain" : "badge-neutral"}`}>
+                    {r.status === "published" ? <CheckCircle className="h-2.5 w-2.5" /> : <Clock className="h-2.5 w-2.5" />}
+                    {r.status}
+                  </button>
+                </div>
+                <div className="flex items-center gap-3 text-xs mb-2 flex-wrap">
+                  <span className="bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded text-[10px] font-semibold">{r.sector}</span>
+                  <span className="number-font font-semibold">{r.current_price ? `₹${r.current_price.toLocaleString("en-IN")}` : "—"}</span>
+                  <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded border ${ratingColor(r.rating)}`}>{r.rating ?? "—"}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => openEdit(r)} className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"><Edit className="h-4 w-4" /></button>
+                  <Link to={`/stocks/review/${r.symbol.toLowerCase()}`} target="_blank" className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"><Eye className="h-4 w-4" /></Link>
+                  <button onClick={() => deleteReview(r.id)} className="p-2 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg"><Trash2 className="h-4 w-4" /></button>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block bg-white border border-border rounded-xl shadow-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/30 border-b border-border">
+                    {["Stock", "Sector", "Price", "Target", "Rating", "Status", "Actions"].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {reviews.map(r => (
+                    <tr key={r.id} className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <div className="font-bold text-foreground">{r.symbol}</div>
+                        <div className="text-xs text-muted-foreground truncate max-w-[120px]">{r.company_name}</div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold">{r.sector}</span>
+                      </td>
+                      <td className="px-4 py-3.5 number-font font-semibold">{r.current_price ? `₹${r.current_price.toLocaleString("en-IN")}` : "—"}</td>
+                      <td className="px-4 py-3.5 number-font text-gain font-semibold">{r.target_price ? `₹${r.target_price.toLocaleString("en-IN")}` : "—"}</td>
+                      <td className="px-4 py-3.5">
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${ratingColor(r.rating)}`}>{r.rating ?? "—"}</span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <button onClick={() => togglePublish(r)}
+                          className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border ${r.status === "published" ? "badge-gain" : "badge-neutral"}`}>
+                          {r.status === "published" ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                          {r.status}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => openEdit(r)} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"><Edit className="h-3.5 w-3.5" /></button>
+                          <Link to={`/stocks/review/${r.symbol.toLowerCase()}`} target="_blank" className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"><Eye className="h-3.5 w-3.5" /></Link>
+                          <button onClick={() => deleteReview(r.id)} className="p-1.5 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg"><Trash2 className="h-3.5 w-3.5" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
