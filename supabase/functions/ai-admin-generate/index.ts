@@ -26,7 +26,6 @@ async function callAINonStream(systemPrompt: string, userPrompt: string, tools?:
       await resp.text().catch(() => {});
     } catch (e) { console.error("Lovable AI error:", e instanceof Error ? e.message : e); }
   }
-  }
   const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY");
   if (OPENAI_KEY) {
     try {
