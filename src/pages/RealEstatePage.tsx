@@ -896,6 +896,156 @@ export default function RealEstatePage() {
           </div>
         </section>
 
+        {/* ═══════════════════════════════════
+            QUICK EMI CALCULATOR
+        ═══════════════════════════════════ */}
+        <section className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-3xl p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full text-xs font-bold mb-3">
+                <CircleDollarSign className="h-3.5 w-3.5" /> Quick Calculator
+              </div>
+              <h2 className="text-2xl font-black text-foreground mb-2">Home Loan EMI Calculator</h2>
+              <p className="text-sm text-muted-foreground mb-4">Estimate your monthly payments before you buy. Plan your budget with precision.</p>
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                {[
+                  { label: "SBI", rate: "8.50%" },
+                  { label: "HDFC", rate: "8.75%" },
+                  { label: "ICICI", rate: "8.80%" },
+                  { label: "Kotak", rate: "8.85%" },
+                  { label: "Axis", rate: "8.90%" },
+                  { label: "PNB", rate: "8.45%" },
+                ].map(bank => (
+                  <div key={bank.label} className="bg-white border border-emerald-100 rounded-xl p-3 text-center">
+                    <div className="text-xs font-bold text-foreground">{bank.label}</div>
+                    <div className="number-font text-lg font-black text-emerald-600">{bank.rate}</div>
+                    <div className="text-[9px] text-muted-foreground">p.a.</div>
+                  </div>
+                ))}
+              </div>
+              <Link to="/calculators/emi"
+                className="inline-flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/20">
+                Calculate EMI <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="bg-white border border-emerald-100 rounded-2xl p-6">
+              <h3 className="font-bold text-foreground mb-4">Why Use EMI Calculator?</h3>
+              <div className="space-y-3">
+                {[
+                  { title: "Plan Your Budget", desc: "Know exactly how much you'll pay every month" },
+                  { title: "Compare Banks", desc: "Find the best interest rates across 30+ banks" },
+                  { title: "Tax Benefits", desc: "Understand Section 80C & 24(b) deductions" },
+                  { title: "Prepayment Analysis", desc: "See how extra payments reduce your tenure" },
+                ].map(item => (
+                  <div key={item.title} className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                      <ChevronRight className="h-4 w-4 text-emerald-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-foreground">{item.title}</div>
+                      <div className="text-xs text-muted-foreground">{item.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            INVESTMENT GUIDE
+        ═══════════════════════════════════ */}
+        <section>
+          <h2 className="text-2xl font-black text-foreground mb-1">Real Estate Investment Guide</h2>
+          <p className="text-sm text-muted-foreground mb-5">Expert advice for first-time buyers and seasoned investors</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { title: "First-Time Buyer Checklist", desc: "10 essential steps before purchasing your first property, from CIBIL score to RERA verification.", icon: FileText, color: "from-blue-50 to-indigo-50", iconColor: "text-blue-500" },
+              { title: "Rent vs Buy Analysis", desc: "A data-driven framework to decide whether renting or buying makes more financial sense for you.", icon: BarChart3, color: "from-violet-50 to-purple-50", iconColor: "text-violet-500" },
+              { title: "Property Tax Guide", desc: "Understanding property tax calculations, exemptions, and payment deadlines across Indian states.", icon: IndianRupee, color: "from-emerald-50 to-teal-50", iconColor: "text-emerald-500" },
+              { title: "NRI Investment Guide", desc: "Complete guide for NRIs: legal requirements, repatriation rules, FEMA compliance, and best cities.", icon: Briefcase, color: "from-amber-50 to-yellow-50", iconColor: "text-amber-500" },
+            ].map(guide => (
+              <div key={guide.title} className={`bg-gradient-to-br ${guide.color} border border-border rounded-2xl p-6 hover:shadow-lg transition-all cursor-pointer group`}>
+                <guide.icon className={`h-10 w-10 ${guide.iconColor} mb-4 group-hover:scale-110 transition-transform`} />
+                <h3 className="font-bold text-foreground mb-2">{guide.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{guide.desc}</p>
+                <button className="mt-4 text-primary text-xs font-bold flex items-center gap-1 hover:gap-2 transition-all">
+                  Read Guide <ArrowRight className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            LOCALITY COMPARISON
+        ═══════════════════════════════════ */}
+        <section className="bg-card border border-border rounded-3xl p-8">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-xs font-bold mb-3">
+              <MapPin className="h-3.5 w-3.5" /> Locality Comparison
+            </div>
+            <h2 className="text-2xl font-black text-foreground">Compare Top Localities</h2>
+            <p className="text-sm text-muted-foreground mt-1">Data-driven comparison of India's most in-demand micro-markets</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/30 border-b border-border">
+                  {["Locality", "City", "Avg Price/sqft", "Growth (YoY)", "Connectivity", "Livability"].map(h => (
+                    <th key={h} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { locality: "Bandra West", city: "Mumbai", price: "₹38,200", growth: "+8.2%", positive: true, connectivity: "⭐⭐⭐⭐⭐", livability: "⭐⭐⭐⭐⭐" },
+                  { locality: "Whitefield", city: "Bengaluru", price: "₹12,300", growth: "+12.5%", positive: true, connectivity: "⭐⭐⭐⭐", livability: "⭐⭐⭐⭐" },
+                  { locality: "Golf Course Road", city: "Gurugram", price: "₹22,500", growth: "+6.8%", positive: true, connectivity: "⭐⭐⭐⭐⭐", livability: "⭐⭐⭐⭐⭐" },
+                  { locality: "Balewadi", city: "Pune", price: "₹9,400", growth: "+15.2%", positive: true, connectivity: "⭐⭐⭐⭐", livability: "⭐⭐⭐⭐⭐" },
+                  { locality: "Gachibowli", city: "Hyderabad", price: "₹9,800", growth: "+18.4%", positive: true, connectivity: "⭐⭐⭐⭐", livability: "⭐⭐⭐⭐" },
+                  { locality: "OMR", city: "Chennai", price: "₹7,500", growth: "+9.1%", positive: true, connectivity: "⭐⭐⭐", livability: "⭐⭐⭐⭐" },
+                ].map(row => (
+                  <tr key={row.locality} className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors">
+                    <td className="px-4 py-3 font-bold text-foreground">{row.locality}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{row.city}</td>
+                    <td className="px-4 py-3 number-font font-bold text-foreground">{row.price}</td>
+                    <td className="px-4 py-3">
+                      <span className={`number-font font-bold ${row.positive ? "text-gain" : "text-loss"}`}>{row.growth}</span>
+                    </td>
+                    <td className="px-4 py-3 text-xs">{row.connectivity}</td>
+                    <td className="px-4 py-3 text-xs">{row.livability}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            CTA SECTION
+        ═══════════════════════════════════ */}
+        <section className="bg-[#1a1a2e] rounded-3xl p-8 sm:p-12 text-center text-white relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 left-1/4 w-64 h-64 bg-[#ffd700] rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-blue-500 rounded-full blur-3xl" />
+          </div>
+          <div className="relative">
+            <h2 className="text-3xl sm:text-4xl font-black mb-3">Find Your Dream Home Today</h2>
+            <p className="text-white/60 text-sm sm:text-base max-w-xl mx-auto mb-6">
+              Join 2 lakh+ homebuyers who found their perfect property on InvestingIQ. Get expert guidance, AI-powered recommendations, and exclusive deals.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link to="/real-estate?tab=buy" className="bg-[#ffd700] text-[#1a1a2e] px-8 py-3.5 rounded-xl font-black text-sm hover:bg-[#ffd700]/90 transition-colors shadow-lg shadow-[#ffd700]/20 flex items-center gap-2">
+                <Search className="h-4 w-4" /> Search Properties
+              </Link>
+              <Link to="/contact" className="border border-white/20 text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-white/10 transition-colors flex items-center gap-2">
+                <Phone className="h-4 w-4" /> Talk to Expert
+              </Link>
+            </div>
+          </div>
+        </section>
+
       </main>
       <Footer />
     </div>
