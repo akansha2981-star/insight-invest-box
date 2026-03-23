@@ -102,13 +102,22 @@ const ACTIONS: Record<string, { system: string; prompt: (ctx: any) => string; to
     toolName: "generate_banner",
   },
   "generate-stock-review": {
-    system: "You are a senior equity research analyst for Indian markets (NSE/BSE). Generate comprehensive stock analysis. Use realistic data. No emojis.",
-    prompt: (ctx) => `Generate a stock review for ${ctx.symbol || "a trending Indian stock"}. Include symbol, company_name, sector, exchange, current_price (realistic), target_price, rating (BUY/HOLD/SELL), summary (2-3 sentences), investment_thesis (detailed paragraph), risks (key risk factors), and tags. Date: ${new Date().toISOString().split('T')[0]}`,
+    system: "You are a senior equity research analyst for Indian markets (NSE/BSE). Generate comprehensive stock analysis with REALISTIC financial data. Use actual market-like numbers. No emojis. Date: " + new Date().toISOString().split('T')[0],
+    prompt: (ctx) => `Generate a COMPLETE stock review for ${ctx.symbol || "a trending Indian large-cap stock"}. Include ALL fields with realistic data:
+- symbol, company_name, sector, exchange
+- current_price (realistic market price in INR), target_price
+- rating (STRONG BUY/BUY/HOLD/SELL/STRONG SELL)
+- summary (2-3 sentences), investment_thesis (detailed paragraph), risks
+- analyst_name
+- tags (comma separated)
+- financials: revenue (in Cr), net_profit (in Cr), eps, pe_ratio, debt_equity, roe (%), market_cap (in Cr), book_value
+- key_metrics: 52w_high, 52w_low, dividend_yield (%), promoter_holding (%), fii_holding (%), beta
+ALL numbers must be realistic for the stock. Date: ${new Date().toISOString().split('T')[0]}`,
     tools: [{
       type: "function",
       function: {
         name: "generate_stock_review",
-        description: "Generate stock review data",
+        description: "Generate complete stock review with financials",
         parameters: {
           type: "object",
           properties: {
@@ -124,8 +133,25 @@ const ACTIONS: Record<string, { system: string; prompt: (ctx: any) => string; to
             risks: { type: "string" },
             tags: { type: "string" },
             analyst_name: { type: "string" },
+            financials: {
+              type: "object",
+              properties: {
+                revenue: { type: "string" }, net_profit: { type: "string" },
+                eps: { type: "string" }, pe_ratio: { type: "string" },
+                debt_equity: { type: "string" }, roe: { type: "string" },
+                market_cap: { type: "string" }, book_value: { type: "string" },
+              }
+            },
+            key_metrics: {
+              type: "object",
+              properties: {
+                "52w_high": { type: "string" }, "52w_low": { type: "string" },
+                dividend_yield: { type: "string" }, promoter_holding: { type: "string" },
+                fii_holding: { type: "string" }, beta: { type: "string" },
+              }
+            },
           },
-          required: ["symbol", "company_name", "sector", "rating", "summary"]
+          required: ["symbol", "company_name", "sector", "rating", "summary", "financials", "key_metrics"]
         }
       }
     }],
@@ -149,6 +175,107 @@ const ACTIONS: Record<string, { system: string; prompt: (ctx: any) => string; to
       }
     }],
     toolName: "suggest_topics",
+  },
+  "generate-full-article": {
+    system: `You are a senior financial journalist for InvestingIQ, India's premier investing platform. Write SEO-optimized articles about Indian markets, stocks, economy, real estate, mutual funds, crypto. 
+Rules:
+- Write in professional, engaging tone. No emojis.
+- Content must be well-structured HTML with proper headings (h2, h3), paragraphs, lists.
+- Include realistic data points, numbers, expert opinions.
+- SEO: meta_title under 60 chars with keyword, meta_description under 160 chars, proper tags.
+- Excerpt: 1-2 compelling sentences for article cards.
+- Date: ${new Date().toISOString().split('T')[0]}`,
+    prompt: (ctx) => `Write a COMPLETE, publish-ready article about: "${ctx.topic || "trending investment topic in India"}".
+Category: ${ctx.category || "Markets"}.
+The article should be 600-1000 words, SEO-optimized, with realistic data.
+Return: title, slug (url-friendly), content (HTML), excerpt, category, tags (comma separated), meta_title (under 60 chars), meta_description (under 160 chars), author_name.`,
+    tools: [{
+      type: "function",
+      function: {
+        name: "generate_article",
+        description: "Generate a complete SEO-friendly article",
+        parameters: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            slug: { type: "string" },
+            content: { type: "string", description: "Full HTML content of the article" },
+            excerpt: { type: "string" },
+            category: { type: "string" },
+            tags: { type: "string" },
+            meta_title: { type: "string" },
+            meta_description: { type: "string" },
+            author_name: { type: "string" },
+          },
+          required: ["title", "slug", "content", "excerpt", "category", "tags", "meta_title", "meta_description"]
+        }
+      }
+    }],
+    toolName: "generate_article",
+  },
+  "generate-property": {
+    system: `You are a real estate content specialist for InvestingIQ, covering Indian property markets. Generate realistic property listings with full details.
+Rules: No emojis. Realistic prices for Indian cities. Include actual-sounding developer names, RERA-like IDs, detailed descriptions. Date: ${new Date().toISOString().split('T')[0]}`,
+    prompt: (ctx) => `Generate a COMPLETE property listing for category: ${ctx.listing_type || "buy"}, city: ${ctx.city || "Mumbai"}, property type: ${ctx.property_type || "apartment"}.
+Include ALL fields with realistic Indian market data:
+- title (project name), slug, developer_name, city, locality (real locality name)
+- property_type, listing_type, bhk (e.g. "3 BHK"), area_sqft
+- price (numeric in INR), price_display (e.g. "₹1.5 Cr"), original_price (if price_drop)
+- description (2-3 sentences), overview (detailed 100-200 word description)
+- amenities (array of 8-12 amenities), highlights (array of 4-6 highlights)
+- possession_status (ready/under_construction), rera_id (realistic format)
+- total_floors, green_area_pct, density (Low/Medium/High)
+- roi_projection (expected returns text), investment_plan (payment plan text)
+- rating (0-5), is_featured, is_price_drop`,
+    tools: [{
+      type: "function",
+      function: {
+        name: "generate_property",
+        description: "Generate complete property listing",
+        parameters: {
+          type: "object",
+          properties: {
+            title: { type: "string" }, slug: { type: "string" },
+            developer_name: { type: "string" }, city: { type: "string" },
+            locality: { type: "string" }, property_type: { type: "string" },
+            listing_type: { type: "string" }, bhk: { type: "string" },
+            area_sqft: { type: "number" }, price: { type: "number" },
+            price_display: { type: "string" }, original_price: { type: "number" },
+            description: { type: "string" }, overview: { type: "string" },
+            amenities: { type: "array", items: { type: "string" } },
+            highlights: { type: "array", items: { type: "string" } },
+            possession_status: { type: "string" }, rera_id: { type: "string" },
+            total_floors: { type: "number" }, green_area_pct: { type: "number" },
+            density: { type: "string" }, roi_projection: { type: "string" },
+            investment_plan: { type: "string" }, rating: { type: "number" },
+            is_featured: { type: "boolean" }, is_price_drop: { type: "boolean" },
+          },
+          required: ["title", "slug", "city", "price", "description"]
+        }
+      }
+    }],
+    toolName: "generate_property",
+  },
+  "generate-page-section": {
+    system: "You are a content writer for InvestingIQ. Generate professional page section content for financial platform pages. No emojis. Concise, informative.",
+    prompt: (ctx) => `Generate content for a ${ctx.section_type || "banner"} section on the "${ctx.page_key || "markets"}" page. 
+Include title (compelling, 5-10 words) and content (2-4 sentences, informative). Topic should be relevant to ${ctx.page_key || "markets"} page of a financial platform. Date: ${new Date().toISOString().split('T')[0]}`,
+    tools: [{
+      type: "function",
+      function: {
+        name: "generate_section",
+        description: "Generate page section content",
+        parameters: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            content: { type: "string" },
+          },
+          required: ["title", "content"]
+        }
+      }
+    }],
+    toolName: "generate_section",
   },
 };
 
