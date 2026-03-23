@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.claim-first-admin]
 verify_jwt = false
+
+[functions.ai-admin-generate]
+verify_jwt = false

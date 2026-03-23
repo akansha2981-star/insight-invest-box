@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Plus, Edit, Trash2, Eye, CheckCircle, Clock, Star, TrendingUp,
-  TrendingDown, Minus, BarChart2, X, Save, ChevronDown
+  TrendingDown, Minus, BarChart2, X, Save, ChevronDown, Sparkles, Loader2
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAdminAI } from "@/hooks/useAdminAI";
 
 interface StockReview {
   id: string;
@@ -55,7 +56,30 @@ export function AdminStockReviews() {
   const [editingReview, setEditingReview] = useState<StockReview | null>(null);
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const { generating, generateContent } = useAdminAI();
 
+  async function aiGenerateReview(symbol?: string) {
+    const result = await generateContent({ action: "generate-stock-review", context: { symbol: symbol || "" } });
+    if (result) {
+      setForm({
+        ...EMPTY_FORM,
+        symbol: result.symbol || "",
+        company_name: result.company_name || "",
+        sector: result.sector || "IT",
+        exchange: result.exchange || "NSE",
+        current_price: result.current_price?.toString() || "",
+        target_price: result.target_price?.toString() || "",
+        rating: result.rating || "HOLD",
+        summary: result.summary || "",
+        investment_thesis: result.investment_thesis || "",
+        risks: result.risks || "",
+        analyst_name: result.analyst_name || "AI Analyst",
+        tags: result.tags || "",
+      });
+      setEditingReview(null);
+      setView("form");
+    }
+  }
   useEffect(() => { fetchReviews(); }, []);
 
   async function fetchReviews() {
@@ -171,7 +195,7 @@ export function AdminStockReviews() {
 
   if (view === "form") {
     return (
-      <div className="p-8 max-w-4xl">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">{editingReview ? "Edit Stock Review" : "New Stock Review"}</h1>
@@ -186,7 +210,7 @@ export function AdminStockReviews() {
           {/* Basic Info */}
           <div className="bg-white border border-border rounded-xl p-6 shadow-card">
             <h2 className="font-bold text-foreground mb-4 flex items-center gap-2"><BarChart2 className="h-4 w-4 text-primary" /> Basic Information</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1.5 block">Stock Symbol *</label>
                 <input value={form.symbol} onChange={e => setForm((f: any) => ({ ...f, symbol: e.target.value }))}
@@ -338,16 +362,32 @@ export function AdminStockReviews() {
   const drafts = reviews.filter(r => r.status === "draft");
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Stock Reviews</h1>
-          <p className="text-sm text-muted-foreground mt-1">{reviews.length} total · {published.length} published · {drafts.length} drafts</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Stock Reviews</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">{reviews.length} total · {published.length} published · {drafts.length} drafts</p>
         </div>
         <button onClick={openCreate}
-          className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card">
+          className="flex items-center justify-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card w-full sm:w-auto">
           <Plus className="h-4 w-4" /> Add Stock Review
         </button>
+      </div>
+
+      {/* AI Quick Actions */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-4 mb-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="h-4 w-4 text-purple-600" />
+          <span className="text-sm font-bold text-purple-900">AI Auto-Generate Stock Review</span>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button onClick={() => aiGenerateReview()} disabled={generating}
+            className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors flex-1">
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Generate Trending Stock Review
+          </button>
+        </div>
+        <p className="text-[10px] text-purple-600 mt-2">AI picks a trending stock and fills in the review — edit and publish</p>
       </div>
 
       {loading ? (
@@ -365,64 +405,83 @@ export function AdminStockReviews() {
           </button>
         </div>
       ) : (
-        <div className="bg-white border border-border rounded-xl shadow-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-muted/30 border-b border-border">
-                  {["Stock", "Sector", "Price", "Target", "Rating", "Analyst", "Status", "Views", "Actions"].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {reviews.map(r => (
-                  <tr key={r.id} className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-3.5">
-                      <div className="font-bold text-foreground">{r.symbol}</div>
-                      <div className="text-xs text-muted-foreground truncate max-w-[120px]">{r.company_name}</div>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold">{r.sector}</span>
-                    </td>
-                    <td className="px-4 py-3.5 number-font font-semibold text-foreground">
-                      {r.current_price ? `₹${r.current_price.toLocaleString("en-IN")}` : "—"}
-                    </td>
-                    <td className="px-4 py-3.5 number-font text-gain font-semibold">
-                      {r.target_price ? `₹${r.target_price.toLocaleString("en-IN")}` : "—"}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${ratingColor(r.rating)}`}>{r.rating ?? "—"}</span>
-                    </td>
-                    <td className="px-4 py-3.5 text-muted-foreground text-sm">{r.analyst_name ?? "—"}</td>
-                    <td className="px-4 py-3.5">
-                      <button onClick={() => togglePublish(r)}
-                        className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors ${r.status === "published" ? "badge-gain" : "badge-neutral"}`}>
-                        {r.status === "published" ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                        {r.status}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3.5 number-font text-sm text-muted-foreground">{(r.views_count ?? 0).toLocaleString()}</td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => openEdit(r)} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit">
-                          <Edit className="h-3.5 w-3.5" />
-                        </button>
-                        <Link to={`/stocks/review/${r.symbol.toLowerCase()}`} target="_blank"
-                          className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors" title="Preview">
-                          <Eye className="h-3.5 w-3.5" />
-                        </Link>
-                        <button onClick={() => deleteReview(r.id)} className="p-1.5 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          {/* Mobile card layout */}
+          <div className="sm:hidden space-y-2.5">
+            {reviews.map(r => (
+              <div key={r.id} className="bg-white border border-border rounded-xl p-3 shadow-card">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-foreground text-sm">{r.symbol}</div>
+                    <div className="text-xs text-muted-foreground truncate">{r.company_name}</div>
+                  </div>
+                  <button onClick={() => togglePublish(r)}
+                    className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${r.status === "published" ? "badge-gain" : "badge-neutral"}`}>
+                    {r.status === "published" ? <CheckCircle className="h-2.5 w-2.5" /> : <Clock className="h-2.5 w-2.5" />}
+                    {r.status}
+                  </button>
+                </div>
+                <div className="flex items-center gap-3 text-xs mb-2 flex-wrap">
+                  <span className="bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded text-[10px] font-semibold">{r.sector}</span>
+                  <span className="number-font font-semibold">{r.current_price ? `₹${r.current_price.toLocaleString("en-IN")}` : "—"}</span>
+                  <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded border ${ratingColor(r.rating)}`}>{r.rating ?? "—"}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => openEdit(r)} className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"><Edit className="h-4 w-4" /></button>
+                  <Link to={`/stocks/review/${r.symbol.toLowerCase()}`} target="_blank" className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"><Eye className="h-4 w-4" /></Link>
+                  <button onClick={() => deleteReview(r.id)} className="p-2 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg"><Trash2 className="h-4 w-4" /></button>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block bg-white border border-border rounded-xl shadow-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/30 border-b border-border">
+                    {["Stock", "Sector", "Price", "Target", "Rating", "Status", "Actions"].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {reviews.map(r => (
+                    <tr key={r.id} className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <div className="font-bold text-foreground">{r.symbol}</div>
+                        <div className="text-xs text-muted-foreground truncate max-w-[120px]">{r.company_name}</div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold">{r.sector}</span>
+                      </td>
+                      <td className="px-4 py-3.5 number-font font-semibold">{r.current_price ? `₹${r.current_price.toLocaleString("en-IN")}` : "—"}</td>
+                      <td className="px-4 py-3.5 number-font text-gain font-semibold">{r.target_price ? `₹${r.target_price.toLocaleString("en-IN")}` : "—"}</td>
+                      <td className="px-4 py-3.5">
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${ratingColor(r.rating)}`}>{r.rating ?? "—"}</span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <button onClick={() => togglePublish(r)}
+                          className={`flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border ${r.status === "published" ? "badge-gain" : "badge-neutral"}`}>
+                          {r.status === "published" ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                          {r.status}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => openEdit(r)} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"><Edit className="h-3.5 w-3.5" /></button>
+                          <Link to={`/stocks/review/${r.symbol.toLowerCase()}`} target="_blank" className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"><Eye className="h-3.5 w-3.5" /></Link>
+                          <button onClick={() => deleteReview(r.id)} className="p-1.5 text-muted-foreground hover:text-loss hover:bg-red-50 rounded-lg"><Trash2 className="h-3.5 w-3.5" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

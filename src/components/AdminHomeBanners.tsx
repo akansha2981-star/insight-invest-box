@@ -1,18 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit, Trash2, Eye, EyeOff, Save, X, Megaphone, Image, Upload, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, Save, X, Megaphone, Image, Upload, Loader2, Sparkles } from "lucide-react";
+import { useAdminAI } from "@/hooks/useAdminAI";
 
 interface Banner {
-  id: string;
-  title: string;
-  subtitle: string | null;
-  cta_label: string | null;
-  cta_url: string | null;
-  bg_color: string;
-  banner_type: string;
-  sort_order: number;
-  is_active: boolean;
-  image_url: string | null;
+  id: string; title: string; subtitle: string | null; cta_label: string | null;
+  cta_url: string | null; bg_color: string; banner_type: string;
+  sort_order: number; is_active: boolean; image_url: string | null;
 }
 
 const BLANK: Omit<Banner, "id"> = {
@@ -23,9 +17,8 @@ const BLANK: Omit<Banner, "id"> = {
 const BG_OPTIONS = ["blue", "emerald", "amber", "red", "purple", "slate"];
 const TYPE_OPTIONS = [
   { value: "hero", label: "Hero Slide" },
-  { value: "announcement", label: "Announcement Bar" },
+  { value: "announcement", label: "Announcement" },
 ];
-
 const BG_PREVIEW: Record<string, string> = {
   blue: "bg-blue-600", emerald: "bg-emerald-600", amber: "bg-amber-500",
   red: "bg-red-600", purple: "bg-purple-600", slate: "bg-slate-700",
@@ -41,6 +34,7 @@ export function AdminHomeBanners() {
   const [activeTab, setActiveTab] = useState<"hero" | "announcement">("hero");
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { generating, generateContent } = useAdminAI();
 
   useEffect(() => { fetchBanners(); }, []);
 
@@ -66,20 +60,15 @@ export function AdminHomeBanners() {
     setSaving(true);
     const payload = {
       ...form,
-      subtitle: form.subtitle || null,
-      cta_label: form.cta_label || null,
-      cta_url: form.cta_url || null,
-      image_url: form.image_url || null,
+      subtitle: form.subtitle || null, cta_label: form.cta_label || null,
+      cta_url: form.cta_url || null, image_url: form.image_url || null,
     };
     if (editing) {
       await (supabase as any).from("home_banners").update(payload).eq("id", editing.id);
     } else {
       await (supabase as any).from("home_banners").insert(payload);
     }
-    setSaving(false);
-    setEditing(null);
-    setCreating(false);
-    setForm(BLANK);
+    setSaving(false); setEditing(null); setCreating(false); setForm(BLANK);
     fetchBanners();
   }
 
@@ -95,35 +84,79 @@ export function AdminHomeBanners() {
   }
 
   function startEdit(b: Banner) {
-    setEditing(b);
-    setCreating(false);
+    setEditing(b); setCreating(false);
     setForm({ title: b.title, subtitle: b.subtitle, cta_label: b.cta_label, cta_url: b.cta_url, bg_color: b.bg_color, banner_type: b.banner_type, sort_order: b.sort_order, is_active: b.is_active, image_url: b.image_url });
+  }
+
+  async function aiGenerateBanner() {
+    const result = await generateContent({ action: "generate-banner", context: { type: activeTab } });
+    if (result) {
+      setForm(f => ({
+        ...f,
+        title: result.title || f.title,
+        subtitle: result.subtitle || f.subtitle,
+        cta_label: result.cta_label || f.cta_label,
+        cta_url: result.cta_url || f.cta_url,
+        banner_type: activeTab,
+      }));
+      setCreating(true); setEditing(null);
+    }
+  }
+
+  async function aiGenerateAndPost() {
+    const result = await generateContent({ action: "generate-banner", context: { type: activeTab } });
+    if (result) {
+      const payload = {
+        title: result.title, subtitle: result.subtitle || null,
+        cta_label: result.cta_label || null, cta_url: result.cta_url || null,
+        bg_color: BG_OPTIONS[Math.floor(Math.random() * BG_OPTIONS.length)],
+        banner_type: activeTab, sort_order: banners.length, is_active: true, image_url: null,
+      };
+      await (supabase as any).from("home_banners").insert(payload);
+      fetchBanners();
+    }
   }
 
   const filtered = banners.filter(b => b.banner_type === activeTab);
 
   return (
-    <div className="p-8 max-w-5xl">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Homepage Banners</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage hero slides and announcement bars shown on the homepage</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Homepage Banners</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Manage hero slides and announcements</p>
         </div>
-        <button
-          onClick={() => { setCreating(true); setEditing(null); setForm({ ...BLANK, banner_type: activeTab }); }}
-          className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card"
-        >
+        <button onClick={() => { setCreating(true); setEditing(null); setForm({ ...BLANK, banner_type: activeTab }); }}
+          className="flex items-center justify-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-card w-full sm:w-auto">
           <Plus className="h-4 w-4" /> Add Banner
         </button>
       </div>
 
+      {/* AI Quick Actions */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-4 mb-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="h-4 w-4 text-purple-600" />
+          <span className="text-sm font-bold text-purple-900">AI Auto-Generate Banner</span>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button onClick={aiGenerateBanner} disabled={generating}
+            className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors flex-1">
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Generate & Edit
+          </button>
+          <button onClick={aiGenerateAndPost} disabled={generating}
+            className="flex items-center justify-center gap-2 bg-purple-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-900 disabled:opacity-50 transition-colors flex-1">
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Generate & Publish
+          </button>
+        </div>
+      </div>
+
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-muted p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-5 bg-muted p-1 rounded-xl w-full sm:w-fit overflow-x-auto">
         {TYPE_OPTIONS.map(t => (
-          <button key={t.value}
-            onClick={() => setActiveTab(t.value as "hero" | "announcement")}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${activeTab === t.value ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-          >
+          <button key={t.value} onClick={() => setActiveTab(t.value as any)}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap flex-1 sm:flex-initial justify-center ${activeTab === t.value ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
             {t.value === "hero" ? <Image className="h-3.5 w-3.5" /> : <Megaphone className="h-3.5 w-3.5" />}
             {t.label}
           </button>
@@ -132,105 +165,76 @@ export function AdminHomeBanners() {
 
       {/* Form */}
       {(creating || editing) && (
-        <div className="bg-white border border-border rounded-xl shadow-card p-6 mb-6">
+        <div className="bg-white border border-border rounded-xl shadow-card p-4 sm:p-6 mb-6">
           <h2 className="font-bold text-foreground mb-4">{editing ? "Edit Banner" : "New Banner"}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            {/* Image Upload (hero only) */}
+          <div className="grid grid-cols-1 gap-4 mb-4">
             {form.banner_type === "hero" && (
-              <div className="md:col-span-2">
+              <div>
                 <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Banner Image</label>
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-3 flex-wrap">
                   {form.image_url ? (
-                    <div className="relative w-48 h-24 rounded-lg overflow-hidden border border-border">
+                    <div className="relative w-40 h-20 rounded-lg overflow-hidden border border-border">
                       <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" />
-                      <button
-                        onClick={() => setForm(f => ({ ...f, image_url: null }))}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 hover:bg-black/80"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      <button onClick={() => setForm(f => ({ ...f, image_url: null }))}
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5"><X className="h-3 w-3" /></button>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => fileRef.current?.click()}
-                      disabled={uploading}
-                      className="flex items-center gap-2 border-2 border-dashed border-border rounded-lg px-6 py-4 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                    >
+                    <button onClick={() => fileRef.current?.click()} disabled={uploading}
+                      className="flex items-center gap-2 border-2 border-dashed border-border rounded-lg px-5 py-3 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors">
                       {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                       {uploading ? "Uploading…" : "Upload Image"}
                     </button>
                   )}
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={e => { if (e.target.files?.[0]) uploadImage(e.target.files[0]); }}
-                  />
-                  <p className="text-[10px] text-muted-foreground mt-1">Upload a banner image (recommended: 1440×400px). If no image, gradient colors are used.</p>
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files?.[0]) uploadImage(e.target.files[0]); }} />
                 </div>
               </div>
             )}
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Title *</label>
-              <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                placeholder="Banner headline..." className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+              <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Banner headline..."
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary" />
             </div>
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Subtitle</label>
-              <input value={form.subtitle ?? ""} onChange={e => setForm(f => ({ ...f, subtitle: e.target.value }))}
-                placeholder="Supporting text (optional)..." className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+              <input value={form.subtitle ?? ""} onChange={e => setForm(f => ({ ...f, subtitle: e.target.value }))} placeholder="Supporting text..."
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary" />
             </div>
-            <div>
-              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">CTA Button Label</label>
-              <input value={form.cta_label ?? ""} onChange={e => setForm(f => ({ ...f, cta_label: e.target.value }))}
-                placeholder="e.g. View Markets" className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">CTA Button URL</label>
-              <input value={form.cta_url ?? ""} onChange={e => setForm(f => ({ ...f, cta_url: e.target.value }))}
-                placeholder="e.g. /markets" className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" />
-            </div>
-            {!form.image_url && form.banner_type === "hero" && (
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Fallback Color</label>
-                <div className="flex gap-2 mt-1">
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">CTA Label</label>
+                <input value={form.cta_label ?? ""} onChange={e => setForm(f => ({ ...f, cta_label: e.target.value }))} placeholder="View Markets"
+                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">CTA URL</label>
+                <input value={form.cta_url ?? ""} onChange={e => setForm(f => ({ ...f, cta_url: e.target.value }))} placeholder="/markets"
+                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Color</label>
+                <div className="flex gap-2 flex-wrap">
                   {BG_OPTIONS.map(c => (
                     <button key={c} onClick={() => setForm(f => ({ ...f, bg_color: c }))}
-                      className={`w-7 h-7 rounded-full ${BG_PREVIEW[c]} transition-all ${form.bg_color === c ? "ring-2 ring-offset-2 ring-primary scale-110" : "opacity-60 hover:opacity-100"}`}
-                      title={c}
-                    />
+                      className={`w-7 h-7 rounded-full ${BG_PREVIEW[c]} transition-all ${form.bg_color === c ? "ring-2 ring-offset-2 ring-primary scale-110" : "opacity-60 hover:opacity-100"}`} />
                   ))}
                 </div>
               </div>
-            )}
-            {form.banner_type === "announcement" && (
               <div>
-                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Background Color</label>
-                <div className="flex gap-2 mt-1">
-                  {BG_OPTIONS.map(c => (
-                    <button key={c} onClick={() => setForm(f => ({ ...f, bg_color: c }))}
-                      className={`w-7 h-7 rounded-full ${BG_PREVIEW[c]} transition-all ${form.bg_color === c ? "ring-2 ring-offset-2 ring-primary scale-110" : "opacity-60 hover:opacity-100"}`}
-                      title={c}
-                    />
-                  ))}
-                </div>
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Order</label>
+                <input type="number" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: parseInt(e.target.value) || 0 }))}
+                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary" />
               </div>
-            )}
-            <div>
-              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Sort Order</label>
-              <input type="number" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: parseInt(e.target.value) || 0 }))}
-                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary" />
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row gap-2">
             <button onClick={save} disabled={saving || !form.title}
-              className="flex items-center gap-2 bg-primary text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors">
-              <Save className="h-3.5 w-3.5" />
-              {saving ? "Saving…" : "Save Banner"}
+              className="flex items-center justify-center gap-2 bg-primary text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex-1 sm:flex-initial">
+              <Save className="h-3.5 w-3.5" /> {saving ? "Saving…" : "Save Banner"}
             </button>
             <button onClick={() => { setEditing(null); setCreating(false); setForm(BLANK); }}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
               <X className="h-3.5 w-3.5" /> Cancel
             </button>
           </div>
@@ -239,40 +243,35 @@ export function AdminHomeBanners() {
 
       {/* List */}
       {loading ? (
-        <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 bg-muted rounded-xl animate-pulse" />)}</div>
+        <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-20 bg-muted rounded-xl animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 bg-white border border-border rounded-xl text-muted-foreground">
+        <div className="text-center py-14 bg-white border border-border rounded-xl text-muted-foreground">
           <p className="font-medium">No {activeTab === "hero" ? "hero slides" : "announcements"} yet</p>
-          <p className="text-sm mt-1">Click "Add Banner" to create one</p>
+          <p className="text-sm mt-1">Click "Add Banner" or use AI to create one</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {filtered.map(b => (
-            <div key={b.id}
-              className={`bg-white border border-border rounded-xl p-5 shadow-card flex items-start gap-4 ${!b.is_active ? "opacity-50" : ""}`}
-            >
-              {/* Thumbnail */}
+            <div key={b.id} className={`bg-white border border-border rounded-xl p-3 sm:p-4 shadow-card flex items-start gap-3 ${!b.is_active ? "opacity-50" : ""}`}>
               {b.image_url ? (
-                <div className="shrink-0 w-16 h-10 rounded-lg overflow-hidden border border-border">
+                <div className="shrink-0 w-12 h-8 sm:w-16 sm:h-10 rounded-lg overflow-hidden border border-border">
                   <img src={b.image_url} alt="" className="w-full h-full object-cover" />
                 </div>
               ) : (
-                <div className={`shrink-0 w-10 h-10 rounded-xl ${BG_PREVIEW[b.bg_color]} flex items-center justify-center`}>
-                  {b.banner_type === "hero" ? <Image className="h-4 w-4 text-white" /> : <Megaphone className="h-4 w-4 text-white" />}
+                <div className={`shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${BG_PREVIEW[b.bg_color]} flex items-center justify-center`}>
+                  {b.banner_type === "hero" ? <Image className="h-3.5 w-3.5 text-white" /> : <Megaphone className="h-3.5 w-3.5 text-white" />}
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-foreground truncate">{b.title}</div>
-                {b.subtitle && <div className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{b.subtitle}</div>}
-                <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
-                  <span>Order: {b.sort_order}</span>
-                  {b.cta_label && <span>CTA: {b.cta_label} → {b.cta_url}</span>}
-                  {b.image_url && <span className="text-primary font-semibold flex items-center gap-0.5"><Image className="h-3 w-3" /> Has Image</span>}
+                <div className="font-bold text-foreground text-sm truncate">{b.title}</div>
+                {b.subtitle && <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{b.subtitle}</div>}
+                <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground flex-wrap">
+                  <span>#{b.sort_order}</span>
+                  {b.cta_label && <span>{b.cta_label}</span>}
                 </div>
               </div>
-              <div className="flex items-center gap-1 shrink-0">
-                <button onClick={() => toggle(b)}
-                  className={`p-1.5 rounded-lg transition-colors ${b.is_active ? "text-gain hover:bg-[hsl(var(--gain-light))]" : "text-muted-foreground hover:bg-muted"}`}>
+              <div className="flex items-center gap-0.5 shrink-0">
+                <button onClick={() => toggle(b)} className={`p-1.5 rounded-lg transition-colors ${b.is_active ? "text-gain" : "text-muted-foreground hover:bg-muted"}`}>
                   {b.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
                 </button>
                 <button onClick={() => startEdit(b)} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
