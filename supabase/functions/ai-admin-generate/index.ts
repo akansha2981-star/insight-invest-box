@@ -177,34 +177,72 @@ ALL numbers must be realistic for the stock. Date: ${new Date().toISOString().sp
     toolName: "suggest_topics",
   },
   "generate-full-article": {
-    system: `You are a senior financial journalist for InvestingIQ, India's premier investing platform. Write SEO-optimized articles about Indian markets, stocks, economy, real estate, mutual funds, crypto. 
-Rules:
-- Write in professional, engaging tone. No emojis.
-- Content must be well-structured HTML with proper headings (h2, h3), paragraphs, lists.
-- Include realistic data points, numbers, expert opinions.
-- SEO: meta_title under 60 chars with keyword, meta_description under 160 chars, proper tags.
-- Excerpt: 1-2 compelling sentences for article cards.
-- Date: ${new Date().toISOString().split('T')[0]}`,
-    prompt: (ctx) => `Write a COMPLETE, publish-ready article about: "${ctx.topic || "trending investment topic in India"}".
-Category: ${ctx.category || "Markets"}.
-The article should be 600-1000 words, SEO-optimized, with realistic data.
-Return: title, slug (url-friendly), content (HTML), excerpt, category, tags (comma separated), meta_title (under 60 chars), meta_description (under 160 chars), author_name.`,
+    system: `You are a senior financial journalist and SEO expert for InvestingIQ, India's premier investing platform. You write comprehensive, in-depth, publish-ready articles.
+
+MANDATORY RULES:
+1. Article MUST be 1200-2000 words minimum. Never write less than 1200 words.
+2. Content MUST be rich HTML with:
+   - At least 5-7 <h2> section headings
+   - Multiple <h3> sub-headings under relevant sections
+   - Detailed <p> paragraphs (4-6 sentences each, not short one-liners)
+   - <ul>/<ol> lists with data points
+   - <blockquote> for expert quotes (attribute to realistic analysts/experts)
+   - <strong> for key terms and numbers
+   - <table> where relevant (comparison data, financial metrics)
+3. Include SPECIFIC data: percentages, ₹ amounts, dates, company names, index levels
+4. SEO requirements:
+   - Primary keyword in title, first paragraph, at least 3 headings, and conclusion
+   - meta_title: Under 60 chars, includes primary keyword, compelling
+   - meta_description: Under 160 chars, includes keyword, has call-to-action
+   - Natural keyword density throughout (2-3%)
+   - Internal linking suggestions in content (use /markets, /stocks, /economy paths)
+5. Structure: Hook intro → Context → Deep analysis → Data/Charts discussion → Expert opinions → What it means for investors → Conclusion with actionable takeaway
+6. Include a "Key Takeaways" section with 4-6 bullet points
+7. Include a "What Should Investors Do?" section
+8. Tone: Authoritative, data-driven, helpful. No emojis. No fluff.
+9. Tags: 5-8 relevant tags covering topic, sector, and related keywords
+10. Date context: ${new Date().toISOString().split('T')[0]}`,
+    prompt: (ctx) => {
+      const topic = ctx.topic || "trending investment opportunity in Indian markets today";
+      const cat = ctx.category || "Markets";
+      return `Write a COMPREHENSIVE, DETAILED, publish-ready article.
+
+TOPIC: "${topic}"
+CATEGORY: ${cat}
+
+REQUIREMENTS:
+- Minimum 1200 words of rich, detailed content
+- At least 5 major sections with h2 headings
+- Include specific numbers: stock prices, index levels, percentage changes, market caps
+- Quote at least 2 named experts/analysts with their firm names
+- Include a comparison table if relevant
+- Add "Key Takeaways" bullet list
+- Add "What Should Investors Do?" advisory section  
+- Write a compelling excerpt (2 sentences that hook the reader)
+- Generate SEO-optimized meta_title (under 60 chars with primary keyword)
+- Generate meta_description (under 160 chars with CTA)
+- Generate 5-8 relevant tags
+- slug should be URL-friendly, keyword-rich
+- author_name should be a realistic Indian journalist name
+
+The content field must contain FULL HTML article body. Do NOT truncate or abbreviate. Write the COMPLETE article.`;
+    },
     tools: [{
       type: "function",
       function: {
         name: "generate_article",
-        description: "Generate a complete SEO-friendly article",
+        description: "Generate a complete, detailed, SEO-friendly article with minimum 1200 words",
         parameters: {
           type: "object",
           properties: {
-            title: { type: "string" },
-            slug: { type: "string" },
-            content: { type: "string", description: "Full HTML content of the article" },
-            excerpt: { type: "string" },
+            title: { type: "string", description: "Compelling headline with primary keyword" },
+            slug: { type: "string", description: "URL-friendly slug with keywords" },
+            content: { type: "string", description: "FULL HTML content, minimum 1200 words, with h2, h3, p, ul, blockquote, table, strong tags" },
+            excerpt: { type: "string", description: "2 compelling sentences for article cards" },
             category: { type: "string" },
-            tags: { type: "string" },
-            meta_title: { type: "string" },
-            meta_description: { type: "string" },
+            tags: { type: "string", description: "5-8 comma-separated relevant tags" },
+            meta_title: { type: "string", description: "Under 60 chars, includes primary keyword" },
+            meta_description: { type: "string", description: "Under 160 chars, includes keyword and CTA" },
             author_name: { type: "string" },
           },
           required: ["title", "slug", "content", "excerpt", "category", "tags", "meta_title", "meta_description"]
