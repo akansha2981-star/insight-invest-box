@@ -72,9 +72,9 @@ export function MarketIndices() {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1.5 text-xs">
-        {liveEnabled
+        {liveEnabled && isMarketOpen()
           ? <><Wifi className="h-3 w-3 text-gain" /><span className="text-gain font-semibold">Live data from NSE/BSE</span></>
-          : <><WifiOff className="h-3 w-3 text-muted-foreground" /><span className="text-muted-foreground">Simulated data (market closed or loading…)</span></>
+          : <><WifiOff className="h-3 w-3 text-muted-foreground" /><span className="text-muted-foreground">{isMarketOpen() ? 'Loading live data...' : 'Market Closed · Showing last traded prices'}</span></>
         }
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">

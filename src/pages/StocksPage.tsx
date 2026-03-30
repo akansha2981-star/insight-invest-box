@@ -4,7 +4,7 @@ import { StockTicker } from "@/components/StockTicker";
 import { GainersLosers } from "@/components/GainersLosers";
 import { Footer } from "@/components/Footer";
 import { PageSectionsBanner } from "@/components/PageSectionsBanner";
-import { TOP_GAINERS, TOP_LOSERS, getFluctuatedPrice } from "@/data/mockStocks";
+import { TOP_GAINERS, TOP_LOSERS } from "@/data/mockStocks";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import {
