@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { ArrowUp, ArrowDown, Wifi, WifiOff } from "lucide-react";
 import { INDICES, type IndexData } from "@/data/mockStocks";
 import { supabase } from "@/integrations/supabase/client";
+import { isMarketOpen } from "@/lib/marketTime";
 
 function MiniSparkline({ positive }: { positive: boolean }) {
   const points = positive
