@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { ArrowUp, ArrowDown, Wifi, WifiOff } from "lucide-react";
 import { TICKER_STOCKS } from "@/data/mockStocks";
 import { supabase } from "@/integrations/supabase/client";
+import { isMarketOpen } from "@/lib/marketTime";
 
 interface TickerStock {
   symbol: string;
