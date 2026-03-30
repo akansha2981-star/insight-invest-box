@@ -27,6 +27,7 @@ import {
   Shield, Target, LineChart, Users, Award, Lightbulb
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { getMarketStatusText } from "@/lib/marketTime";
 
 interface BlogPost {
   id: string; title: string; slug: string; excerpt: string | null;
