@@ -27,6 +27,7 @@ import {
   Shield, Target, LineChart, Users, Award, Lightbulb
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { getMarketStatusText } from "@/lib/marketTime";
 
 interface BlogPost {
   id: string; title: string; slug: string; excerpt: string | null;
@@ -408,11 +409,16 @@ export default function Index() {
         ════════════════════════════════════════ */}
         <section>
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-gain animate-pulse" />
-              <span className="text-[11px] font-bold text-gain uppercase tracking-wide">Markets Open</span>
-              <span className="hidden sm:inline text-[11px] text-muted-foreground">· NSE / BSE · Live Data</span>
-            </div>
+            {(() => {
+              const ms = getMarketStatusText();
+              return (
+                <div className="flex items-center gap-2">
+                  <span className={`w-1.5 h-1.5 rounded-full ${ms.isOpen ? 'bg-gain animate-pulse' : 'bg-muted-foreground'}`} />
+                  <span className={`text-[11px] font-bold uppercase tracking-wide ${ms.isOpen ? 'text-gain' : 'text-muted-foreground'}`}>{ms.label}</span>
+                  <span className="hidden sm:inline text-[11px] text-muted-foreground">· {ms.detail}</span>
+                </div>
+              );
+            })()}
             <Link to="/markets" className="text-[11px] font-semibold text-primary hover:text-primary/80 flex items-center gap-1">
               Full Market Data <ChevronRight className="h-3 w-3" />
             </Link>

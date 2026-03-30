@@ -232,42 +232,78 @@ function PropertiesAdmin() {
           <p>No properties yet. Add your first listing!</p>
         </div>
       ) : (
-        <div className="bg-white border border-border rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-muted/30 border-b">
-                {["Property", "City", "Type", "Price", "Status", "Actions"].map(h => (
-                  <th key={h} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {properties.map(p => (
-                <tr key={p.id} className="border-b last:border-0 hover:bg-muted/10">
-                  <td className="px-4 py-3">
-                    <div className="font-semibold text-foreground">{p.title}</div>
-                    <div className="text-xs text-muted-foreground">{p.bhk} · {p.area_sqft?.toLocaleString()} sqft</div>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{p.city}</td>
-                  <td className="px-4 py-3">
-                    <span className="text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded">{p.listing_type}</span>
-                  </td>
-                  <td className="px-4 py-3 number-font font-bold">{p.price_display || `₹${p.price.toLocaleString()}`}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${p.status === "active" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
-                      {p.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1">
-                      <button onClick={() => setEditing(p)} className="p-1.5 hover:bg-primary/10 rounded-lg"><Edit className="h-3.5 w-3.5 text-muted-foreground" /></button>
-                      <button onClick={() => deleteProperty(p.id)} className="p-1.5 hover:bg-red-50 rounded-lg"><Trash2 className="h-3.5 w-3.5 text-red-500" /></button>
-                    </div>
-                  </td>
+        <div className="space-y-3">
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-white border border-border rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/30 border-b">
+                  {["Property", "City", "Type", "Price", "Status", "Actions"].map(h => (
+                    <th key={h} className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {properties.map(p => (
+                  <tr key={p.id} className="border-b last:border-0 hover:bg-muted/10">
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-foreground">{p.title}</div>
+                      <div className="text-xs text-muted-foreground">{p.bhk} · {p.area_sqft?.toLocaleString()} sqft</div>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{p.city}</td>
+                    <td className="px-4 py-3">
+                      <span className="text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded">{p.listing_type}</span>
+                    </td>
+                    <td className="px-4 py-3 number-font font-bold">{p.price_display || `₹${p.price.toLocaleString()}`}</td>
+                    <td className="px-4 py-3">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${p.status === "active" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        <button onClick={() => setEditing(p)} className="p-1.5 hover:bg-primary/10 rounded-lg" title="Edit"><Edit className="h-3.5 w-3.5 text-primary" /></button>
+                        <button onClick={() => deleteProperty(p.id)} className="p-1.5 hover:bg-red-50 rounded-lg" title="Delete"><Trash2 className="h-3.5 w-3.5 text-red-500" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-3">
+            {properties.map(p => (
+              <div key={p.id} className="bg-white border border-border rounded-xl p-4 shadow-sm">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-sm text-foreground truncate">{p.title}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">{p.city} · {p.bhk} · {p.area_sqft?.toLocaleString()} sqft</p>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded ml-2 shrink-0 ${p.status === "active" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                    {p.status}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mt-3">
+                  <div className="flex items-center gap-2">
+                    <span className="number-font font-bold text-foreground">{p.price_display || `₹${p.price.toLocaleString()}`}</span>
+                    <span className="text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded">{p.listing_type}</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={() => setEditing(p)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-semibold hover:bg-primary/20 transition-colors">
+                      <Edit className="h-3 w-3" /> Edit
+                    </button>
+                    <button onClick={() => deleteProperty(p.id)}
+                      className="p-1.5 hover:bg-red-50 rounded-lg">
+                      <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

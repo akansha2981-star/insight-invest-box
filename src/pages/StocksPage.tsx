@@ -4,7 +4,7 @@ import { StockTicker } from "@/components/StockTicker";
 import { GainersLosers } from "@/components/GainersLosers";
 import { Footer } from "@/components/Footer";
 import { PageSectionsBanner } from "@/components/PageSectionsBanner";
-import { TOP_GAINERS, TOP_LOSERS, getFluctuatedPrice } from "@/data/mockStocks";
+import { TOP_GAINERS, TOP_LOSERS } from "@/data/mockStocks";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import {
@@ -177,15 +177,7 @@ export default function StocksPage() {
       });
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setStocks(prev => prev.map(s => {
-        const updated = getFluctuatedPrice(s.price, s.change);
-        return { ...s, ...updated };
-      }));
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+  // Removed random price fluctuation - prices only update via live API or AI Refresh
 
   const activeFilters = [sectorFilter, changeFilter, ratingFilter].filter(f => f !== "All").length;
 

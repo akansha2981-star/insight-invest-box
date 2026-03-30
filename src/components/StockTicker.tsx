@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { ArrowUp, ArrowDown, Wifi, WifiOff } from "lucide-react";
 import { TICKER_STOCKS } from "@/data/mockStocks";
 import { supabase } from "@/integrations/supabase/client";
+import { isMarketOpen } from "@/lib/marketTime";
 
 interface TickerStock {
   symbol: string;
@@ -53,11 +54,11 @@ export function StockTicker() {
   return (
     <div className="bg-ticker overflow-hidden py-2.5 border-b border-white/10">
       <div className="flex items-center">
-        <div className={`text-white text-[10px] font-black px-3 py-1.5 shrink-0 z-10 uppercase tracking-widest mr-3 flex items-center gap-1 ${liveEnabled ? 'bg-[hsl(var(--gain))]' : 'bg-[hsl(var(--loss))]'}`}>
-          {liveEnabled ? (
+        <div className={`text-white text-[10px] font-black px-3 py-1.5 shrink-0 z-10 uppercase tracking-widest mr-3 flex items-center gap-1 ${liveEnabled && isMarketOpen() ? 'bg-[hsl(var(--gain))]' : 'bg-[hsl(var(--loss))]'}`}>
+          {liveEnabled && isMarketOpen() ? (
             <><Wifi className="h-2.5 w-2.5" /> LIVE</>
           ) : (
-            <><WifiOff className="h-2.5 w-2.5" /> SIM</>
+            <><WifiOff className="h-2.5 w-2.5" /> {isMarketOpen() ? 'LOADING' : 'CLOSED'}</>
           )}
         </div>
         <div className="overflow-hidden flex-1">
