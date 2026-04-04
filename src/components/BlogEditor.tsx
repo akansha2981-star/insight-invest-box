@@ -24,6 +24,31 @@ function generateSlug(title: string) {
   return title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
 }
 
+function getTodayInIST() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+
+  const year = parts.find((part) => part.type === "year")?.value ?? "1970";
+  const month = parts.find((part) => part.type === "month")?.value ?? "01";
+  const day = parts.find((part) => part.type === "day")?.value ?? "01";
+
+  return `${year}-${month}-${day}`;
+}
+
+function toPublishISOString(dateString: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateString)
+    ? new Date(`${dateString}T12:00:00+05:30`).toISOString()
+    : new Date().toISOString();
+}
+
+function stripCodeFences(value: string) {
+  return value.replace(/^```(?:html|markdown)?\s*/i, "").replace(/\s*```$/i, "").trim();
+}
+
 function SideLabel({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
   return (
     <label className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground mb-2">
@@ -74,6 +99,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
   const [aiWriterLoading, setAiWriterLoading] = useState(false);
   const [aiWriterAction,  setAiWriterAction]  = useState<string | null>(null);
   const [aiTopic,         setAiTopic]         = useState("");
+  const [aiTargetDate,    setAiTargetDate]    = useState(getTodayInIST());
   const coverInputRef = useRef<HTMLInputElement>(null);
   const aiAbortRef = useRef<AbortController | null>(null);
   const { generating, generateContent } = useAdminAI();
@@ -82,15 +108,17 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
   async function aiAutoGenerate(publishNow = false) {
     const result = await generateContent({ 
       action: "generate-full-article", 
-      context: { topic: aiTopic || "", category } 
+      context: { topic: aiTopic || title || "", category, target_date: aiTargetDate } 
     });
     if (result) {
-      setTitle(result.title || "");
-      setSlug(result.slug || generateSlug(result.title || ""));
-      setContent(result.content || "");
+      const generatedTitle = result.title || aiTopic || title || "";
+      const normalizedContent = stripCodeFences(result.content || "");
+      setTitle(generatedTitle);
+      setSlug(result.slug || generateSlug(generatedTitle));
+      setContent(normalizedContent);
       setExcerpt(result.excerpt || "");
       setCategory(result.category || category);
-      setTags(result.tags || "");
+      setTags(Array.isArray(result.tags) ? result.tags.join(", ") : (result.tags || ""));
       setMetaTitle(result.meta_title || "");
       setMetaDescription(result.meta_description || "");
       setAuthorName(result.author_name || "Editorial Team");
@@ -100,16 +128,16 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
       if (publishNow) {
         // Save and publish directly
         const payload = {
-          title: (result.title || "").trim(),
-          slug: result.slug || generateSlug(result.title || ""),
-          content: (result.content || "").trim(),
+          title: generatedTitle.trim(),
+          slug: result.slug || generateSlug(generatedTitle),
+          content: normalizedContent.trim(),
           excerpt: (result.excerpt || "").trim() || null,
           category: result.category || category,
           author_name: result.author_name || "Editorial Team",
           cover_image_url: null,
           tags: (result.tags || "").split(",").map((t: string) => t.trim()).filter(Boolean),
           status: "published",
-          published_at: new Date().toISOString(),
+          published_at: toPublishISOString(aiTargetDate),
           meta_title: (result.meta_title || "").trim() || null,
           meta_description: (result.meta_description || "").trim() || null,
           sequence_number: 0,
@@ -188,7 +216,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
   }, [title, category, tags, content, aiTopic]);
 
   const applyAiContent = () => {
-    let cleaned = aiWriterStream.replace(/^```html\n?/i, "").replace(/\n?```$/i, "").trim();
+    const cleaned = stripCodeFences(aiWriterStream);
     setContent(cleaned);
     setAiWriterOpen(false);
     setAiToast("AI content applied to editor");
@@ -341,12 +369,18 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
                     <Zap className="h-4 w-4 text-violet-600" />
                     <span className="text-sm font-bold text-violet-900">AI Auto-Generate Article</span>
                   </div>
-                  <p className="text-xs text-violet-600 mb-3">AI picks a trending topic, writes SEO-friendly content, and fills everything automatically</p>
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <p className="text-xs text-violet-600 mb-3">Enter a title/topic and date, and AI fills the full article, SEO fields, and can publish it live in one click.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_160px_160px] gap-2">
                     <input
                       value={aiTopic} onChange={e => setAiTopic(e.target.value)}
-                      placeholder="Topic (optional — AI picks trending if empty)"
+                      placeholder="Title or topic"
                       className="flex-1 px-3 py-2.5 border border-violet-200 rounded-lg text-sm focus:outline-none focus:border-violet-500 bg-white"
+                    />
+                    <input
+                      type="date"
+                      value={aiTargetDate}
+                      onChange={e => setAiTargetDate(e.target.value)}
+                      className="px-3 py-2.5 border border-violet-200 rounded-lg text-sm bg-white focus:outline-none focus:border-violet-500"
                     />
                     <select value={category} onChange={e => setCategory(e.target.value)}
                       className="px-3 py-2.5 border border-violet-200 rounded-lg text-sm bg-white focus:outline-none">

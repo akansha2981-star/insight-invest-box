@@ -5,6 +5,70 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const IST_TIME_ZONE = "Asia/Kolkata";
+
+function formatISTDate(date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: IST_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const year = parts.find((part) => part.type === "year")?.value ?? "1970";
+  const month = parts.find((part) => part.type === "month")?.value ?? "01";
+  const day = parts.find((part) => part.type === "day")?.value ?? "01";
+
+  return `${year}-${month}-${day}`;
+}
+
+function formatISTTime(date = new Date()): string {
+  return new Intl.DateTimeFormat("en-IN", {
+    timeZone: IST_TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
+function getRequestedDate(dateInput?: string): string {
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateInput || "") ? String(dateInput) : formatISTDate();
+}
+
+function buildDateGuard(targetDate: string): string {
+  const today = formatISTDate();
+  return targetDate === today
+    ? `Treat ${targetDate} as today in India and use the latest available information from this date only.`
+    : `Write strictly from the perspective of ${targetDate} in India and do not mention any event, filing, price, or development after ${targetDate}.`;
+}
+
+function stripCodeFences(value: string | null | undefined): string {
+  if (!value) return "";
+  return value.replace(/^```(?:html|json|markdown)?\s*/i, "").replace(/\s*```$/i, "").trim();
+}
+
+function stripHtmlTags(value: string): string {
+  return value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function slugify(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+}
+
+function buildExcerpt(content: string, fallbackTitle: string, targetDate: string): string {
+  const plain = stripHtmlTags(content);
+  const base = plain || `${fallbackTitle} latest update for ${targetDate}.`;
+  return base.length <= 180 ? base : `${base.slice(0, 177).trim()}...`;
+}
+
+function buildMetaTitle(title: string): string {
+  return title.length <= 60 ? title : `${title.slice(0, 57).trim()}...`;
+}
+
+function buildMetaDescription(value: string): string {
+  return value.length <= 160 ? value : `${value.slice(0, 157).trim()}...`;
+}
+
 async function callAINonStream(systemPrompt: string, userPrompt: string, tools?: any[], toolChoice?: any, useStrongModel = false): Promise<any | null> {
   const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (LOVABLE_KEY) {
@@ -61,7 +125,81 @@ function extractToolResult(aiData: any): any {
   return null;
 }
 
-const ACTIONS: Record<string, { system: string; prompt: (ctx: any) => string; tools: any[]; toolName: string }> = {
+async function fetchMarketSnapshot(targetDate: string): Promise<string> {
+  if (targetDate !== formatISTDate()) {
+    return `Selected date: ${targetDate}. ${buildDateGuard(targetDate)}`;
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const publishableKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY");
+
+  if (!supabaseUrl || !publishableKey) {
+    return `Selected date: ${targetDate} (IST).`;
+  }
+
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/stock-ticker`, {
+      headers: {
+        Authorization: `Bearer ${publishableKey}`,
+      },
+    });
+
+    if (!response.ok) {
+      return `Selected date: ${targetDate} (IST).`;
+    }
+
+    const data = await response.json();
+    const quotes = Array.isArray(data?.quotes) ? data.quotes : [];
+
+    if (!quotes.length) {
+      return `Selected date: ${targetDate} (IST).`;
+    }
+
+    const focusSymbols = new Set(["NIFTY", "SENSEX", "BANKNIFTY", "RELIANCE", "TCS", "HDFCBANK", "INFY"]);
+    const focusLines = quotes
+      .filter((quote: any) => focusSymbols.has(quote.symbol))
+      .slice(0, 7)
+      .map((quote: any) => `${quote.displayName || quote.symbol}: ₹${Number(quote.price || 0).toFixed(2)} (${Number(quote.changePercent || 0).toFixed(2)}%)`);
+
+    const moverLines = [...quotes]
+      .filter((quote: any) => !["NIFTY", "SENSEX", "BANKNIFTY"].includes(quote.symbol))
+      .sort((a: any, b: any) => Math.abs(Number(b.changePercent || 0)) - Math.abs(Number(a.changePercent || 0)))
+      .slice(0, 5)
+      .map((quote: any) => `${quote.displayName || quote.symbol}: ₹${Number(quote.price || 0).toFixed(2)} (${Number(quote.changePercent || 0).toFixed(2)}%)`);
+
+    return `Latest IST market snapshot for ${targetDate} at ${formatISTTime()}: ${[...focusLines, ...moverLines].join(" | ")}`;
+  } catch (error) {
+    console.error("market snapshot error:", error);
+    return `Selected date: ${targetDate} (IST).`;
+  }
+}
+
+function normalizeArticleResult(result: any, ctx: any) {
+  const targetDate = getRequestedDate(ctx?.target_date);
+  const requestedTopic = stripCodeFences(String(ctx?.topic ?? "")).trim();
+  const title = stripCodeFences(String(result?.title ?? requestedTopic || `Market Update for ${targetDate}`)).trim() || `Market Update for ${targetDate}`;
+  const rawContent = stripCodeFences(String(result?.content ?? "")).trim();
+  const content = rawContent || `<h2>${title}</h2><p>${buildExcerpt("", title, targetDate)}</p>`;
+  const excerpt = stripCodeFences(String(result?.excerpt ?? "")).trim() || buildExcerpt(content, title, targetDate);
+  const rawTags = Array.isArray(result?.tags) ? result.tags.join(", ") : stripCodeFences(String(result?.tags ?? ""));
+  const category = stripCodeFences(String(result?.category ?? ctx?.category ?? "Markets")).trim() || "Markets";
+
+  return {
+    ...result,
+    title,
+    slug: slugify(stripCodeFences(String(result?.slug ?? title)) || title),
+    content,
+    excerpt,
+    category,
+    tags: rawTags || `${category.toLowerCase()}, india, investing`,
+    meta_title: buildMetaTitle(stripCodeFences(String(result?.meta_title ?? title)).trim() || title),
+    meta_description: buildMetaDescription(stripCodeFences(String(result?.meta_description ?? excerpt)).trim() || excerpt),
+    author_name: stripCodeFences(String(result?.author_name ?? "Editorial Team")).trim() || "Editorial Team",
+    requested_date: targetDate,
+  };
+}
+
+const ACTIONS: Record<string, { system: string | ((ctx: any) => string); prompt: (ctx: any) => string; tools: any[]; toolName: string }> = {
   "generate-breaking-news": {
     system: "You are a financial news editor for InvestingIQ, an Indian finance platform. Generate breaking news headlines about Indian markets, economy, stocks. Current, relevant, factual tone. No emojis.",
     prompt: (ctx) => `Generate ${ctx.count || 3} breaking news headlines for Indian financial markets. Each should be concise (under 100 chars), current-sounding, professional. Date: ${new Date().toISOString().split('T')[0]}`,
@@ -179,7 +317,7 @@ ALL numbers must be realistic for the stock. Date: ${new Date().toISOString().sp
     toolName: "suggest_topics",
   },
   "generate-full-article": {
-    system: `You are a senior financial journalist and SEO expert for InvestingIQ, India's premier investing platform. You write comprehensive, in-depth, publish-ready articles.
+    system: (ctx) => `You are a senior financial journalist and SEO expert for InvestingIQ, India's premier investing platform. You write comprehensive, in-depth, publish-ready articles.
 
 MANDATORY RULES:
 1. Article MUST be 1200-2000 words minimum. Never write less than 1200 words.
@@ -203,16 +341,27 @@ MANDATORY RULES:
 7. Include a "What Should Investors Do?" section
 8. Tone: Authoritative, data-driven, helpful. No emojis. No fluff.
 9. Tags: 5-8 relevant tags covering topic, sector, and related keywords
-10. Date context: ${new Date().toISOString().split('T')[0]}
+10. Date context: ${getRequestedDate(ctx?.target_date)} (Asia/Kolkata)
+11. Never wrap the content field in markdown code fences or triple backticks.
 
 CRITICAL: You MUST generate ALL fields without exception - title, slug, content, excerpt, category, tags, meta_title, meta_description, author_name. NEVER leave any field empty or null. The excerpt MUST be 2 compelling sentences (30-50 words). The meta_description MUST be under 160 chars with a CTA. The meta_title MUST be under 60 chars.`,
     prompt: (ctx) => {
       const topic = ctx.topic || "trending investment opportunity in Indian markets today";
       const cat = ctx.category || "Markets";
+      const selectedDate = getRequestedDate(ctx.target_date);
       return `Write a COMPREHENSIVE, DETAILED, publish-ready article.
 
 TOPIC: "${topic}"
 CATEGORY: ${cat}
+DATE TO COVER: ${selectedDate} (Asia/Kolkata)
+
+DATE RULES:
+- ${buildDateGuard(selectedDate)}
+- Use ${selectedDate} as the only "current" reference point in the article.
+- Never mention any later date.
+
+MARKET SNAPSHOT / FACT BASE:
+${ctx.market_snapshot || `No live market snapshot was available. ${buildDateGuard(selectedDate)}`}
 
 REQUIREMENTS:
 - Minimum 1200 words of rich, detailed content
@@ -228,6 +377,8 @@ REQUIREMENTS:
 - Generate 5-8 relevant tags
 - slug should be URL-friendly, keyword-rich
 - author_name should be a realistic Indian journalist name
+- content must be valid article HTML only; never wrap it inside markdown fences
+- fill every output field even if the topic is broad
 
 The content field must contain FULL HTML article body. Do NOT truncate or abbreviate. Write the COMPLETE article.`;
     },
@@ -333,11 +484,21 @@ serve(async (req) => {
       });
     }
 
+    const requestContext = context || {};
+    const enrichedContext = action === "generate-full-article"
+      ? {
+          ...requestContext,
+          target_date: getRequestedDate(requestContext.target_date),
+          market_snapshot: await fetchMarketSnapshot(getRequestedDate(requestContext.target_date)),
+        }
+      : requestContext;
+
     // Use stronger model for article and stock review generation
     const useStrongModel = action === "generate-full-article" || action === "generate-stock-review" || action === "generate-property";
+    const systemPrompt = typeof config.system === "function" ? config.system(enrichedContext) : config.system;
     const aiData = await callAINonStream(
-      config.system,
-      config.prompt(context || {}),
+      systemPrompt,
+      config.prompt(enrichedContext),
       config.tools,
       { type: "function", function: { name: config.toolName } },
       useStrongModel
@@ -350,13 +511,17 @@ serve(async (req) => {
     }
 
     const result = extractToolResult(aiData);
-    if (!result) {
+    const normalizedResult = action === "generate-full-article" && result
+      ? normalizeArticleResult(result, enrichedContext)
+      : result;
+
+    if (!normalizedResult) {
       return new Response(JSON.stringify({ error: "AI returned invalid data" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify(normalizedResult), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
