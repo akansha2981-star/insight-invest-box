@@ -159,15 +159,10 @@ export default function NewsDetailPage() {
               />
             )}
 
-            <div className="prose prose-invert max-w-none">
-              {post.content.split('\n').map((paragraph, i) => (
-                paragraph.trim() ? (
-                  <p key={i} className="text-foreground/90 leading-relaxed mb-4 text-base">
-                    {paragraph}
-                  </p>
-                ) : <br key={i} />
-              ))}
-            </div>
+            <div
+              className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground/90 prose-li:text-foreground/90 prose-strong:text-foreground prose-a:text-primary prose-blockquote:text-muted-foreground"
+              dangerouslySetInnerHTML={{ __html: post.content || "<p>Article content unavailable.</p>" }}
+            />
 
             {/* Tags */}
             {post.tags && post.tags.length > 0 && (
