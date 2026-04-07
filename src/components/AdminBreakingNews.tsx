@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, GripVertical, Radio, CheckCircle, AlertCircle, Sparkles, Loader2 } from "lucide-react";
+import { Plus, Trash2, GripVertical, Radio, CheckCircle, AlertCircle } from "lucide-react";
 import { useAdminAI } from "@/hooks/useAdminAI";
+import { AIGeneratePanel } from "./AIGeneratePanel";
 
 interface BreakingNewsItem {
   id: string;
@@ -63,29 +64,23 @@ export function AdminBreakingNews() {
   function updateText(id: string, text: string) { setItems(items.map(i => i.id === id ? { ...i, text } : i)); }
   function saveText(id: string, text: string) { saveItems(items.map(i => i.id === id ? { ...i, text } : i)); }
 
-  async function aiGenerate() {
-    const result = await generateContent({ action: "generate-breaking-news", context: { count: 3 } });
+  async function aiGenerate(topic: string, targetDate: string) {
+    const result = await generateContent({ action: "generate-breaking-news", context: { count: 3, topic, target_date: targetDate } });
     if (result?.headlines) {
       const newItems = result.headlines.map((h: any) => ({
-        id: crypto.randomUUID(),
-        text: h.text,
-        active: true,
+        id: crypto.randomUUID(), text: h.text, active: true,
       }));
-      const next = [...items, ...newItems];
-      saveItems(next);
+      saveItems([...items, ...newItems]);
       showToast(`${newItems.length} AI headlines added!`);
     }
   }
 
-  async function aiGenerateAndPost() {
-    const result = await generateContent({ action: "generate-breaking-news", context: { count: 5 } });
+  async function aiGenerateAndPost(topic: string, targetDate: string) {
+    const result = await generateContent({ action: "generate-breaking-news", context: { count: 5, topic, target_date: targetDate } });
     if (result?.headlines) {
       const newItems = result.headlines.map((h: any) => ({
-        id: crypto.randomUUID(),
-        text: h.text,
-        active: true,
+        id: crypto.randomUUID(), text: h.text, active: true,
       }));
-      // Replace all with fresh AI headlines
       saveItems(newItems);
       showToast(`${newItems.length} AI headlines published!`);
     }
@@ -111,32 +106,15 @@ export function AdminBreakingNews() {
         <p className="text-xs sm:text-sm text-muted-foreground ml-11">Manage headlines shown on the homepage ticker.</p>
       </div>
 
-      {/* AI Quick Actions */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-4 mb-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-4 w-4 text-purple-600" />
-          <span className="text-sm font-bold text-purple-900">AI Auto-Generate</span>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button
-            onClick={aiGenerate}
-            disabled={generating}
-            className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors flex-1"
-          >
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Generate 3 Headlines
-          </button>
-          <button
-            onClick={aiGenerateAndPost}
-            disabled={generating}
-            className="flex items-center justify-center gap-2 bg-purple-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-900 disabled:opacity-50 transition-colors flex-1"
-          >
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Auto-Refresh All (AI)
-          </button>
-        </div>
-        <p className="text-[10px] text-purple-600 mt-2">AI generates latest market headlines and publishes them instantly</p>
-      </div>
+      <AIGeneratePanel
+        label="AI Auto-Generate Breaking News"
+        topicPlaceholder="Topic (e.g. SENSEX rally, RBI policy, IT earnings)"
+        generating={generating}
+        onGenerate={aiGenerate}
+        onGenerateAndPublish={aiGenerateAndPost}
+        generateLabel="Generate 3 Headlines"
+        publishLabel="Auto-Refresh All (AI)"
+      />
 
       {/* Stats */}
       <div className="flex items-center gap-3 mb-5 flex-wrap">
