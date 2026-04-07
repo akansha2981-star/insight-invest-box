@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit, Trash2, Eye, EyeOff, Save, X, Megaphone, Image, Upload, Loader2, Sparkles } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, Save, X, Megaphone, Image, Upload, Loader2 } from "lucide-react";
 import { useAdminAI } from "@/hooks/useAdminAI";
+import { AIGeneratePanel } from "./AIGeneratePanel";
 
 interface Banner {
   id: string; title: string; subtitle: string | null; cta_label: string | null;
@@ -88,23 +89,20 @@ export function AdminHomeBanners() {
     setForm({ title: b.title, subtitle: b.subtitle, cta_label: b.cta_label, cta_url: b.cta_url, bg_color: b.bg_color, banner_type: b.banner_type, sort_order: b.sort_order, is_active: b.is_active, image_url: b.image_url });
   }
 
-  async function aiGenerateBanner() {
-    const result = await generateContent({ action: "generate-banner", context: { type: activeTab } });
+  async function aiGenerateBanner(topic: string, targetDate: string) {
+    const result = await generateContent({ action: "generate-banner", context: { type: activeTab, topic, target_date: targetDate } });
     if (result) {
       setForm(f => ({
-        ...f,
-        title: result.title || f.title,
-        subtitle: result.subtitle || f.subtitle,
-        cta_label: result.cta_label || f.cta_label,
-        cta_url: result.cta_url || f.cta_url,
+        ...f, title: result.title || f.title, subtitle: result.subtitle || f.subtitle,
+        cta_label: result.cta_label || f.cta_label, cta_url: result.cta_url || f.cta_url,
         banner_type: activeTab,
       }));
       setCreating(true); setEditing(null);
     }
   }
 
-  async function aiGenerateAndPost() {
-    const result = await generateContent({ action: "generate-banner", context: { type: activeTab } });
+  async function aiGenerateAndPost(topic: string, targetDate: string) {
+    const result = await generateContent({ action: "generate-banner", context: { type: activeTab, topic, target_date: targetDate } });
     if (result) {
       const payload = {
         title: result.title, subtitle: result.subtitle || null,
@@ -132,25 +130,15 @@ export function AdminHomeBanners() {
         </button>
       </div>
 
-      {/* AI Quick Actions */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-4 mb-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-4 w-4 text-purple-600" />
-          <span className="text-sm font-bold text-purple-900">AI Auto-Generate Banner</span>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button onClick={aiGenerateBanner} disabled={generating}
-            className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors flex-1">
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Generate & Edit
-          </button>
-          <button onClick={aiGenerateAndPost} disabled={generating}
-            className="flex items-center justify-center gap-2 bg-purple-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-900 disabled:opacity-50 transition-colors flex-1">
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Generate & Publish
-          </button>
-        </div>
-      </div>
+      <AIGeneratePanel
+        label="AI Auto-Generate Banner"
+        topicPlaceholder="Banner topic (e.g. Budget 2026, IPO season, Market rally)"
+        generating={generating}
+        onGenerate={aiGenerateBanner}
+        onGenerateAndPublish={aiGenerateAndPost}
+        generateLabel="Generate & Edit"
+        publishLabel="Generate & Publish"
+      />
 
       {/* Tabs */}
       <div className="flex gap-1 mb-5 bg-muted p-1 rounded-xl w-full sm:w-fit overflow-x-auto">

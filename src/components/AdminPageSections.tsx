@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit, Trash2, Eye, EyeOff, Save, X, Sparkles, Loader2, Zap } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, Save, X, Loader2, Zap } from "lucide-react";
 import { useAdminAI } from "@/hooks/useAdminAI";
+import { AIGeneratePanel } from "./AIGeneratePanel";
 
 interface PageSection {
   id: string;
@@ -109,10 +110,10 @@ export function AdminPageSections() {
     setForm(BLANK);
   }
 
-  async function aiGenerateSection(publishNow = false) {
+  async function aiGenerateSection(topic: string, targetDate: string, publishNow = false) {
     const result = await generateContent({
       action: "generate-page-section",
-      context: { page_key: selectedPage, section_type: form.section_type || "banner" }
+      context: { page_key: selectedPage, section_type: form.section_type || "banner", topic, target_date: targetDate }
     });
     if (result) {
       if (publishNow) {
@@ -152,25 +153,15 @@ export function AdminPageSections() {
       </div>
 
       {/* AI Quick Actions */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-4 mb-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-4 w-4 text-purple-600" />
-          <span className="text-sm font-bold text-purple-900">AI Auto-Generate Section</span>
-        </div>
-        <p className="text-xs text-purple-600 mb-3">AI creates relevant content for the selected page</p>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button onClick={() => aiGenerateSection(false)} disabled={generating}
-            className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors flex-1">
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Generate & Edit
-          </button>
-          <button onClick={() => aiGenerateSection(true)} disabled={generating}
-            className="flex items-center justify-center gap-2 bg-purple-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-purple-900 disabled:opacity-50 transition-colors flex-1">
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-            Generate & Publish
-          </button>
-        </div>
-      </div>
+      <AIGeneratePanel
+        label="AI Auto-Generate Section"
+        topicPlaceholder="Section topic (e.g. market outlook, investment tips)"
+        generating={generating}
+        onGenerate={(topic, date) => aiGenerateSection(topic, date, false)}
+        onGenerateAndPublish={(topic, date) => aiGenerateSection(topic, date, true)}
+        generateLabel="Generate & Edit"
+        publishLabel="Generate & Publish"
+      />
 
       {/* Page tabs */}
       <div className="flex gap-1 mb-6 bg-muted p-1 rounded-xl overflow-x-auto">
