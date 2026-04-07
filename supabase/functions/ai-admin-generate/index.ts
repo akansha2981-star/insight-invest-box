@@ -177,7 +177,7 @@ async function fetchMarketSnapshot(targetDate: string): Promise<string> {
 function normalizeArticleResult(result: any, ctx: any) {
   const targetDate = getRequestedDate(ctx?.target_date);
   const requestedTopic = stripCodeFences(String(ctx?.topic ?? "")).trim();
-  const title = stripCodeFences(String(result?.title ?? requestedTopic || `Market Update for ${targetDate}`)).trim() || `Market Update for ${targetDate}`;
+  const title = stripCodeFences(String((result?.title ?? requestedTopic) || `Market Update for ${targetDate}`)).trim() || `Market Update for ${targetDate}`;
   const rawContent = stripCodeFences(String(result?.content ?? "")).trim();
   const content = rawContent || `<h2>${title}</h2><p>${buildExcerpt("", title, targetDate)}</p>`;
   const excerpt = stripCodeFences(String(result?.excerpt ?? "")).trim() || buildExcerpt(content, title, targetDate);
