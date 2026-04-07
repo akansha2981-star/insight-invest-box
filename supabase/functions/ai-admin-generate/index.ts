@@ -470,9 +470,13 @@ Include ALL fields with realistic Indian market data:
     toolName: "generate_property",
   },
   "generate-page-section": {
-    system: "You are a content writer for InvestingIQ. Generate professional page section content for financial platform pages. No emojis. Concise, informative.",
-    prompt: (ctx) => `Generate content for a ${ctx.section_type || "banner"} section on the "${ctx.page_key || "markets"}" page. 
-Include title (compelling, 5-10 words) and content (2-4 sentences, informative). Topic should be relevant to ${ctx.page_key || "markets"} page of a financial platform. Date: ${new Date().toISOString().split('T')[0]}`,
+    system: (ctx: any) => `You are a content writer for InvestingIQ. Generate professional page section content for financial platform pages. No emojis. Concise, informative. ${buildDateGuard(getRequestedDate(ctx.target_date))}`,
+    prompt: (ctx) => {
+      const d = getRequestedDate(ctx.target_date);
+      const topic = ctx.topic ? `Topic focus: "${ctx.topic}". ` : "";
+      return `Generate content for a ${ctx.section_type || "banner"} section on the "${ctx.page_key || "markets"}" page. ${topic}Include title (compelling, 5-10 words) and content (2-4 sentences, informative). Date: ${d}. ${buildDateGuard(d)}
+${ctx.market_snapshot || ""}`;
+    },
     tools: [{
       type: "function",
       function: {
@@ -505,13 +509,13 @@ serve(async (req) => {
     }
 
     const requestContext = context || {};
-    const enrichedContext = action === "generate-full-article"
-      ? {
-          ...requestContext,
-          target_date: getRequestedDate(requestContext.target_date),
-          market_snapshot: await fetchMarketSnapshot(getRequestedDate(requestContext.target_date)),
-        }
-      : requestContext;
+    const targetDate = getRequestedDate(requestContext.target_date);
+    const marketSnapshot = await fetchMarketSnapshot(targetDate);
+    const enrichedContext = {
+      ...requestContext,
+      target_date: targetDate,
+      market_snapshot: marketSnapshot,
+    };
 
     // Use stronger model for article and stock review generation
     const useStrongModel = action === "generate-full-article" || action === "generate-stock-review" || action === "generate-property";
