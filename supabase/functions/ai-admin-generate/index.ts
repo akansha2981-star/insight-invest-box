@@ -201,8 +201,14 @@ function normalizeArticleResult(result: any, ctx: any) {
 
 const ACTIONS: Record<string, { system: string | ((ctx: any) => string); prompt: (ctx: any) => string; tools: any[]; toolName: string }> = {
   "generate-breaking-news": {
-    system: "You are a financial news editor for InvestingIQ, an Indian finance platform. Generate breaking news headlines about Indian markets, economy, stocks. Current, relevant, factual tone. No emojis.",
-    prompt: (ctx) => `Generate ${ctx.count || 3} breaking news headlines for Indian financial markets. Each should be concise (under 100 chars), current-sounding, professional. Date: ${new Date().toISOString().split('T')[0]}`,
+    system: (ctx: any) => `You are a financial news editor for InvestingIQ, an Indian finance platform. Generate breaking news headlines about Indian markets, economy, stocks. Current, relevant, factual tone. No emojis.
+${buildDateGuard(getRequestedDate(ctx.target_date))}`,
+    prompt: (ctx) => {
+      const d = getRequestedDate(ctx.target_date);
+      const topic = ctx.topic ? `Topic focus: "${ctx.topic}". ` : "";
+      return `Generate ${ctx.count || 3} breaking news headlines for Indian financial markets. ${topic}Each should be concise (under 100 chars), current-sounding, professional. Date context: ${d}. ${buildDateGuard(d)}
+${ctx.market_snapshot || ""}`;
+    },
     tools: [{
       type: "function",
       function: {
@@ -220,8 +226,14 @@ const ACTIONS: Record<string, { system: string | ((ctx: any) => string); prompt:
     toolName: "generate_headlines",
   },
   "generate-banner": {
-    system: "You are a marketing copywriter for InvestingIQ, an Indian finance/real estate platform. Create compelling banner content. No emojis. Professional.",
-    prompt: (ctx) => `Generate a homepage banner for type: ${ctx.type || "hero"}. Include title (compelling, 6-10 words), subtitle (supporting text, 15-25 words), cta_label (2-3 words), cta_url (internal link like /markets or /real-estate). Topic: Indian markets/investing/real estate. Date: ${new Date().toISOString().split('T')[0]}`,
+    system: (ctx: any) => `You are a marketing copywriter for InvestingIQ, an Indian finance/real estate platform. Create compelling banner content. No emojis. Professional.
+${buildDateGuard(getRequestedDate(ctx.target_date))}`,
+    prompt: (ctx) => {
+      const d = getRequestedDate(ctx.target_date);
+      const topic = ctx.topic ? `Topic focus: "${ctx.topic}". ` : "";
+      return `Generate a homepage banner for type: ${ctx.type || "hero"}. ${topic}Include title (compelling, 6-10 words), subtitle (supporting text, 15-25 words), cta_label (2-3 words), cta_url (internal link like /markets or /real-estate). Topic: Indian markets/investing/real estate. Date: ${d}. ${buildDateGuard(d)}
+${ctx.market_snapshot || ""}`;
+    },
     tools: [{
       type: "function",
       function: {
@@ -242,8 +254,14 @@ const ACTIONS: Record<string, { system: string | ((ctx: any) => string); prompt:
     toolName: "generate_banner",
   },
   "generate-stock-review": {
-    system: "You are a senior equity research analyst for Indian markets (NSE/BSE). Generate comprehensive stock analysis with REALISTIC financial data. Use actual market-like numbers. No emojis. Date: " + new Date().toISOString().split('T')[0],
-    prompt: (ctx) => `Generate a COMPLETE stock review for ${ctx.symbol || "a trending Indian large-cap stock"}. Include ALL fields with realistic data:
+    system: (ctx: any) => {
+      const d = getRequestedDate(ctx.target_date);
+      return `You are a senior equity research analyst for Indian markets (NSE/BSE). Generate comprehensive stock analysis with REALISTIC financial data. Use actual market-like numbers. No emojis. ${buildDateGuard(d)}`;
+    },
+    prompt: (ctx) => {
+      const d = getRequestedDate(ctx.target_date);
+      const topic = ctx.symbol ? `for ${ctx.symbol}` : (ctx.topic ? `for ${ctx.topic}` : "for a trending Indian large-cap stock");
+      return `Generate a COMPLETE stock review ${topic}. Include ALL fields with realistic data:
 - symbol, company_name, sector, exchange
 - current_price (realistic market price in INR), target_price
 - rating (STRONG BUY/BUY/HOLD/SELL/STRONG SELL)
@@ -252,7 +270,9 @@ const ACTIONS: Record<string, { system: string | ((ctx: any) => string); prompt:
 - tags (comma separated)
 - financials: revenue (in Cr), net_profit (in Cr), eps, pe_ratio, debt_equity, roe (%), market_cap (in Cr), book_value
 - key_metrics: 52w_high, 52w_low, dividend_yield (%), promoter_holding (%), fii_holding (%), beta
-ALL numbers must be realistic for the stock. Date: ${new Date().toISOString().split('T')[0]}`,
+ALL numbers must be realistic for the stock as of ${d}. ${buildDateGuard(d)}
+${ctx.market_snapshot || ""}`;
+    },
     tools: [{
       type: "function",
       function: {
