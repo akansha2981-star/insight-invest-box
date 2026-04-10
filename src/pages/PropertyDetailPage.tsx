@@ -328,6 +328,8 @@ export default function PropertyDetailPage() {
                     <p className="text-muted-foreground italic">Floor plans not available.</p>
                   )}
                 </div>
+              )}
+
               {activeTab === "pricehistory" && (
                 <div>
                   <h3 className="font-bold text-lg text-foreground mb-4">Price History</h3>
