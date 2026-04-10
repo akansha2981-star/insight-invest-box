@@ -18,6 +18,13 @@ interface Property {
   cover_image_url: string | null; is_featured: boolean | null;
   is_price_drop: boolean | null; original_price: number | null;
   status: string | null; rating: number | null; reviews_count: number | null;
+  sector: string | null; nearest_hospital: string | null;
+  nearest_school: string | null; nearest_mall: string | null;
+  rera_status: string | null; price_min: number | null; price_max: number | null;
+  bhk_min: string | null; bhk_max: string | null;
+  area_min: number | null; area_max: number | null;
+  price_history_detail: any[] | null; total_towers: number | null;
+  cover_images: string[] | null; videos: string[] | null;
 }
 
 const CITIES = ["Mumbai", "Bengaluru", "Gurugram", "Pune", "Noida", "Hyderabad", "Thane", "Chennai", "Navi Mumbai", "Delhi"];
@@ -503,11 +510,6 @@ function PropertyForm({ property, onChange, onSave, onCancel, onUpload }: {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Video URL</label>
-            <input value={(property as any).video_url || ""} onChange={e => onChange({ ...property, video_url: e.target.value } as any)}
-              placeholder="YouTube or video link" className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-          </div>
-          <div>
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Possession Status</label>
             <select value={(property as any).possession_status || "under_construction"} onChange={e => onChange({ ...property, possession_status: e.target.value } as any)}
               className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
@@ -515,6 +517,147 @@ function PropertyForm({ property, onChange, onSave, onCancel, onUpload }: {
               <option value="under_construction">Under Construction</option>
             </select>
           </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Sector</label>
+            <input value={(property as any).sector || ""} onChange={e => onChange({ ...property, sector: e.target.value } as any)}
+              placeholder="e.g. Sector 150, Zone A" className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+        </div>
+
+        {/* RERA Status */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">RERA Status</label>
+            <select value={(property as any).rera_status || "upcoming"} onChange={e => onChange({ ...property, rera_status: e.target.value } as any)}
+              className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="rera_applied">RERA Applied</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="under_construction">Under Construction</option>
+              <option value="pre_launch">Pre Launch</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Total Towers</label>
+            <input type="number" value={(property as any).total_towers || ""} onChange={e => onChange({ ...property, total_towers: Number(e.target.value) } as any)}
+              className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+          </div>
+        </div>
+
+        {/* Nearest Landmarks */}
+        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4">
+          <h3 className="text-xs font-bold text-blue-800 uppercase tracking-wide mb-3">📍 Nearest Landmarks</h3>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Hospital</label>
+              <input value={(property as any).nearest_hospital || ""} onChange={e => onChange({ ...property, nearest_hospital: e.target.value } as any)}
+                placeholder="e.g. Max Hospital – 1.2 km" className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">School</label>
+              <input value={(property as any).nearest_school || ""} onChange={e => onChange({ ...property, nearest_school: e.target.value } as any)}
+                placeholder="e.g. DPS – 0.8 km" className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Mall</label>
+              <input value={(property as any).nearest_mall || ""} onChange={e => onChange({ ...property, nearest_mall: e.target.value } as any)}
+                placeholder="e.g. DLF Mall – 2 km" className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            </div>
+          </div>
+        </div>
+
+        {/* Price / BHK / Area Ranges */}
+        <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4">
+          <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-wide mb-3">📊 Configuration Ranges</h3>
+          <div className="grid grid-cols-3 gap-4 mb-3">
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Price Min (₹)</label>
+              <input type="number" value={(property as any).price_min || ""} onChange={e => onChange({ ...property, price_min: Number(e.target.value) } as any)}
+                className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Price Starting (₹)</label>
+              <input type="number" value={property.price || 0} onChange={e => onChange({ ...property, price: Number(e.target.value) })}
+                className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Price Max (₹)</label>
+              <input type="number" value={(property as any).price_max || ""} onChange={e => onChange({ ...property, price_max: Number(e.target.value) } as any)}
+                className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4 mb-3">
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">BHK Min</label>
+              <select value={(property as any).bhk_min || ""} onChange={e => onChange({ ...property, bhk_min: e.target.value } as any)}
+                className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <option value="">Select</option>
+                {["1 BHK","2 BHK","3 BHK","4 BHK","5 BHK"].map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">BHK Starting</label>
+              <select value={property.bhk || ""} onChange={e => onChange({ ...property, bhk: e.target.value })}
+                className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <option value="">Select</option>
+                {["1 BHK","2 BHK","3 BHK","4 BHK","5 BHK"].map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">BHK Max</label>
+              <select value={(property as any).bhk_max || ""} onChange={e => onChange({ ...property, bhk_max: e.target.value } as any)}
+                className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <option value="">Select</option>
+                {["1 BHK","2 BHK","3 BHK","4 BHK","5 BHK"].map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Area Min (sqft)</label>
+              <input type="number" value={(property as any).area_min || ""} onChange={e => onChange({ ...property, area_min: Number(e.target.value) } as any)}
+                className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Area Starting (sqft)</label>
+              <input type="number" value={property.area_sqft || ""} onChange={e => onChange({ ...property, area_sqft: Number(e.target.value) })}
+                className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Area Max (sqft)</label>
+              <input type="number" value={(property as any).area_max || ""} onChange={e => onChange({ ...property, area_max: Number(e.target.value) } as any)}
+                className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+          </div>
+        </div>
+
+        {/* Price History Detail */}
+        <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-4">
+          <h3 className="text-xs font-bold text-amber-800 uppercase tracking-wide mb-3">📈 Price History (Pre-launch → Current)</h3>
+          <p className="text-xs text-muted-foreground mb-3">Add price milestones from pre-launch to current date</p>
+          <PriceHistoryEditor
+            entries={(property as any).price_history_detail || []}
+            onChange={entries => onChange({ ...property, price_history_detail: entries } as any)}
+          />
+        </div>
+
+        {/* Multiple Cover Images */}
+        <div className="bg-purple-50/50 border border-purple-100 rounded-xl p-4">
+          <h3 className="text-xs font-bold text-purple-800 uppercase tracking-wide mb-3">🖼️ Cover Images (Multiple)</h3>
+          <MultiImageUploader
+            images={(property as any).cover_images || []}
+            onChange={imgs => onChange({ ...property, cover_images: imgs } as any)}
+            onUpload={onUpload}
+          />
+        </div>
+
+        {/* Multiple Videos */}
+        <div className="bg-rose-50/50 border border-rose-100 rounded-xl p-4">
+          <h3 className="text-xs font-bold text-rose-800 uppercase tracking-wide mb-3">🎥 Videos (Multiple)</h3>
+          <MultiUrlEditor
+            urls={(property as any).videos || []}
+            onChange={urls => onChange({ ...property, videos: urls } as any)}
+            placeholder="YouTube or video link"
+          />
         </div>
 
         <div>
@@ -530,7 +673,7 @@ function PropertyForm({ property, onChange, onSave, onCancel, onUpload }: {
         </div>
 
         <div>
-          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Cover Image</label>
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Legacy Cover Image</label>
           <div className="mt-1 flex items-center gap-4">
             {property.cover_image_url && (
               <img src={property.cover_image_url} alt="" className="w-24 h-16 object-cover rounded-lg border" />
@@ -549,6 +692,114 @@ function PropertyForm({ property, onChange, onSave, onCancel, onUpload }: {
             className="w-32 mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ════ Reusable Sub-Components ════ */
+function PriceHistoryEditor({ entries, onChange }: { entries: any[]; onChange: (e: any[]) => void }) {
+  function addEntry() {
+    onChange([...entries, { date: "", label: "", price: 0, note: "" }]);
+  }
+  function updateEntry(i: number, field: string, val: any) {
+    const copy = [...entries];
+    copy[i] = { ...copy[i], [field]: val };
+    onChange(copy);
+  }
+  function removeEntry(i: number) {
+    onChange(entries.filter((_, idx) => idx !== i));
+  }
+
+  return (
+    <div className="space-y-2">
+      {entries.map((e, i) => (
+        <div key={i} className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 items-end">
+          <div>
+            <label className="text-[10px] text-muted-foreground">Date</label>
+            <input type="date" value={e.date || ""} onChange={ev => updateEntry(i, "date", ev.target.value)}
+              className="w-full px-2 py-1.5 border border-border rounded-lg text-xs" />
+          </div>
+          <div>
+            <label className="text-[10px] text-muted-foreground">Label</label>
+            <input value={e.label || ""} onChange={ev => updateEntry(i, "label", ev.target.value)}
+              placeholder="Pre-launch / Launch / Current" className="w-full px-2 py-1.5 border border-border rounded-lg text-xs" />
+          </div>
+          <div>
+            <label className="text-[10px] text-muted-foreground">Price (₹)</label>
+            <input type="number" value={e.price || ""} onChange={ev => updateEntry(i, "price", Number(ev.target.value))}
+              className="w-full px-2 py-1.5 border border-border rounded-lg text-xs" />
+          </div>
+          <div>
+            <label className="text-[10px] text-muted-foreground">Note</label>
+            <input value={e.note || ""} onChange={ev => updateEntry(i, "note", ev.target.value)}
+              placeholder="Optional detail" className="w-full px-2 py-1.5 border border-border rounded-lg text-xs" />
+          </div>
+          <button onClick={() => removeEntry(i)} className="p-1.5 hover:bg-red-50 rounded-lg mb-0.5">
+            <X className="h-3.5 w-3.5 text-red-500" />
+          </button>
+        </div>
+      ))}
+      <button onClick={addEntry} className="flex items-center gap-1.5 text-xs text-amber-700 font-semibold hover:underline mt-1">
+        <Plus className="h-3 w-3" /> Add Price Milestone
+      </button>
+    </div>
+  );
+}
+
+function MultiImageUploader({ images, onChange, onUpload }: { images: string[]; onChange: (imgs: string[]) => void; onUpload: (f: File) => Promise<string | null> }) {
+  const [uploading, setUploading] = useState(false);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploading(true);
+    const newImages = [...images];
+    for (const file of files) {
+      const url = await onUpload(file);
+      if (url) newImages.push(url);
+    }
+    onChange(newImages);
+    setUploading(false);
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2 mb-3">
+        {images.map((img, i) => (
+          <div key={i} className="relative group">
+            <img src={img} alt="" className="w-24 h-16 object-cover rounded-lg border" />
+            <button onClick={() => onChange(images.filter((_, idx) => idx !== i))}
+              className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+          </div>
+        ))}
+      </div>
+      <label className="flex items-center gap-2 px-4 py-2 border border-border rounded-xl text-sm cursor-pointer hover:bg-muted w-fit">
+        <Upload className="h-4 w-4" /> {uploading ? "Uploading..." : "Upload Images"}
+        <input type="file" accept="image/*" multiple onChange={handleUpload} className="hidden" />
+      </label>
+    </div>
+  );
+}
+
+function MultiUrlEditor({ urls, onChange, placeholder }: { urls: string[]; onChange: (u: string[]) => void; placeholder: string }) {
+  function add() { onChange([...urls, ""]); }
+  function update(i: number, val: string) {
+    const copy = [...urls]; copy[i] = val; onChange(copy);
+  }
+  function remove(i: number) { onChange(urls.filter((_, idx) => idx !== i)); }
+
+  return (
+    <div className="space-y-2">
+      {urls.map((u, i) => (
+        <div key={i} className="flex gap-2">
+          <input value={u} onChange={e => update(i, e.target.value)}
+            placeholder={placeholder} className="flex-1 px-3 py-2 border border-border rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none" />
+          <button onClick={() => remove(i)} className="p-2 hover:bg-red-50 rounded-lg"><X className="h-3.5 w-3.5 text-red-500" /></button>
+        </div>
+      ))}
+      <button onClick={add} className="flex items-center gap-1.5 text-xs text-rose-700 font-semibold hover:underline mt-1">
+        <Plus className="h-3 w-3" /> Add Video URL
+      </button>
     </div>
   );
 }
