@@ -328,6 +328,75 @@ export default function PropertyDetailPage() {
                     <p className="text-muted-foreground italic">Floor plans not available.</p>
                   )}
                 </div>
+              {activeTab === "pricehistory" && (
+                <div>
+                  <h3 className="font-bold text-lg text-foreground mb-4">Price History</h3>
+                  {property.price_history_detail && property.price_history_detail.length > 0 ? (
+                    <div className="space-y-3">
+                      {property.price_history_detail.map((entry: any, i: number) => (
+                        <div key={i} className="flex items-center gap-4 bg-muted/50 rounded-xl px-4 py-3">
+                          <div className="w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold text-sm text-foreground">{entry.label || "Milestone"}</span>
+                              <span className="number-font font-bold text-foreground">{formatPrice(entry.price)}</span>
+                            </div>
+                            <div className="flex items-center justify-between mt-0.5">
+                              <span className="text-xs text-muted-foreground">{entry.date || "—"}</span>
+                              {entry.note && <span className="text-xs text-muted-foreground">{entry.note}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground italic">Price history not available yet.</p>
+                  )}
+                </div>
+              )}
+
+              {activeTab === "landmarks" && (
+                <div>
+                  <h3 className="font-bold text-lg text-foreground mb-4">Nearby Landmarks</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {property.nearest_hospital && (
+                      <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+                        <div className="text-red-600 font-bold text-sm mb-1">🏥 Hospital</div>
+                        <p className="text-sm text-foreground">{property.nearest_hospital}</p>
+                      </div>
+                    )}
+                    {property.nearest_school && (
+                      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                        <div className="text-blue-600 font-bold text-sm mb-1">🏫 School</div>
+                        <p className="text-sm text-foreground">{property.nearest_school}</p>
+                      </div>
+                    )}
+                    {property.nearest_mall && (
+                      <div className="bg-purple-50 border border-purple-100 rounded-xl p-4">
+                        <div className="text-purple-600 font-bold text-sm mb-1">🛍️ Mall</div>
+                        <p className="text-sm text-foreground">{property.nearest_mall}</p>
+                      </div>
+                    )}
+                  </div>
+                  {!property.nearest_hospital && !property.nearest_school && !property.nearest_mall && (
+                    <p className="text-muted-foreground italic">No landmark information available.</p>
+                  )}
+                  {/* Videos section */}
+                  {allVideos.length > 1 && (
+                    <div className="mt-6">
+                      <h4 className="font-bold text-foreground mb-3">🎥 Property Videos</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {allVideos.map((v, i) => (
+                          <a key={i} href={v} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-2 bg-muted/50 rounded-xl px-4 py-3 hover:bg-muted transition-colors">
+                            <Play className="h-4 w-4 text-primary" />
+                            <span className="text-sm text-foreground">Video {i + 1}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
