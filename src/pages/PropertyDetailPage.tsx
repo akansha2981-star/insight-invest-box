@@ -179,10 +179,10 @@ export default function PropertyDetailPage() {
                   PRICE REDUCED
                 </div>
               )}
-              {property.video_url && (
-                <a href={property.video_url} target="_blank" rel="noopener noreferrer"
+              {allVideos.length > 0 && (
+                <a href={allVideos[0]} target="_blank" rel="noopener noreferrer"
                   className="absolute bottom-4 right-4 bg-black/70 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-black/90">
-                  <Play className="h-4 w-4" /> Watch Video
+                  <Play className="h-4 w-4" /> Watch Video {allVideos.length > 1 ? `(${allVideos.length})` : ""}
                 </a>
               )}
             </div>
