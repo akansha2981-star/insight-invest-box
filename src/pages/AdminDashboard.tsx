@@ -45,17 +45,46 @@ export default function AdminDashboard() {
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => { checkAuth(); }, []);
+  useEffect(() => {
+    let cancelled = false;
 
-  async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { navigate('/admin/login'); return; }
-    setUser(session.user);
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
-    if (!roles || roles.length === 0) { setAuthorized(false); }
-    else { setAuthorized(true); fetchPosts(); }
-    setLoading(false);
-  }
+    async function verifyRole(userId: string) {
+      // Retry up to 3 times to handle RLS timing after login
+      for (let i = 0; i < 3; i++) {
+        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+        if (roles && roles.length > 0) return true;
+        if (i < 2) await new Promise(r => setTimeout(r, 800));
+      }
+      return false;
+    }
+
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { navigate('/admin/login'); return; }
+      if (cancelled) return;
+      setUser(session.user);
+      const ok = await verifyRole(session.user.id);
+      if (cancelled) return;
+      if (ok) { setAuthorized(true); fetchPosts(); }
+      else { setAuthorized(false); }
+      setLoading(false);
+    }
+
+    // Also listen for auth changes so a fresh login is picked up
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!session) { navigate('/admin/login'); return; }
+      if (cancelled) return;
+      setUser(session.user);
+      const ok = await verifyRole(session.user.id);
+      if (cancelled) return;
+      if (ok) { setAuthorized(true); fetchPosts(); }
+      else { setAuthorized(false); }
+      setLoading(false);
+    });
+
+    init();
+    return () => { cancelled = true; subscription.unsubscribe(); };
+  }, []);
 
   async function fetchPosts() {
     const { data } = await supabase.from("blog_posts").select("*").order("created_at", { ascending: false });
