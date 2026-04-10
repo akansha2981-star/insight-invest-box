@@ -27,6 +27,13 @@ interface PropertyDetail {
   possession_status: string | null; rera_id: string | null;
   floor_plans: string[] | null; highlights: string[] | null;
   status: string | null;
+  sector: string | null; nearest_hospital: string | null;
+  nearest_school: string | null; nearest_mall: string | null;
+  rera_status: string | null; price_min: number | null; price_max: number | null;
+  bhk_min: string | null; bhk_max: string | null;
+  area_min: number | null; area_max: number | null;
+  price_history_detail: any[] | null; total_towers: number | null;
+  cover_images: string[] | null; videos: string[] | null;
 }
 
 function formatPrice(price: number): string {
@@ -78,8 +85,14 @@ export default function PropertyDetailPage() {
   }
 
   const allImages = [
+    ...(property.cover_images?.length ? property.cover_images : []),
     property.cover_image_url,
     ...(property.images ?? []),
+  ].filter(Boolean) as string[];
+
+  const allVideos = [
+    ...(property.videos?.length ? property.videos : []),
+    property.video_url,
   ].filter(Boolean) as string[];
 
   const TABS = [
@@ -87,16 +100,28 @@ export default function PropertyDetailPage() {
     { id: "investment", label: "Investment Plan" },
     { id: "amenities", label: "Amenities" },
     { id: "floorplan", label: "Floor Plans" },
+    { id: "pricehistory", label: "Price History" },
+    { id: "landmarks", label: "Nearby" },
   ];
+
+  const RERA_STATUS_MAP: Record<string, string> = {
+    rera_applied: "RERA Applied",
+    upcoming: "Upcoming",
+    under_construction: "Under Construction",
+    pre_launch: "Pre Launch",
+  };
 
   const infoCards = [
     { label: "Property Type", value: property.property_type, icon: Building2 },
-    { label: "BHK", value: property.bhk, icon: Bed },
-    { label: "Area", value: property.area_sqft ? `${property.area_sqft.toLocaleString()} sqft` : null, icon: Maximize },
+    { label: "BHK", value: property.bhk_min && property.bhk_max ? `${property.bhk_min} – ${property.bhk_max}` : property.bhk, icon: Bed },
+    { label: "Area", value: property.area_min && property.area_max ? `${property.area_min.toLocaleString()} – ${property.area_max.toLocaleString()} sqft` : property.area_sqft ? `${property.area_sqft.toLocaleString()} sqft` : null, icon: Maximize },
+    { label: "Total Towers", value: property.total_towers, icon: Layers },
     { label: "Total Floors", value: property.total_floors, icon: Layers },
+    { label: "Sector", value: property.sector, icon: MapPin },
     { label: "Green Area", value: property.green_area_pct ? `${property.green_area_pct}%` : null, icon: TreePine },
     { label: "Density", value: property.density, icon: Users },
     { label: "Possession", value: property.possession_status === "ready" ? "Ready to Move" : "Under Construction", icon: Clock },
+    { label: "RERA Status", value: RERA_STATUS_MAP[property.rera_status || ""] || property.rera_status, icon: Shield },
     { label: "RERA ID", value: property.rera_id, icon: Shield },
   ].filter(c => c.value);
 
