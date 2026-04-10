@@ -203,10 +203,15 @@ export type Database = {
       properties: {
         Row: {
           amenities: string[] | null
+          area_max: number | null
+          area_min: number | null
           area_sqft: number | null
           bhk: string | null
+          bhk_max: string | null
+          bhk_min: string | null
           city: string
           cover_image_url: string | null
+          cover_images: string[] | null
           created_at: string
           density: string | null
           description: string | null
@@ -221,29 +226,44 @@ export type Database = {
           is_price_drop: boolean | null
           listing_type: string
           locality: string | null
+          nearest_hospital: string | null
+          nearest_mall: string | null
+          nearest_school: string | null
           original_price: number | null
           overview: string | null
           possession_status: string | null
           price: number
           price_display: string | null
+          price_history_detail: Json | null
+          price_max: number | null
+          price_min: number | null
           property_type: string
           rating: number | null
           rera_id: string | null
+          rera_status: string | null
           reviews_count: number | null
           roi_projection: string | null
+          sector: string | null
           slug: string
           status: string | null
           title: string
           total_floors: number | null
+          total_towers: number | null
           updated_at: string
           video_url: string | null
+          videos: string[] | null
         }
         Insert: {
           amenities?: string[] | null
+          area_max?: number | null
+          area_min?: number | null
           area_sqft?: number | null
           bhk?: string | null
+          bhk_max?: string | null
+          bhk_min?: string | null
           city: string
           cover_image_url?: string | null
+          cover_images?: string[] | null
           created_at?: string
           density?: string | null
           description?: string | null
@@ -258,29 +278,44 @@ export type Database = {
           is_price_drop?: boolean | null
           listing_type?: string
           locality?: string | null
+          nearest_hospital?: string | null
+          nearest_mall?: string | null
+          nearest_school?: string | null
           original_price?: number | null
           overview?: string | null
           possession_status?: string | null
           price?: number
           price_display?: string | null
+          price_history_detail?: Json | null
+          price_max?: number | null
+          price_min?: number | null
           property_type?: string
           rating?: number | null
           rera_id?: string | null
+          rera_status?: string | null
           reviews_count?: number | null
           roi_projection?: string | null
+          sector?: string | null
           slug: string
           status?: string | null
           title: string
           total_floors?: number | null
+          total_towers?: number | null
           updated_at?: string
           video_url?: string | null
+          videos?: string[] | null
         }
         Update: {
           amenities?: string[] | null
+          area_max?: number | null
+          area_min?: number | null
           area_sqft?: number | null
           bhk?: string | null
+          bhk_max?: string | null
+          bhk_min?: string | null
           city?: string
           cover_image_url?: string | null
+          cover_images?: string[] | null
           created_at?: string
           density?: string | null
           description?: string | null
@@ -295,22 +330,32 @@ export type Database = {
           is_price_drop?: boolean | null
           listing_type?: string
           locality?: string | null
+          nearest_hospital?: string | null
+          nearest_mall?: string | null
+          nearest_school?: string | null
           original_price?: number | null
           overview?: string | null
           possession_status?: string | null
           price?: number
           price_display?: string | null
+          price_history_detail?: Json | null
+          price_max?: number | null
+          price_min?: number | null
           property_type?: string
           rating?: number | null
           rera_id?: string | null
+          rera_status?: string | null
           reviews_count?: number | null
           roi_projection?: string | null
+          sector?: string | null
           slug?: string
           status?: string | null
           title?: string
           total_floors?: number | null
+          total_towers?: number | null
           updated_at?: string
           video_url?: string | null
+          videos?: string[] | null
         }
         Relationships: []
       }

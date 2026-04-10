@@ -27,6 +27,13 @@ interface PropertyDetail {
   possession_status: string | null; rera_id: string | null;
   floor_plans: string[] | null; highlights: string[] | null;
   status: string | null;
+  sector: string | null; nearest_hospital: string | null;
+  nearest_school: string | null; nearest_mall: string | null;
+  rera_status: string | null; price_min: number | null; price_max: number | null;
+  bhk_min: string | null; bhk_max: string | null;
+  area_min: number | null; area_max: number | null;
+  price_history_detail: any[] | null; total_towers: number | null;
+  cover_images: string[] | null; videos: string[] | null;
 }
 
 function formatPrice(price: number): string {
@@ -78,8 +85,14 @@ export default function PropertyDetailPage() {
   }
 
   const allImages = [
+    ...(property.cover_images?.length ? property.cover_images : []),
     property.cover_image_url,
     ...(property.images ?? []),
+  ].filter(Boolean) as string[];
+
+  const allVideos = [
+    ...(property.videos?.length ? property.videos : []),
+    property.video_url,
   ].filter(Boolean) as string[];
 
   const TABS = [
@@ -87,16 +100,28 @@ export default function PropertyDetailPage() {
     { id: "investment", label: "Investment Plan" },
     { id: "amenities", label: "Amenities" },
     { id: "floorplan", label: "Floor Plans" },
+    { id: "pricehistory", label: "Price History" },
+    { id: "landmarks", label: "Nearby" },
   ];
+
+  const RERA_STATUS_MAP: Record<string, string> = {
+    rera_applied: "RERA Applied",
+    upcoming: "Upcoming",
+    under_construction: "Under Construction",
+    pre_launch: "Pre Launch",
+  };
 
   const infoCards = [
     { label: "Property Type", value: property.property_type, icon: Building2 },
-    { label: "BHK", value: property.bhk, icon: Bed },
-    { label: "Area", value: property.area_sqft ? `${property.area_sqft.toLocaleString()} sqft` : null, icon: Maximize },
+    { label: "BHK", value: property.bhk_min && property.bhk_max ? `${property.bhk_min} – ${property.bhk_max}` : property.bhk, icon: Bed },
+    { label: "Area", value: property.area_min && property.area_max ? `${property.area_min.toLocaleString()} – ${property.area_max.toLocaleString()} sqft` : property.area_sqft ? `${property.area_sqft.toLocaleString()} sqft` : null, icon: Maximize },
+    { label: "Total Towers", value: property.total_towers, icon: Layers },
     { label: "Total Floors", value: property.total_floors, icon: Layers },
+    { label: "Sector", value: property.sector, icon: MapPin },
     { label: "Green Area", value: property.green_area_pct ? `${property.green_area_pct}%` : null, icon: TreePine },
     { label: "Density", value: property.density, icon: Users },
     { label: "Possession", value: property.possession_status === "ready" ? "Ready to Move" : "Under Construction", icon: Clock },
+    { label: "RERA Status", value: RERA_STATUS_MAP[property.rera_status || ""] || property.rera_status, icon: Shield },
     { label: "RERA ID", value: property.rera_id, icon: Shield },
   ].filter(c => c.value);
 
@@ -154,10 +179,10 @@ export default function PropertyDetailPage() {
                   PRICE REDUCED
                 </div>
               )}
-              {property.video_url && (
-                <a href={property.video_url} target="_blank" rel="noopener noreferrer"
+              {allVideos.length > 0 && (
+                <a href={allVideos[0]} target="_blank" rel="noopener noreferrer"
                   className="absolute bottom-4 right-4 bg-black/70 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-black/90">
-                  <Play className="h-4 w-4" /> Watch Video
+                  <Play className="h-4 w-4" /> Watch Video {allVideos.length > 1 ? `(${allVideos.length})` : ""}
                 </a>
               )}
             </div>
@@ -304,6 +329,77 @@ export default function PropertyDetailPage() {
                   )}
                 </div>
               )}
+
+              {activeTab === "pricehistory" && (
+                <div>
+                  <h3 className="font-bold text-lg text-foreground mb-4">Price History</h3>
+                  {property.price_history_detail && property.price_history_detail.length > 0 ? (
+                    <div className="space-y-3">
+                      {property.price_history_detail.map((entry: any, i: number) => (
+                        <div key={i} className="flex items-center gap-4 bg-muted/50 rounded-xl px-4 py-3">
+                          <div className="w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold text-sm text-foreground">{entry.label || "Milestone"}</span>
+                              <span className="number-font font-bold text-foreground">{formatPrice(entry.price)}</span>
+                            </div>
+                            <div className="flex items-center justify-between mt-0.5">
+                              <span className="text-xs text-muted-foreground">{entry.date || "—"}</span>
+                              {entry.note && <span className="text-xs text-muted-foreground">{entry.note}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground italic">Price history not available yet.</p>
+                  )}
+                </div>
+              )}
+
+              {activeTab === "landmarks" && (
+                <div>
+                  <h3 className="font-bold text-lg text-foreground mb-4">Nearby Landmarks</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {property.nearest_hospital && (
+                      <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+                        <div className="text-red-600 font-bold text-sm mb-1">🏥 Hospital</div>
+                        <p className="text-sm text-foreground">{property.nearest_hospital}</p>
+                      </div>
+                    )}
+                    {property.nearest_school && (
+                      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                        <div className="text-blue-600 font-bold text-sm mb-1">🏫 School</div>
+                        <p className="text-sm text-foreground">{property.nearest_school}</p>
+                      </div>
+                    )}
+                    {property.nearest_mall && (
+                      <div className="bg-purple-50 border border-purple-100 rounded-xl p-4">
+                        <div className="text-purple-600 font-bold text-sm mb-1">🛍️ Mall</div>
+                        <p className="text-sm text-foreground">{property.nearest_mall}</p>
+                      </div>
+                    )}
+                  </div>
+                  {!property.nearest_hospital && !property.nearest_school && !property.nearest_mall && (
+                    <p className="text-muted-foreground italic">No landmark information available.</p>
+                  )}
+                  {/* Videos section */}
+                  {allVideos.length > 1 && (
+                    <div className="mt-6">
+                      <h4 className="font-bold text-foreground mb-3">🎥 Property Videos</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {allVideos.map((v, i) => (
+                          <a key={i} href={v} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-2 bg-muted/50 rounded-xl px-4 py-3 hover:bg-muted transition-colors">
+                            <Play className="h-4 w-4 text-primary" />
+                            <span className="text-sm text-foreground">Video {i + 1}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -316,6 +412,11 @@ export default function PropertyDetailPage() {
                 <div className="number-font text-3xl font-black text-foreground">
                   {property.price_display || formatPrice(property.price)}
                 </div>
+                {(property.price_min || property.price_max) && (
+                  <div className="text-xs text-muted-foreground mt-1 number-font">
+                    Range: {property.price_min ? formatPrice(property.price_min) : "—"} – {property.price_max ? formatPrice(property.price_max) : "—"}
+                  </div>
+                )}
                 {property.is_price_drop && property.original_price && (
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-sm text-muted-foreground line-through number-font">{formatPrice(property.original_price)}</span>
