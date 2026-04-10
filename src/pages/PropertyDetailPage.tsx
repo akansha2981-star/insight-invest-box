@@ -412,6 +412,11 @@ export default function PropertyDetailPage() {
                 <div className="number-font text-3xl font-black text-foreground">
                   {property.price_display || formatPrice(property.price)}
                 </div>
+                {(property.price_min || property.price_max) && (
+                  <div className="text-xs text-muted-foreground mt-1 number-font">
+                    Range: {property.price_min ? formatPrice(property.price_min) : "—"} – {property.price_max ? formatPrice(property.price_max) : "—"}
+                  </div>
+                )}
                 {property.is_price_drop && property.original_price && (
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-sm text-muted-foreground line-through number-font">{formatPrice(property.original_price)}</span>
