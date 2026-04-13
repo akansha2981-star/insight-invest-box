@@ -47,54 +47,54 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     let cancelled = false;
+    let checking = false;
 
     async function verifyRole(userId: string): Promise<boolean> {
-      // Retry up to 5 times — the JWT may not be ready for RLS immediately
       for (let i = 0; i < 5; i++) {
-        // Re-fetch session each attempt so the SDK sends a valid access token
         const { data: { session: freshSession } } = await supabase.auth.getSession();
         if (!freshSession) {
           if (i < 4) { await new Promise(r => setTimeout(r, 600)); continue; }
           return false;
         }
-        const { data: roles, error } = await supabase
+        const { data: roles } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", userId);
         if (roles && roles.length > 0) return true;
-        // If RLS blocked us (empty result but no error), wait and retry
         if (i < 4) await new Promise(r => setTimeout(r, 600));
       }
       return false;
     }
 
-    async function init() {
-      // First, try refreshing the session to ensure a valid token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { navigate('/admin/login'); return; }
-      if (cancelled) return;
-      setUser(session.user);
-      const ok = await verifyRole(session.user.id);
-      if (cancelled) return;
-      if (ok) { setAuthorized(true); fetchPosts(); }
-      else { setAuthorized(false); }
-      setLoading(false);
-    }
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT' || !session) { navigate('/admin/login'); return; }
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-        if (cancelled) return;
+    async function checkAuth(session: any) {
+      if (checking || cancelled) return;
+      checking = true;
+      try {
+        if (!session) { navigate('/admin/login'); return; }
         setUser(session.user);
         const ok = await verifyRole(session.user.id);
         if (cancelled) return;
         if (ok) { setAuthorized(true); fetchPosts(); }
         else { setAuthorized(false); }
-        setLoading(false);
+      } finally {
+        checking = false;
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    // IMPORTANT: No await inside onAuthStateChange — fire and forget
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) { navigate('/admin/login'); return; }
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        checkAuth(session);
       }
     });
 
-    init();
+    // Initial check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      checkAuth(session);
+    });
+
     return () => { cancelled = true; subscription.unsubscribe(); };
   }, []);
 
