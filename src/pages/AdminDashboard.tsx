@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users, Menu, X } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users, Menu, X, RefreshCw } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 import { AdminPageSections } from "@/components/AdminPageSections";
 import { AdminBreakingNews } from "@/components/AdminBreakingNews";
@@ -135,7 +135,26 @@ export default function AdminDashboard() {
         </div>
         <h2 className="text-xl font-bold text-foreground mb-2">Access Denied</h2>
         <p className="text-muted-foreground text-sm mb-6">You don't have admin privileges. Contact your administrator.</p>
-        <Link to="/" className="text-primary hover:text-primary/80 font-semibold text-sm">← Back to Investing IQ</Link>
+        <div className="flex items-center justify-center gap-3">
+          <button
+            onClick={() => { setLoading(true); setAuthorized(null); supabase.auth.getSession().then(({ data: { session } }) => {
+              if (!session) { navigate('/admin/login'); return; }
+              setUser(session.user);
+              (async () => {
+                for (let i = 0; i < 5; i++) {
+                  const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
+                  if (roles && roles.length > 0) { setAuthorized(true); fetchPosts(); setLoading(false); return; }
+                  if (i < 4) await new Promise(r => setTimeout(r, 600));
+                }
+                setAuthorized(false); setLoading(false);
+              })();
+            }); }}
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"
+          >
+            <RefreshCw className="h-4 w-4" /> Retry
+          </button>
+          <Link to="/" className="text-primary hover:text-primary/80 font-semibold text-sm">← Back to Investing IQ</Link>
+        </div>
       </div>
     </div>
   );
