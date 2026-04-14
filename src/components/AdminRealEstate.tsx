@@ -642,7 +642,8 @@ function PropertyForm({ property, onChange, onSave, onCancel, onUpload }: {
 
         {/* Multiple Cover Images */}
         <div className="bg-purple-50/50 border border-purple-100 rounded-xl p-4">
-          <h3 className="text-xs font-bold text-purple-800 uppercase tracking-wide mb-3">🖼️ Cover Images (Multiple)</h3>
+          <h3 className="text-xs font-bold text-purple-800 uppercase tracking-wide mb-1">🖼️ Cover Images (Multiple)</h3>
+          <p className="text-[10px] text-muted-foreground mb-3">Recommended: 800 × 600 px per image · Max 2 MB each · JPG/PNG/WebP</p>
           <MultiImageUploader
             images={(property as any).cover_images || []}
             onChange={imgs => onChange({ ...property, cover_images: imgs } as any)}
@@ -674,6 +675,7 @@ function PropertyForm({ property, onChange, onSave, onCancel, onUpload }: {
 
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Legacy Cover Image</label>
+          <p className="text-[10px] text-muted-foreground">Recommended: 800 × 600 px · Max 2 MB · JPG/PNG/WebP</p>
           <div className="mt-1 flex items-center gap-4">
             {property.cover_image_url && (
               <img src={property.cover_image_url} alt="" className="w-24 h-16 object-cover rounded-lg border" />

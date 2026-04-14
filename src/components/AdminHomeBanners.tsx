@@ -158,7 +158,8 @@ export function AdminHomeBanners() {
           <div className="grid grid-cols-1 gap-4 mb-4">
             {form.banner_type === "hero" && (
               <div>
-                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Banner Image</label>
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1">Banner Image</label>
+                <p className="text-[10px] text-muted-foreground mb-1.5">Recommended: 1440 × 400 px · Max 2 MB · JPG/PNG/WebP</p>
                 <div className="flex items-start gap-3 flex-wrap">
                   {form.image_url ? (
                     <div className="relative w-40 h-20 rounded-lg overflow-hidden border border-border">

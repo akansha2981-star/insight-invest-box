@@ -481,6 +481,7 @@ export function BlogEditor({ post, onSave, onCancel }: BlogEditorProps) {
                 {/* ── Cover Image ── */}
                 <div>
                   <SideLabel icon={UploadCloud}>Cover Image</SideLabel>
+                  <p className="text-[10px] text-muted-foreground mb-1.5">Recommended: 1200 × 630 px · Max 2 MB · JPG/PNG/WebP</p>
                   <button
                     type="button"
                     onClick={() => coverInputRef.current?.click()}

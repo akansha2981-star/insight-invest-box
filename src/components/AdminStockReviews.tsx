@@ -285,7 +285,8 @@ export function AdminStockReviews() {
                   placeholder="e.g. John Smith" className="form-input" />
               </div>
               <div className="col-span-2">
-                <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1.5 block">Cover Image URL</label>
+                <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-0.5 block">Cover Image URL</label>
+                <p className="text-[10px] text-muted-foreground mb-1.5">Recommended: 1200 × 630 px · Max 2 MB · JPG/PNG/WebP</p>
                 <input value={form.cover_image_url} onChange={e => setForm((f: any) => ({ ...f, cover_image_url: e.target.value }))}
                   placeholder="https://..." className="form-input" />
               </div>
