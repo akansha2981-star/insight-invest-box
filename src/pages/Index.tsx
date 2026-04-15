@@ -435,6 +435,23 @@ export default function Index() {
           </div>
         </section>
 
+        {/* ─── Live Market Data Strip ─── */}
+        <div className="border border-border bg-gradient-to-r from-primary/[0.03] via-card to-primary/[0.03] rounded-xl overflow-hidden">
+          <div className="overflow-hidden py-2.5 px-1">
+            <div className="index-scroll-animate flex items-center gap-6 whitespace-nowrap" style={{ width: 'max-content' }}>
+              {[...MARKET_STATS, ...COMMODITIES.map(c => ({ label: c.name, value: c.price, color: c.up ? 'text-gain' : 'text-loss', icon: c.up ? ArrowUp : ArrowDown, extra: c.change })), ...MARKET_STATS, ...COMMODITIES.map(c => ({ label: c.name, value: c.price, color: c.up ? 'text-gain' : 'text-loss', icon: c.up ? ArrowUp : ArrowDown, extra: c.change }))].map((item, i) => (
+                <div key={i} className="flex items-center gap-2 shrink-0 px-2">
+                  {'icon' in item && item.icon && <item.icon className={`h-3 w-3 ${item.color}`} />}
+                  <span className="text-[11px] font-semibold text-muted-foreground">{item.label}</span>
+                  <span className={`number-font text-[12px] font-bold ${item.color}`}>{item.value}</span>
+                  {'extra' in item && item.extra && <span className={`text-[10px] ${item.color}`}>{String(item.extra)}</span>}
+                  <span className="text-border/60 ml-2">|</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* ── Market Movers ── */}
         <section>
           <SectionHeading title="Market Movers" link="/stocks" />
