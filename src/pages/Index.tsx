@@ -328,7 +328,7 @@ export default function Index() {
                 {'icon' in item && item.icon && <item.icon className={`h-3 w-3 ${item.color}`} />}
                 <span className="text-[11px] font-semibold text-muted-foreground">{item.label}</span>
                 <span className={`number-font text-[12px] font-bold ${item.color}`}>{item.value}</span>
-                {'extra' in item && item.extra && <span className={`text-[10px] ${item.color}`}>{item.extra}</span>}
+                {'extra' in item && item.extra && <span className={`text-[10px] ${item.color}`}>{String(item.extra)}</span>}
                 <span className="text-border/60 ml-2">|</span>
               </div>
             ))}
