@@ -17,15 +17,14 @@ const STATS = [
   { icon: Shield, value: "SEBI", suffix: "", label: "Compliant", color: "text-amber-600 bg-amber-50 border-amber-100" },
 ];
 
-function useCountUp(target: string, inView: boolean) {
+function AnimatedStat({ stat, inView }: { stat: typeof STATS[0]; inView: boolean }) {
   const [display, setDisplay] = useState("0");
-  const numeric = parseInt(target.replace(/,/g, ""));
+  const numeric = parseInt(stat.value.replace(/,/g, ""));
+  const isNumeric = !isNaN(numeric);
 
   useEffect(() => {
-    if (!inView || isNaN(numeric)) {
-      if (isNaN(numeric)) setDisplay(target);
-      return;
-    }
+    if (!inView) return;
+    if (!isNumeric) { setDisplay(stat.value); return; }
     let start = 0;
     const duration = 1800;
     const steps = 60;
@@ -40,9 +39,19 @@ function useCountUp(target: string, inView: boolean) {
       setDisplay(Math.floor(start).toLocaleString("en-IN"));
     }, stepTime);
     return () => clearInterval(timer);
-  }, [inView, numeric, target]);
+  }, [inView, numeric, isNumeric, stat.value]);
 
-  return display;
+  return (
+    <div className="bg-card border border-border/50 rounded-2xl px-3 py-3 text-center hover:shadow-lg hover:shadow-black/[0.04] transition-all group hover:-translate-y-1 duration-300">
+      <div className={`w-8 h-8 rounded-xl ${stat.color} border flex items-center justify-center mx-auto mb-1.5 group-hover:scale-110 transition-transform duration-300`}>
+        <stat.icon className="h-4 w-4" />
+      </div>
+      <div className="text-foreground font-bold text-[15px] number-font leading-none">
+        {display}{stat.suffix}
+      </div>
+      <div className="text-muted-foreground text-[10px] font-medium mt-0.5">{stat.label}</div>
+    </div>
+  );
 }
 
 export function HomeHero() {
@@ -169,23 +178,9 @@ export function HomeHero() {
 
         {/* Animated Stats */}
         <div ref={statsRef} className="grid grid-cols-4 gap-3 max-w-2xl mx-auto">
-          {STATS.map(stat => {
-            const count = useCountUp(stat.value, statsInView);
-            return (
-              <div
-                key={stat.label}
-                className="bg-card border border-border/50 rounded-2xl px-3 py-3 text-center hover:shadow-lg hover:shadow-black/[0.04] transition-all group hover:-translate-y-1 duration-300"
-              >
-                <div className={`w-8 h-8 rounded-xl ${stat.color} border flex items-center justify-center mx-auto mb-1.5 group-hover:scale-110 transition-transform duration-300`}>
-                  <stat.icon className="h-4 w-4" />
-                </div>
-                <div className="text-foreground font-bold text-[15px] number-font leading-none">
-                  {count}{stat.suffix}
-                </div>
-                <div className="text-muted-foreground text-[10px] font-medium mt-0.5">{stat.label}</div>
-              </div>
-            );
-          })}
+          {STATS.map(stat => (
+            <AnimatedStat key={stat.label} stat={stat} inView={statsInView} />
+          ))}
         </div>
       </div>
     </section>
