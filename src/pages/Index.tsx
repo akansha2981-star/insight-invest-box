@@ -450,6 +450,11 @@ export default function Index() {
         <FeaturedStockReviews />
 
         {/* ════════════════════════════════════════
+            AI Assistant Bar — below market data
+        ════════════════════════════════════════ */}
+        <AIAssistantBar />
+
+        {/* ════════════════════════════════════════
             BLOCK 2.7 — AI Intelligence Hub (Visible to all)
         ════════════════════════════════════════ */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
