@@ -322,6 +322,30 @@ export default function Index() {
           <MarketIndices />
         </section>
 
+        {/* ─── Breaking News Marquee ─── */}
+        <div className="border border-border bg-card rounded-xl overflow-hidden -mt-4">
+          <div className="flex items-center">
+            <div className="flex items-center gap-1.5 shrink-0 px-4 py-2.5 bg-destructive/10 border-r border-border">
+              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" />
+              <span className="text-[10px] font-bold text-destructive uppercase tracking-wider">Breaking</span>
+            </div>
+            <div className="overflow-hidden flex-1 py-2">
+              <div className="breaking-marquee flex items-center gap-8 whitespace-nowrap" style={{ width: 'max-content' }}>
+                {[...breakingNews, ...breakingNews].map((news, i) => (
+                  <span key={i} className="text-[13px] text-foreground font-medium flex items-center gap-3">
+                    {news}
+                    <span className="text-border">|</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="shrink-0 hidden md:flex text-[11px] text-muted-foreground items-center gap-1 px-4">
+              <Clock className="h-3 w-3" />
+              {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+            </div>
+          </div>
+        </div>
+
         {/* ── Charts + Trending + Summary ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <MiniIndexChart />
