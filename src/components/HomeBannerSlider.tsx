@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Pause, Play, ArrowRight, Megaphone, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight, Megaphone, X } from "lucide-react";
 
 interface Banner {
   id: string;
@@ -16,29 +16,19 @@ interface Banner {
 }
 
 const BG_MAP: Record<string, string> = {
-  blue:    "from-blue-700 via-blue-600 to-indigo-700",
-  emerald: "from-emerald-700 via-emerald-600 to-teal-700",
-  amber:   "from-amber-600 via-orange-600 to-amber-700",
-  red:     "from-red-700 via-red-600 to-rose-700",
-  purple:  "from-purple-700 via-purple-600 to-indigo-700",
-  slate:   "from-slate-800 via-slate-700 to-slate-800",
-};
-
-const ACCENT_MAP: Record<string, string> = {
-  blue:    "bg-white text-blue-700",
-  emerald: "bg-white text-emerald-700",
-  amber:   "bg-white text-amber-700",
-  red:     "bg-white text-red-700",
-  purple:  "bg-white text-purple-700",
-  slate:   "bg-white text-slate-700",
+  blue:    "from-primary/90 to-primary",
+  emerald: "from-emerald-600 to-emerald-700",
+  amber:   "from-amber-500 to-amber-600",
+  red:     "from-red-500 to-red-600",
+  purple:  "from-purple-600 to-purple-700",
+  slate:   "from-slate-700 to-slate-800",
 };
 
 export function HomeBannerSlider() {
   const [heroBanners, setHeroBanners] = useState<Banner[]>([]);
   const [announcements, setAnnouncements] = useState<Banner[]>([]);
   const [current, setCurrent] = useState(0);
-  const [playing, setPlaying] = useState(true);
-  const [dismissedAnnouncements, setDismissedAnnouncements] = useState<Set<string>>(new Set());
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -58,120 +48,106 @@ export function HomeBannerSlider() {
     setCurrent((idx + heroBanners.length) % heroBanners.length);
   }, [heroBanners.length]);
 
+  // Auto-scroll
   useEffect(() => {
-    if (!playing || heroBanners.length <= 1) return;
+    if (heroBanners.length <= 1) return;
     timerRef.current = setInterval(() => setCurrent(c => (c + 1) % heroBanners.length), 5000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [playing, heroBanners.length]);
+  }, [heroBanners.length]);
 
-  const visibleAnnouncements = announcements.filter(a => !dismissedAnnouncements.has(a.id));
+  const visibleAnnouncements = announcements.filter(a => !dismissed.has(a.id));
 
   if (heroBanners.length === 0 && announcements.length === 0) return null;
 
   return (
     <div className="space-y-3">
-      {/* ── Announcement Bar ── */}
+      {/* Announcements — minimal pill style */}
       {visibleAnnouncements.map(ann => (
-        <div
-          key={ann.id}
-          className={`relative rounded-xl px-5 py-3 flex items-center gap-3 border text-white bg-gradient-to-r ${BG_MAP[ann.bg_color] ?? BG_MAP.blue}`}
-        >
-          <Megaphone className="h-4 w-4 shrink-0 opacity-80" />
-          <p className="flex-1 text-[13px] font-semibold leading-snug">{ann.title}</p>
+        <div key={ann.id} className="relative bg-primary/5 border border-primary/10 rounded-xl px-4 py-2.5 flex items-center gap-3">
+          <Megaphone className="h-3.5 w-3.5 text-primary shrink-0" />
+          <p className="flex-1 text-[13px] font-medium text-foreground leading-snug">{ann.title}</p>
           {ann.cta_url && ann.cta_label && (
-            <Link
-              to={ann.cta_url}
-              className={`shrink-0 text-[11px] font-black px-3 py-1.5 rounded-lg transition-all ${ACCENT_MAP[ann.bg_color] ?? ACCENT_MAP.blue} hover:opacity-90`}
-            >
+            <Link to={ann.cta_url} className="shrink-0 text-[11px] font-semibold text-primary hover:underline">
               {ann.cta_label}
             </Link>
           )}
-          <button
-            onClick={() => setDismissedAnnouncements(s => new Set([...s, ann.id]))}
-            className="shrink-0 opacity-60 hover:opacity-100 p-1 rounded transition-opacity"
-          >
+          <button onClick={() => setDismissed(s => new Set([...s, ann.id]))}
+            className="shrink-0 text-muted-foreground hover:text-foreground p-0.5 transition-colors">
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
       ))}
 
-      {/* ── Hero Banner Slider ── */}
-      {heroBanners.length > 0 && (() => {
-        const b = heroBanners[current];
-        const hasImage = !!b.image_url;
+      {/* Hero Banner — clean slide with CSS transition */}
+      {heroBanners.length > 0 && (
+        <div className="relative rounded-2xl overflow-hidden group" style={{ minHeight: '220px' }}>
+          {/* Slides */}
+          <div className="relative w-full h-full" style={{ minHeight: '220px' }}>
+            {heroBanners.map((b, i) => {
+              const hasImage = !!b.image_url;
+              return (
+                <div
+                  key={b.id}
+                  className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+                  style={{ opacity: i === current ? 1 : 0, zIndex: i === current ? 1 : 0 }}
+                >
+                  {/* Background */}
+                  {hasImage ? (
+                    <>
+                      <img src={b.image_url!} alt={b.title}
+                        className="absolute inset-0 w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+                    </>
+                  ) : (
+                    <div className={`absolute inset-0 bg-gradient-to-br ${BG_MAP[b.bg_color] ?? BG_MAP.blue}`} />
+                  )}
 
-        return (
-          <div className="relative rounded-2xl overflow-hidden shadow-lg group" style={{ minHeight: '200px' }}>
-            {/* Background: Image or Gradient */}
-            {hasImage ? (
-              <>
-                <img
-                  src={b.image_url!}
-                  alt={b.title}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-              </>
-            ) : (
-              <>
-                <div className={`absolute inset-0 bg-gradient-to-r ${BG_MAP[b.bg_color] ?? BG_MAP.blue}`} />
-                <div className="absolute inset-0 opacity-10"
-                  style={{ backgroundImage: "radial-gradient(circle at 20% 80%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)", backgroundSize: "30px 30px" }}
-                />
-              </>
-            )}
-
-            <div className="relative px-6 py-8 sm:px-10 sm:py-12 text-white">
-              {/* Dot indicators top-right */}
-              {heroBanners.length > 1 && (
-                <div className="absolute top-4 right-4 flex items-center gap-1.5">
-                  {heroBanners.map((_, i) => (
-                    <button key={i} onClick={() => go(i)}
-                      className={`rounded-full transition-all ${i === current ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/35 hover:bg-white/60'}`}
-                    />
-                  ))}
+                  {/* Content */}
+                  <div className="relative h-full flex items-center px-8 sm:px-12 py-10">
+                    <div className="max-w-xl">
+                      <h2 className="font-bold text-xl sm:text-2xl lg:text-3xl text-white leading-tight mb-2 tracking-tight">
+                        {b.title}
+                      </h2>
+                      {b.subtitle && (
+                        <p className="text-white/70 text-sm leading-relaxed mb-5 max-w-md">{b.subtitle}</p>
+                      )}
+                      {b.cta_url && b.cta_label && (
+                        <Link to={b.cta_url}
+                          className="inline-flex items-center gap-2 bg-white text-foreground text-[13px] font-semibold px-5 py-2.5 rounded-full hover:bg-white/90 transition-colors shadow-sm">
+                          {b.cta_label}
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
-
-              {/* Content */}
-              <div className="max-w-2xl">
-                <h2 className="font-black text-xl sm:text-3xl leading-snug mb-2 drop-shadow-lg">{b.title}</h2>
-                {b.subtitle && (
-                  <p className="text-white/80 text-[13px] sm:text-sm leading-relaxed mb-5 drop-shadow">{b.subtitle}</p>
-                )}
-                {b.cta_url && b.cta_label && (
-                  <Link to={b.cta_url}
-                    className={`inline-flex items-center gap-1.5 text-[13px] font-black px-5 py-2.5 rounded-xl transition-all hover:opacity-90 hover:scale-105 shadow-md ${
-                      hasImage ? 'bg-white text-foreground' : (ACCENT_MAP[b.bg_color] ?? ACCENT_MAP.blue)
-                    }`}
-                  >
-                    {b.cta_label}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                )}
-              </div>
-            </div>
-
-            {/* Nav arrows */}
-            {heroBanners.length > 1 && (
-              <>
-                <button onClick={() => go(current - 1)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white rounded-full p-2 hover:bg-black/50 transition-all opacity-0 group-hover:opacity-100">
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button onClick={() => go(current + 1)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white rounded-full p-2 hover:bg-black/50 transition-all opacity-0 group-hover:opacity-100">
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-                <button onClick={() => setPlaying(p => !p)}
-                  className="absolute bottom-3 right-4 bg-black/30 backdrop-blur-sm text-white rounded-full p-1.5 hover:bg-black/50 transition-all">
-                  {playing ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                </button>
-              </>
-            )}
+              );
+            })}
           </div>
-        );
-      })()}
+
+          {/* Bottom bar: dots + arrows */}
+          {heroBanners.length > 1 && (
+            <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-2 z-10">
+              <button onClick={() => go(current - 1)}
+                className="bg-white/20 backdrop-blur-sm text-white rounded-full p-1.5 hover:bg-white/30 transition-colors">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <div className="flex items-center gap-1.5 px-2">
+                {heroBanners.map((_, i) => (
+                  <button key={i} onClick={() => go(i)}
+                    className={`rounded-full transition-all duration-300 ${
+                      i === current ? 'w-6 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/60'
+                    }`} />
+                ))}
+              </div>
+              <button onClick={() => go(current + 1)}
+                className="bg-white/20 backdrop-blur-sm text-white rounded-full p-1.5 hover:bg-white/30 transition-colors">
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
