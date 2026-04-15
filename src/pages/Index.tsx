@@ -364,7 +364,6 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-[hsl(var(--section-bg))]">
       <Header />
-      <AIAssistantBar />
       <StockTicker />
 
       {/* ─── Breaking news bar ─── */}
@@ -449,6 +448,11 @@ export default function Index() {
             BLOCK 2.5 — Featured Stock Reviews (Auto)
         ════════════════════════════════════════ */}
         <FeaturedStockReviews />
+
+        {/* ════════════════════════════════════════
+            AI Assistant Bar — below market data
+        ════════════════════════════════════════ */}
+        <AIAssistantBar />
 
         {/* ════════════════════════════════════════
             BLOCK 2.7 — AI Intelligence Hub (Visible to all)
