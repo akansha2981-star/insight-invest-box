@@ -7,7 +7,7 @@ import { GainersLosers } from "@/components/GainersLosers";
 import { NewsCard } from "@/components/NewsCard";
 import { Footer } from "@/components/Footer";
 import { FeaturedStockReviews } from "@/components/FeaturedStockReviews";
-import { HomeBannerSlider } from "@/components/HomeBannerSlider";
+import { HomeHero } from "@/components/HomeHero";
 import { MiniIndexChart } from "@/components/MiniIndexChart";
 import { TrendingTopics } from "@/components/TrendingTopics";
 import { TopAnalysts } from "@/components/TopAnalysts";
@@ -314,10 +314,10 @@ export default function Index() {
         </div>
       </div>
 
-      <main className="max-w-[1280px] mx-auto px-4 py-6 space-y-10">
+      {/* ── Hero with Search ── */}
+      <HomeHero />
 
-        {/* ── Banners ── */}
-        <HomeBannerSlider />
+      <main className="max-w-[1280px] mx-auto px-4 py-6 space-y-10">
 
         {/* ── Market Status + Indices ── */}
         <section>
