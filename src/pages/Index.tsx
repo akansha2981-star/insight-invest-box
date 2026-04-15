@@ -295,21 +295,43 @@ export default function Index() {
       <Header />
       <StockTicker />
 
-      {/* ─── Breaking news — minimal ─── */}
-      <div className="border-b border-border">
-        <div className="max-w-[1280px] mx-auto px-4 py-2 flex items-center gap-3">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="inline-flex h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-[10px] font-semibold text-red-600 uppercase tracking-wider">Live</span>
+      {/* ─── Breaking News Marquee ─── */}
+      <div className="border-b border-border bg-card">
+        <div className="flex items-center">
+          <div className="flex items-center gap-1.5 shrink-0 px-4 py-2 bg-destructive/10 border-r border-border">
+            <span className="inline-flex h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" />
+            <span className="text-[10px] font-bold text-destructive uppercase tracking-wider">Breaking</span>
           </div>
-          <div className="overflow-hidden flex-1">
-            <p className={`text-[13px] text-foreground font-medium truncate transition-opacity duration-200 ${breakingAnimate ? 'opacity-100' : 'opacity-0'}`}>
-              {breakingNews[breakingIdx]}
-            </p>
+          <div className="overflow-hidden flex-1 py-2">
+            <div className="breaking-marquee flex items-center gap-8 whitespace-nowrap" style={{ width: 'max-content' }}>
+              {[...breakingNews, ...breakingNews].map((news, i) => (
+                <span key={i} className="text-[13px] text-foreground font-medium flex items-center gap-3">
+                  {news}
+                  <span className="text-border">|</span>
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="shrink-0 hidden md:flex text-[11px] text-muted-foreground items-center gap-1">
+          <div className="shrink-0 hidden md:flex text-[11px] text-muted-foreground items-center gap-1 px-4">
             <Clock className="h-3 w-3" />
             {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Live Index Auto-Scroll Strip ─── */}
+      <div className="border-b border-border bg-muted/30">
+        <div className="overflow-hidden py-2">
+          <div className="index-scroll-animate flex items-center gap-6 whitespace-nowrap" style={{ width: 'max-content' }}>
+            {[...MARKET_STATS, ...COMMODITIES.map(c => ({ label: c.name, value: c.price, color: c.up ? 'text-gain' : 'text-loss', icon: c.up ? ArrowUp : ArrowDown, extra: c.change })), ...MARKET_STATS, ...COMMODITIES.map(c => ({ label: c.name, value: c.price, color: c.up ? 'text-gain' : 'text-loss', icon: c.up ? ArrowUp : ArrowDown, extra: c.change }))].map((item, i) => (
+              <div key={i} className="flex items-center gap-2 shrink-0 px-2">
+                {'icon' in item && item.icon && <item.icon className={`h-3 w-3 ${item.color}`} />}
+                <span className="text-[11px] font-semibold text-muted-foreground">{item.label}</span>
+                <span className={`number-font text-[12px] font-bold ${item.color}`}>{item.value}</span>
+                {'extra' in item && item.extra && <span className={`text-[10px] ${item.color}`}>{item.extra}</span>}
+                <span className="text-border/60 ml-2">|</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
