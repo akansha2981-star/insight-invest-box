@@ -155,7 +155,7 @@ export default function NewsDetailPage() {
               <img
                 src={post.cover_image_url}
                 alt={post.title}
-                className="w-full rounded-lg mb-8 max-h-96 object-cover"
+                className="w-full h-auto rounded-lg mb-8 object-contain"
               />
             )}
 
