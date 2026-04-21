@@ -54,9 +54,9 @@ function CategoryIcon({ category, className = "h-8 w-8 text-muted-foreground/30"
 export function NewsCardHero({ post }: { post: BlogPost }) {
   return (
     <Link to={`/news/${post.slug}`} className="group block relative overflow-hidden rounded-2xl shadow-card-md border border-border card-hover">
-      <div className="relative h-72 md:h-96 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+      <div className="relative bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
         {post.cover_image_url ? (
-          <img src={post.cover_image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img src={post.cover_image_url} alt={post.title} className="w-full h-auto max-h-[500px] object-contain group-hover:scale-[1.02] transition-transform duration-500" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <CategoryIcon category={post.category} className="h-16 w-16 text-muted-foreground/15" />
@@ -86,9 +86,9 @@ export function NewsCard({ post, featured = false }: { post: BlogPost; featured?
   if (featured) {
     return (
       <Link to={`/news/${post.slug}`} className="group block bg-white border border-border rounded-xl shadow-card card-hover overflow-hidden">
-        <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+        <div className="relative bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
           {post.cover_image_url ? (
-            <img src={post.cover_image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <img src={post.cover_image_url} alt={post.title} className="w-full h-auto object-contain group-hover:scale-[1.02] transition-transform duration-500" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <CategoryIcon category={post.category} className="h-10 w-10 text-muted-foreground/15" />
