@@ -1,6 +1,7 @@
 import { Clock, Eye, Tag, BarChart3, Landmark, TrendingUp, Building2, Newspaper } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import { AdaptiveImage } from "@/components/AdaptiveImage";
 
 interface BlogPost {
   id: string;
@@ -86,9 +87,14 @@ export function NewsCard({ post, featured = false }: { post: BlogPost; featured?
   if (featured) {
     return (
       <Link to={`/news/${post.slug}`} className="group block bg-white border border-border rounded-xl shadow-card card-hover overflow-hidden">
-        <div className="relative bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden aspect-video flex items-center justify-center">
+        <div className="relative bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden aspect-[4/3] sm:aspect-video flex items-center justify-center">
           {post.cover_image_url ? (
-            <img src={post.cover_image_url} alt={post.title} className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-500" />
+            <AdaptiveImage
+              src={post.cover_image_url}
+              alt={post.title}
+              className="h-full w-full"
+              imgClassName="group-hover:scale-[1.02] transition-transform duration-500"
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <CategoryIcon category={post.category} className="h-10 w-10 text-muted-foreground/15" />

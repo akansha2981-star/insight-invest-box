@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getMarketStatusText } from "@/lib/marketTime";
+import { AdaptiveImage } from "@/components/AdaptiveImage";
 
 interface BlogPost {
   id: string; title: string; slug: string; excerpt: string | null;
@@ -167,8 +168,13 @@ function NewsCarousel({ posts }: { posts: BlogPost[] }) {
     <div className="relative rounded-2xl overflow-hidden group">
       <Link to={`/news/${post.slug}`} className="block relative h-[280px] sm:h-[340px] bg-muted">
         {post.cover_image_url ? (
-          <img src={post.cover_image_url} alt={post.title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]" />
+          <AdaptiveImage
+            src={post.cover_image_url}
+            alt={post.title}
+            className="h-full w-full"
+            imgClassName="transition-transform duration-700 group-hover:scale-[1.02]"
+            loading="eager"
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
             {(() => { const Icon = CATEGORY_ICON_MAP[post.category ?? ''] ?? CATEGORY_ICON_MAP.default; return <Icon className="h-16 w-16 text-muted-foreground/30" />; })()}
@@ -381,7 +387,7 @@ export default function Index() {
                     className="group flex gap-3 bg-card border border-border rounded-xl p-3 hover:border-primary/20 transition-all">
                     <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-muted flex items-center justify-center">
                       {post.cover_image_url
-                        ? <img src={post.cover_image_url} alt="" className="w-full h-full object-cover" />
+                        ? <AdaptiveImage src={post.cover_image_url} alt={post.title} className="h-full w-full" imgClassName="" />
                         : (() => { const Icon = CATEGORY_ICON_MAP[post.category ?? ''] ?? CATEGORY_ICON_MAP.default; return <Icon className="h-5 w-5 text-muted-foreground/50" />; })()
                       }
                     </div>
