@@ -217,7 +217,7 @@ export function SearchBar() {
           ) : (
             <div>
               {/* Group by type */}
-              {(["stock", "review", "property", "article"] as const).map(type => {
+              {(["stock", "review", "mf", "crypto", "property", "article"] as const).map(type => {
                 const group = results.filter(r => r.type === type);
                 if (!group.length) return null;
                 return (
