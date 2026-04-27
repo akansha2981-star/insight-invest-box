@@ -169,14 +169,18 @@ export function SearchBar() {
     if (type === "stock") return <TrendingUp className="h-3.5 w-3.5 text-primary" />;
     if (type === "review") return <BarChart2 className="h-3.5 w-3.5 text-gain" />;
     if (type === "property") return <Building2 className="h-3.5 w-3.5 text-emerald-500" />;
+    if (type === "mf") return <PieChart className="h-3.5 w-3.5 text-violet-500" />;
+    if (type === "crypto") return <Bitcoin className="h-3.5 w-3.5 text-amber-500" />;
     return <FileText className="h-3.5 w-3.5 text-muted-foreground" />;
   };
 
   const typeLabel = (type: SearchResult["type"]) => {
     if (type === "stock") return "Stocks";
-    if (type === "review") return "Stock Reviews";
+    if (type === "review") return "Stock Analysis";
     if (type === "property") return "Properties";
-    return "Articles";
+    if (type === "mf") return "Mutual Funds & ETFs";
+    if (type === "crypto") return "Crypto";
+    return "Blog";
   };
 
   const showDropdown = focused && (query.trim().length > 0);
