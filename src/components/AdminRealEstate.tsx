@@ -27,7 +27,24 @@ interface Property {
   cover_images: string[] | null; videos: string[] | null;
 }
 
-const CITIES = ["Mumbai", "Bengaluru", "Gurugram", "Pune", "Noida", "Hyderabad", "Thane", "Chennai", "Navi Mumbai", "Delhi"];
+const CITIES = ["Mumbai", "Bengaluru", "Gurugram", "Pune", "Noida", "Hyderabad", "Thane", "Chennai", "Navi Mumbai", "Delhi", "Greater Noida", "Ahmedabad", "Kolkata", "Jaipur", "Lucknow", "Chandigarh"];
+
+const STATES = ["Maharashtra", "Karnataka", "Haryana", "Uttar Pradesh", "Tamil Nadu", "Telangana", "Gujarat", "Rajasthan", "West Bengal", "Punjab", "Delhi", "Madhya Pradesh"];
+
+const POPULAR_BUILDERS = ["DLF", "M3M", "Lodha", "Godrej Properties", "Prestige", "Sobha", "Brigade", "Oberoi Realty", "Hiranandani", "Tata Housing", "Mahindra Lifespaces", "Adani Realty", "Piramal Realty", "Raheja", "Signature Global", "Birla Estates", "Shapoorji Pallonji", "Rustomjee", "Kalpataru", "Embassy Group"];
+
+const PROPERTY_TYPES = [
+  { value: "apartment", label: "Apartment" },
+  { value: "villa", label: "Villa" },
+  { value: "builder_floor", label: "Builder Floor" },
+  { value: "penthouse", label: "Penthouse" },
+  { value: "independent", label: "Independent House" },
+  { value: "plot", label: "Plot / Land" },
+  { value: "pg", label: "PG / Paying Guest" },
+  { value: "studio", label: "Studio Apartment" },
+  { value: "duplex", label: "Duplex" },
+  { value: "row_house", label: "Row House" },
+];
 
 export function AdminRealEstate() {
   const [tab, setTab] = useState<Tab>("properties");
