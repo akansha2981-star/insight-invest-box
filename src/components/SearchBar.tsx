@@ -44,6 +44,8 @@ export function SearchBar() {
   async function search(q: string) {
     setLoading(true);
     const lower = q.toLowerCase();
+    // Sanitize for PostgREST or-filter: remove commas, parens, % and other reserved chars
+    const safe = q.replace(/[,()%*"'\\]/g, " ").trim();
     const out: SearchResult[] = [];
 
     // Stock search (from mock data)

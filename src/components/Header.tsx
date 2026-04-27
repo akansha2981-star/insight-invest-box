@@ -106,19 +106,32 @@ export function Header() {
               onMouseEnter={() => setActiveDropdown(item.label)}
               onMouseLeave={() => setActiveDropdown(null)}
             >
-              <Link
-                to={item.href}
-                className={`flex items-center gap-0.5 px-3 py-2 text-sm font-medium transition-colors rounded-md ${
-                  activeDropdown === item.label ? 'text-primary bg-primary/8' : 'text-foreground/75 hover:text-foreground hover:bg-muted'
-                }`}
-              >
-                {item.label}
-                {item.sub && <ChevronDown className={`h-3.5 w-3.5 ml-0.5 transition-transform ${activeDropdown === item.label ? 'rotate-180' : ''}`} />}
-              </Link>
+              {item.sub ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveDropdown(activeDropdown === item.label ? null : item.label)}
+                  className={`flex items-center gap-0.5 px-3 py-2 text-sm font-medium transition-colors rounded-md ${
+                    activeDropdown === item.label ? 'text-primary bg-primary/8' : 'text-foreground/75 hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  {item.label}
+                  <ChevronDown className={`h-3.5 w-3.5 ml-0.5 transition-transform ${activeDropdown === item.label ? 'rotate-180' : ''}`} />
+                </button>
+              ) : (
+                <Link
+                  to={item.href}
+                  className="flex items-center gap-0.5 px-3 py-2 text-sm font-medium transition-colors rounded-md text-foreground/75 hover:text-foreground hover:bg-muted"
+                >
+                  {item.label}
+                </Link>
+              )}
               {item.sub && activeDropdown === item.label && (
                 <div className="absolute top-full left-0 mt-1 bg-white border border-border rounded-xl shadow-card-lg z-50 min-w-[200px] py-2">
+                  <Link to={item.href} onClick={() => setActiveDropdown(null)} className="block px-4 py-2.5 text-sm font-semibold text-primary hover:bg-blue-50 transition-colors border-b border-border/60 mb-1">
+                    All {item.label} →
+                  </Link>
                   {item.sub.map((sub) => (
-                    <Link key={sub.label} to={sub.href} className="block px-4 py-2.5 text-sm text-foreground/80 hover:text-primary hover:bg-blue-50 transition-colors">
+                    <Link key={sub.label} to={sub.href} onClick={() => setActiveDropdown(null)} className="block px-4 py-2.5 text-sm text-foreground/80 hover:text-primary hover:bg-blue-50 transition-colors">
                       {sub.label}
                     </Link>
                   ))}
