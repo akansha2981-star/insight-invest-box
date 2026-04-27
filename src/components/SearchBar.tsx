@@ -68,7 +68,7 @@ export function SearchBar() {
       .from("blog_posts")
       .select("title, slug, category, excerpt")
       .eq("status", "published")
-      .or(`title.ilike.%${q}%,excerpt.ilike.%${q}%`)
+      .or(`title.ilike.%${safe}%,excerpt.ilike.%${safe}%`)
       .limit(3);
 
     (articles ?? []).forEach((a: any) => {
@@ -86,7 +86,7 @@ export function SearchBar() {
       .from("stock_reviews" as any)
       .select("symbol, company_name, rating, sector")
       .eq("status", "published")
-      .or(`symbol.ilike.%${q}%,company_name.ilike.%${q}%`)
+      .or(`symbol.ilike.%${safe}%,company_name.ilike.%${safe}%`)
       .limit(3);
 
     ((reviews as any[]) ?? []).forEach((r: any) => {
@@ -104,7 +104,7 @@ export function SearchBar() {
       .from("properties")
       .select("title, slug, city, locality, bhk, property_type, price_display")
       .eq("status", "active")
-      .or(`title.ilike.%${q}%,city.ilike.%${q}%,locality.ilike.%${q}%,developer_name.ilike.%${q}%`)
+      .or(`title.ilike.%${safe}%,city.ilike.%${safe}%,locality.ilike.%${safe}%,developer_name.ilike.%${safe}%`)
       .limit(3);
 
     ((properties as any[]) ?? []).forEach((p: any) => {
