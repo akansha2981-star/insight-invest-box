@@ -234,45 +234,126 @@ function PropertiesAdmin() {
 
   return (
     <div>
-      {/* AI Quick Actions */}
-      <div className="bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-xl p-4 mb-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-4 w-4 text-emerald-600" />
-          <span className="text-sm font-bold text-emerald-900">AI Auto-Generate Property</span>
-        </div>
-        <p className="text-xs text-emerald-600 mb-3">Select category — AI fills all details including price, amenities, RERA, ROI</p>
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <select value={aiCity} onChange={e => setAiCity(e.target.value)}
-            className="px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
-            {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select value={aiListingType} onChange={e => setAiListingType(e.target.value)}
-            className="px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
-            <option value="buy">Buy</option>
-            <option value="rent">Rent</option>
-            <option value="pg">PG</option>
-          </select>
-          <select value={aiPropertyType} onChange={e => setAiPropertyType(e.target.value)}
-            className="px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
-            <option value="apartment">Apartment</option>
-            <option value="villa">Villa</option>
-            <option value="plot">Plot</option>
-            <option value="penthouse">Penthouse</option>
-            <option value="independent">Independent House</option>
-          </select>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button onClick={() => aiGenerateProperty(false)} disabled={generating}
-            className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 transition-colors flex-1">
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Generate & Edit
-          </button>
-          <button onClick={() => aiGenerateProperty(true)} disabled={generating}
-            className="flex items-center justify-center gap-2 bg-emerald-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-900 disabled:opacity-50 transition-colors flex-1">
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-            Generate & Publish Live
+      {/* AI Smart Property Generator */}
+      <div className="bg-gradient-to-br from-emerald-50 via-white to-blue-50 border border-emerald-200 rounded-2xl p-5 mb-5 shadow-sm">
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-emerald-600" />
+            <span className="text-base font-bold text-emerald-900">AI Smart Property Generator</span>
+          </div>
+          <button onClick={() => setAiOpen(o => !o)}
+            className="text-xs font-semibold text-emerald-700 hover:text-emerald-900">
+            {aiOpen ? "Hide" : "Open"}
           </button>
         </div>
+        <p className="text-xs text-emerald-700/80 mb-4">
+          Provide project name, builder & location — AI generates a complete, dated, market-priced listing with overview, amenities, RERA, ROI, nearby landmarks and more.
+        </p>
+
+        {aiOpen && (
+          <>
+            {/* Row 1: Project Name + Builder */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Property Name *</label>
+                <input value={ai.property_name} onChange={e => setAi({ ...ai, property_name: e.target.value })}
+                  placeholder="e.g. DLF Privana South"
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Builder / Developer *</label>
+                <input value={ai.developer_name} onChange={e => setAi({ ...ai, developer_name: e.target.value })}
+                  placeholder="e.g. DLF, M3M, Lodha…"
+                  list="builder-suggestions"
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+                <datalist id="builder-suggestions">
+                  {POPULAR_BUILDERS.map(b => <option key={b} value={b} />)}
+                </datalist>
+              </div>
+            </div>
+
+            {/* Row 2: Type + Listing */}
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Property Type</label>
+                <select value={ai.property_type} onChange={e => setAi({ ...ai, property_type: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+                  {PROPERTY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Listing Type</label>
+                <select value={ai.listing_type} onChange={e => setAi({ ...ai, listing_type: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+                  <option value="buy">Buy</option>
+                  <option value="rent">Rent</option>
+                  <option value="pg">PG / Paying Guest</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Row 3: City + State + Locality */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">City</label>
+                <select value={ai.city} onChange={e => setAi({ ...ai, city: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+                  {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">State</label>
+                <select value={ai.state} onChange={e => setAi({ ...ai, state: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+                  {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Locality / Sector</label>
+                <input value={ai.locality} onChange={e => setAi({ ...ai, locality: e.target.value })}
+                  placeholder="e.g. Sector 77, Sohna Road"
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white" />
+              </div>
+            </div>
+
+            {/* Row 4: Optional details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Configuration (optional)</label>
+                <input value={ai.bhk} onChange={e => setAi({ ...ai, bhk: e.target.value })}
+                  placeholder="e.g. 3 BHK or 2-4 BHK"
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Budget Hint (optional)</label>
+                <input value={ai.budget_hint} onChange={e => setAi({ ...ai, budget_hint: e.target.value })}
+                  placeholder="e.g. ₹2-3 Cr or ₹40k/month"
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white" />
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Additional Notes for AI (optional)</label>
+              <textarea value={ai.extra_notes} onChange={e => setAi({ ...ai, extra_notes: e.target.value })}
+                rows={2}
+                placeholder="e.g. Luxury positioning, focus on green amenities, near metro station…"
+                className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white resize-none" />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button onClick={() => aiGenerateProperty(false)} disabled={generating}
+                className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 transition-colors flex-1">
+                {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                Generate & Edit
+              </button>
+              <button onClick={() => aiGenerateProperty(true)} disabled={generating}
+                className="flex items-center justify-center gap-2 bg-emerald-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-900 disabled:opacity-50 transition-colors flex-1">
+                {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                Generate & Publish Live
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="flex items-center justify-between mb-4">
