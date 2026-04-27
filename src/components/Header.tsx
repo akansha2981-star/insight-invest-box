@@ -32,7 +32,6 @@ const NAV_ITEMS = [
     { label: "Commodities", href: "/markets" },
     { label: "Global", href: "/news" },
   ]},
-  { label: "Economy", href: "/economy" },
   { label: "Real Estate", href: "/real-estate", sub: [
     { label: "Buy Property", href: "/real-estate" },
     { label: "Rent Property", href: "/real-estate" },
@@ -43,7 +42,6 @@ const NAV_ITEMS = [
   ]},
   { label: "MF & ETF", href: "/mf" },
   { label: "Crypto", href: "/crypto" },
-  { label: "Portfolio", href: "/portfolio" },
 ];
 
 export function Header() {
