@@ -64,6 +64,36 @@ export function SearchBar() {
       });
     });
 
+    // Mutual Funds & ETFs (mock data)
+    const mfMatches = TOP_MUTUAL_FUNDS.filter(f =>
+      f.name.toLowerCase().includes(lower) ||
+      f.category.toLowerCase().includes(lower)
+    ).slice(0, 3);
+    mfMatches.forEach(f => {
+      out.push({
+        type: "mf",
+        title: f.name,
+        subtitle: `${f.category}${f.ret1y ? ` · 1Y ${f.ret1y}` : ""}`,
+        href: f.href,
+        badge: f.category,
+      });
+    });
+
+    // Cryptocurrencies (mock data)
+    const cryptoMatches = TOP_CRYPTOS.filter(c =>
+      c.symbol.toLowerCase().includes(lower) ||
+      c.name.toLowerCase().includes(lower)
+    ).slice(0, 3);
+    cryptoMatches.forEach(c => {
+      out.push({
+        type: "crypto",
+        title: c.symbol,
+        subtitle: c.name,
+        href: c.href,
+        badge: "Crypto",
+      });
+    });
+
     // Articles search from DB
     const { data: articles } = await supabase
       .from("blog_posts")
