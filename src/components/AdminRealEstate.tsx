@@ -114,48 +114,72 @@ function PropertiesAdmin() {
   }
 
   async function aiGenerateProperty(publishNow = false) {
+    if (!ai.property_name.trim() || !ai.developer_name.trim()) {
+      toast({ title: "Property Name & Builder required", description: "Enter the project name and builder before generating.", variant: "destructive" });
+      return;
+    }
     const result = await generateContent({
       action: "generate-property",
-      context: { listing_type: aiListingType, city: aiCity, property_type: aiPropertyType }
+      context: {
+        property_name: ai.property_name.trim(),
+        developer_name: ai.developer_name.trim(),
+        property_type: ai.property_type,
+        listing_type: ai.listing_type,
+        city: ai.city,
+        state: ai.state,
+        locality: ai.locality.trim() || undefined,
+        bhk: ai.bhk.trim() || undefined,
+        budget_hint: ai.budget_hint.trim() || undefined,
+        extra_notes: ai.extra_notes.trim() || undefined,
+      }
     });
     if (result) {
+      // Always preserve user-entered identity over AI suggestion
+      const finalTitle = ai.property_name.trim() || result.title;
+      const finalBuilder = ai.developer_name.trim() || result.developer_name;
+      const slug = (result.slug || finalTitle?.toLowerCase().replace(/[^a-z0-9]+/g, "-")) as string;
+
+      const payload: any = {
+        title: finalTitle, slug,
+        developer_name: finalBuilder, city: result.city || ai.city,
+        locality: result.locality || ai.locality || null,
+        sector: result.sector || null,
+        property_type: result.property_type || ai.property_type,
+        listing_type: result.listing_type || ai.listing_type,
+        bhk: result.bhk || ai.bhk || null,
+        bhk_min: result.bhk_min || null, bhk_max: result.bhk_max || null,
+        area_sqft: result.area_sqft || null,
+        area_min: result.area_min || null, area_max: result.area_max || null,
+        price: result.price || 0,
+        price_display: result.price_display || null,
+        price_min: result.price_min || null, price_max: result.price_max || null,
+        original_price: result.original_price || null,
+        description: result.description || null, overview: result.overview || null,
+        amenities: result.amenities || [], highlights: result.highlights || [],
+        possession_status: result.possession_status || "under_construction",
+        rera_id: result.rera_id || null,
+        total_floors: result.total_floors || null,
+        total_towers: result.total_towers || null,
+        green_area_pct: result.green_area_pct || null,
+        density: result.density || null,
+        nearest_hospital: result.nearest_hospital || null,
+        nearest_school: result.nearest_school || null,
+        nearest_mall: result.nearest_mall || null,
+        roi_projection: result.roi_projection || null,
+        investment_plan: result.investment_plan || null,
+        rating: result.rating || 0,
+        is_featured: result.is_featured || false,
+        is_price_drop: result.is_price_drop || false,
+        status: "active",
+      };
+
       if (publishNow) {
-        const payload = {
-          title: result.title, slug: result.slug || result.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-          developer_name: result.developer_name || null, city: result.city || aiCity,
-          locality: result.locality || null, property_type: result.property_type || aiPropertyType,
-          listing_type: result.listing_type || aiListingType, bhk: result.bhk || null,
-          area_sqft: result.area_sqft || null, price: result.price || 0,
-          price_display: result.price_display || null, original_price: result.original_price || null,
-          description: result.description || null, overview: result.overview || null,
-          amenities: result.amenities || [], highlights: result.highlights || [],
-          possession_status: result.possession_status || "under_construction",
-          rera_id: result.rera_id || null, total_floors: result.total_floors || null,
-          green_area_pct: result.green_area_pct || null, density: result.density || null,
-          roi_projection: result.roi_projection || null, investment_plan: result.investment_plan || null,
-          rating: result.rating || 0, is_featured: result.is_featured || false,
-          is_price_drop: result.is_price_drop || false, status: "active",
-        };
         await supabase.from("properties").insert(payload);
-        toast({ title: "Property published!", description: `${result.title} is now live` });
+        toast({ title: "Property published!", description: `${finalTitle} is now live` });
         fetchProperties();
+        setAiOpen(false);
       } else {
-        setEditing({
-          title: result.title, slug: result.slug,
-          developer_name: result.developer_name, city: result.city || aiCity,
-          locality: result.locality, property_type: result.property_type || aiPropertyType,
-          listing_type: result.listing_type || aiListingType, bhk: result.bhk,
-          area_sqft: result.area_sqft, price: result.price || 0,
-          price_display: result.price_display, original_price: result.original_price,
-          description: result.description, overview: result.overview,
-          amenities: result.amenities || [], highlights: result.highlights || [],
-          possession_status: result.possession_status || "under_construction",
-          rera_id: result.rera_id, total_floors: result.total_floors,
-          green_area_pct: result.green_area_pct, density: result.density,
-          roi_projection: result.roi_projection, investment_plan: result.investment_plan,
-          rating: result.rating || 0, is_featured: result.is_featured || false,
-          is_price_drop: result.is_price_drop || false, status: "active",
-        } as any);
+        setEditing(payload);
       }
     }
   }
