@@ -88,9 +88,20 @@ function PropertiesAdmin() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [editing, setEditing] = useState<Partial<Property> | null>(null);
   const [loading, setLoading] = useState(true);
-  const [aiCity, setAiCity] = useState("Mumbai");
-  const [aiListingType, setAiListingType] = useState("buy");
-  const [aiPropertyType, setAiPropertyType] = useState("apartment");
+  // Structured AI input form
+  const [ai, setAi] = useState({
+    property_name: "",
+    developer_name: "",
+    property_type: "apartment",
+    listing_type: "buy",
+    city: "Gurugram",
+    state: "Haryana",
+    locality: "",
+    bhk: "",
+    budget_hint: "",
+    extra_notes: "",
+  });
+  const [aiOpen, setAiOpen] = useState(false);
   const { toast } = useToast();
   const { generating, generateContent } = useAdminAI();
 
