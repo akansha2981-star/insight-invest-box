@@ -137,11 +137,6 @@ export default function NewsDetailPage() {
                   <Clock className="h-4 w-4" />
                   {post.published_at ? new Date(post.published_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recently'}
                 </span>
-                {post.views_count != null && (
-                  <span className="flex items-center gap-1.5">
-                    <Eye className="h-4 w-4" /> {(post.views_count + 1).toLocaleString()} views
-                  </span>
-                )}
               </div>
               <button
                 onClick={() => navigator.share?.({ title: post.title, url: window.location.href })}
