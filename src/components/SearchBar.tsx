@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, TrendingUp, FileText, X, BarChart2, Brain, Building2 } from "lucide-react";
+import { Search, TrendingUp, FileText, X, BarChart2, Building2, PieChart, Bitcoin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { TOP_GAINERS, TOP_LOSERS } from "@/data/mockStocks";
+import { TOP_MUTUAL_FUNDS, TOP_CRYPTOS } from "@/data/mockMFCrypto";
 
 const ALL_STOCKS = [...TOP_GAINERS, ...TOP_LOSERS];
 
 interface SearchResult {
-  type: "stock" | "article" | "review" | "property";
+  type: "stock" | "article" | "review" | "property" | "mf" | "crypto";
   title: string;
   subtitle: string;
   href: string;
@@ -60,6 +61,36 @@ export function SearchBar() {
         subtitle: s.name,
         href: `/stocks?search=${s.symbol}`,
         badge: s.sector,
+      });
+    });
+
+    // Mutual Funds & ETFs (mock data)
+    const mfMatches = TOP_MUTUAL_FUNDS.filter(f =>
+      f.name.toLowerCase().includes(lower) ||
+      f.category.toLowerCase().includes(lower)
+    ).slice(0, 3);
+    mfMatches.forEach(f => {
+      out.push({
+        type: "mf",
+        title: f.name,
+        subtitle: `${f.category}${f.ret1y ? ` · 1Y ${f.ret1y}` : ""}`,
+        href: f.href,
+        badge: f.category,
+      });
+    });
+
+    // Cryptocurrencies (mock data)
+    const cryptoMatches = TOP_CRYPTOS.filter(c =>
+      c.symbol.toLowerCase().includes(lower) ||
+      c.name.toLowerCase().includes(lower)
+    ).slice(0, 3);
+    cryptoMatches.forEach(c => {
+      out.push({
+        type: "crypto",
+        title: c.symbol,
+        subtitle: c.name,
+        href: c.href,
+        badge: "Crypto",
       });
     });
 
@@ -138,14 +169,18 @@ export function SearchBar() {
     if (type === "stock") return <TrendingUp className="h-3.5 w-3.5 text-primary" />;
     if (type === "review") return <BarChart2 className="h-3.5 w-3.5 text-gain" />;
     if (type === "property") return <Building2 className="h-3.5 w-3.5 text-emerald-500" />;
+    if (type === "mf") return <PieChart className="h-3.5 w-3.5 text-violet-500" />;
+    if (type === "crypto") return <Bitcoin className="h-3.5 w-3.5 text-amber-500" />;
     return <FileText className="h-3.5 w-3.5 text-muted-foreground" />;
   };
 
   const typeLabel = (type: SearchResult["type"]) => {
     if (type === "stock") return "Stocks";
-    if (type === "review") return "Stock Reviews";
+    if (type === "review") return "Stock Analysis";
     if (type === "property") return "Properties";
-    return "Articles";
+    if (type === "mf") return "Mutual Funds & ETFs";
+    if (type === "crypto") return "Crypto";
+    return "Blog";
   };
 
   const showDropdown = focused && (query.trim().length > 0);
@@ -182,7 +217,7 @@ export function SearchBar() {
           ) : (
             <div>
               {/* Group by type */}
-              {(["stock", "review", "property", "article"] as const).map(type => {
+              {(["stock", "review", "mf", "crypto", "property", "article"] as const).map(type => {
                 const group = results.filter(r => r.type === type);
                 if (!group.length) return null;
                 return (

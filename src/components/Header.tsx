@@ -23,7 +23,14 @@ const NAV_ITEMS = [
     { label: "Stock Reviews", href: "/stocks/reviews" },
     { label: "Most Active", href: "/stocks" },
   ]},
-  { label: "Stock Reviews", href: "/stocks/reviews" },
+  { label: "Stock Analysis", href: "/stocks/reviews", sub: [
+    { label: "All Stock Reviews", href: "/stocks/reviews" },
+    { label: "Strong Buy Picks", href: "/stocks/reviews?rating=STRONG+BUY" },
+    { label: "Buy Recommendations", href: "/stocks/reviews?rating=BUY" },
+    { label: "Hold Calls", href: "/stocks/reviews?rating=HOLD" },
+    { label: "Featured Analysis", href: "/stocks/reviews?featured=1" },
+    { label: "Stock Screener", href: "/tools/screener" },
+  ]},
   { label: "News", href: "/news", sub: [
     { label: "Markets", href: "/news" },
     { label: "Economy", href: "/economy" },

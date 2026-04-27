@@ -427,19 +427,66 @@ The content field must contain FULL HTML article body. Do NOT truncate or abbrev
     toolName: "generate_article",
   },
   "generate-property": {
-    system: `You are a real estate content specialist for InvestingIQ, covering Indian property markets. Generate realistic property listings with full details.
-Rules: No emojis. Realistic prices for Indian cities. Include actual-sounding developer names, RERA-like IDs, detailed descriptions. Date: ${new Date().toISOString().split('T')[0]}`,
-    prompt: (ctx) => `Generate a COMPLETE property listing for category: ${ctx.listing_type || "buy"}, city: ${ctx.city || "Mumbai"}, property type: ${ctx.property_type || "apartment"}.
-Include ALL fields with realistic Indian market data:
-- title (project name), slug, developer_name, city, locality (real locality name)
-- property_type, listing_type, bhk (e.g. "3 BHK"), area_sqft
-- price (numeric in INR), price_display (e.g. "₹1.5 Cr"), original_price (if price_drop)
-- description (2-3 sentences), overview (detailed 100-200 word description)
-- amenities (array of 8-12 amenities), highlights (array of 4-6 highlights)
-- possession_status (ready/under_construction), rera_id (realistic format)
-- total_floors, green_area_pct, density (Low/Medium/High)
-- roi_projection (expected returns text), investment_plan (payment plan text)
-- rating (0-5), is_featured, is_price_drop`,
+    system: (ctx: any) => {
+      const d = getRequestedDate(ctx?.target_date);
+      return `You are a senior real estate content specialist for InvestingIQ, an Indian property platform.
+You write detailed, realistic, publish-ready property listings using current market intelligence as of ${d} (Asia/Kolkata).
+Rules:
+- No emojis. Professional, factual, persuasive tone.
+- Use REALISTIC prices for the given Indian city/locality (current market rates as of ${d}).
+- Use the Property Name and Builder Name EXACTLY as provided by the user — do NOT invent a different project name.
+- Pricing, RERA-style IDs, possession dates and amenities must align with the city, builder reputation and property type.
+- ${buildDateGuard(d)}`;
+    },
+    prompt: (ctx) => {
+      const d = getRequestedDate(ctx.target_date);
+      const name = ctx.property_name ? `Project Name (use exactly): "${ctx.property_name}"` : "Project Name: (invent a realistic, builder-aligned name)";
+      const builder = ctx.developer_name ? `Builder / Developer (use exactly): "${ctx.developer_name}"` : "Builder: (pick a realistic Indian developer)";
+      const state = ctx.state ? `State: ${ctx.state}` : "";
+      const locality = ctx.locality ? `Preferred locality / sector: ${ctx.locality}` : "";
+      const bhkPref = ctx.bhk ? `Configuration preference: ${ctx.bhk}` : "";
+      const budget = ctx.budget_hint ? `Budget hint: ${ctx.budget_hint}` : "";
+      const extra = ctx.extra_notes ? `Additional notes from admin: ${ctx.extra_notes}` : "";
+
+      return `Generate a COMPLETE, DETAILED property listing using the following user inputs:
+
+${name}
+${builder}
+${state}
+City: ${ctx.city || "Mumbai"}
+${locality}
+Property Type: ${ctx.property_type || "apartment"}
+Listing Type: ${ctx.listing_type || "buy"}
+${bhkPref}
+${budget}
+${extra}
+
+Today's date: ${d} (use the latest realistic market data as of this date).
+${buildDateGuard(d)}
+${ctx.market_snapshot || ""}
+
+Fill EVERY field with rich, realistic data:
+- title: use the Project Name exactly if provided, otherwise create a builder-aligned realistic project name
+- slug: URL-friendly version of title
+- developer_name: use the builder name exactly if provided
+- city, locality (real, well-known locality name within the city), sector (if applicable, e.g. "Sector 65, Gurugram")
+- property_type, listing_type
+- bhk (e.g. "3 BHK", or range like "2-4 BHK"), bhk_min, bhk_max
+- area_sqft (typical unit size), area_min, area_max
+- price (numeric INR for a typical unit), price_display (e.g. "₹1.85 Cr onwards"), price_min, price_max, original_price (only if is_price_drop=true)
+- description: 2-3 punchy sentences for cards
+- overview: detailed 150-250 word description covering location, builder pedigree, design philosophy, target buyer
+- amenities: array of 10-14 realistic amenities (Swimming Pool, Clubhouse, Gym, Concierge, EV Charging, Kids Play Area, Co-working Lounge, Yoga Deck, etc.)
+- highlights: 5-7 unique selling points
+- possession_status: "ready" or "under_construction"
+- rera_id: realistic state-specific format (e.g. for Haryana "RC/REP/HARERA/GGM/...", Maharashtra "P51700XXXXXXX", UP "UPRERAPRJ...")
+- total_floors, total_towers, green_area_pct (10-60), density (Low/Medium/High)
+- nearest_hospital, nearest_school, nearest_mall (use REAL nearby establishments for the chosen locality)
+- roi_projection: 2-3 sentences with realistic % appreciation expectations
+- investment_plan: short construction-linked or possession-linked payment plan summary
+- rating (4.0-4.8), is_featured (true if premium project), is_price_drop (only if explicitly suggested)
+Numbers and amenities must match the chosen builder's typical positioning (luxury vs mid-segment vs affordable).`;
+    },
     tools: [{
       type: "function",
       function: {
@@ -450,20 +497,26 @@ Include ALL fields with realistic Indian market data:
           properties: {
             title: { type: "string" }, slug: { type: "string" },
             developer_name: { type: "string" }, city: { type: "string" },
-            locality: { type: "string" }, property_type: { type: "string" },
-            listing_type: { type: "string" }, bhk: { type: "string" },
-            area_sqft: { type: "number" }, price: { type: "number" },
-            price_display: { type: "string" }, original_price: { type: "number" },
+            locality: { type: "string" }, sector: { type: "string" },
+            property_type: { type: "string" }, listing_type: { type: "string" },
+            bhk: { type: "string" }, bhk_min: { type: "string" }, bhk_max: { type: "string" },
+            area_sqft: { type: "number" }, area_min: { type: "number" }, area_max: { type: "number" },
+            price: { type: "number" }, price_display: { type: "string" },
+            price_min: { type: "number" }, price_max: { type: "number" },
+            original_price: { type: "number" },
             description: { type: "string" }, overview: { type: "string" },
             amenities: { type: "array", items: { type: "string" } },
             highlights: { type: "array", items: { type: "string" } },
             possession_status: { type: "string" }, rera_id: { type: "string" },
-            total_floors: { type: "number" }, green_area_pct: { type: "number" },
-            density: { type: "string" }, roi_projection: { type: "string" },
-            investment_plan: { type: "string" }, rating: { type: "number" },
+            total_floors: { type: "number" }, total_towers: { type: "number" },
+            green_area_pct: { type: "number" }, density: { type: "string" },
+            nearest_hospital: { type: "string" }, nearest_school: { type: "string" },
+            nearest_mall: { type: "string" },
+            roi_projection: { type: "string" }, investment_plan: { type: "string" },
+            rating: { type: "number" },
             is_featured: { type: "boolean" }, is_price_drop: { type: "boolean" },
           },
-          required: ["title", "slug", "city", "price", "description"]
+          required: ["title", "slug", "city", "price", "description", "overview", "amenities"]
         }
       }
     }],

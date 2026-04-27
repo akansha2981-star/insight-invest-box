@@ -27,7 +27,24 @@ interface Property {
   cover_images: string[] | null; videos: string[] | null;
 }
 
-const CITIES = ["Mumbai", "Bengaluru", "Gurugram", "Pune", "Noida", "Hyderabad", "Thane", "Chennai", "Navi Mumbai", "Delhi"];
+const CITIES = ["Mumbai", "Bengaluru", "Gurugram", "Pune", "Noida", "Hyderabad", "Thane", "Chennai", "Navi Mumbai", "Delhi", "Greater Noida", "Ahmedabad", "Kolkata", "Jaipur", "Lucknow", "Chandigarh"];
+
+const STATES = ["Maharashtra", "Karnataka", "Haryana", "Uttar Pradesh", "Tamil Nadu", "Telangana", "Gujarat", "Rajasthan", "West Bengal", "Punjab", "Delhi", "Madhya Pradesh"];
+
+const POPULAR_BUILDERS = ["DLF", "M3M", "Lodha", "Godrej Properties", "Prestige", "Sobha", "Brigade", "Oberoi Realty", "Hiranandani", "Tata Housing", "Mahindra Lifespaces", "Adani Realty", "Piramal Realty", "Raheja", "Signature Global", "Birla Estates", "Shapoorji Pallonji", "Rustomjee", "Kalpataru", "Embassy Group"];
+
+const PROPERTY_TYPES = [
+  { value: "apartment", label: "Apartment" },
+  { value: "villa", label: "Villa" },
+  { value: "builder_floor", label: "Builder Floor" },
+  { value: "penthouse", label: "Penthouse" },
+  { value: "independent", label: "Independent House" },
+  { value: "plot", label: "Plot / Land" },
+  { value: "pg", label: "PG / Paying Guest" },
+  { value: "studio", label: "Studio Apartment" },
+  { value: "duplex", label: "Duplex" },
+  { value: "row_house", label: "Row House" },
+];
 
 export function AdminRealEstate() {
   const [tab, setTab] = useState<Tab>("properties");
@@ -71,9 +88,20 @@ function PropertiesAdmin() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [editing, setEditing] = useState<Partial<Property> | null>(null);
   const [loading, setLoading] = useState(true);
-  const [aiCity, setAiCity] = useState("Mumbai");
-  const [aiListingType, setAiListingType] = useState("buy");
-  const [aiPropertyType, setAiPropertyType] = useState("apartment");
+  // Structured AI input form
+  const [ai, setAi] = useState({
+    property_name: "",
+    developer_name: "",
+    property_type: "apartment",
+    listing_type: "buy",
+    city: "Gurugram",
+    state: "Haryana",
+    locality: "",
+    bhk: "",
+    budget_hint: "",
+    extra_notes: "",
+  });
+  const [aiOpen, setAiOpen] = useState(false);
   const { toast } = useToast();
   const { generating, generateContent } = useAdminAI();
 
@@ -86,48 +114,72 @@ function PropertiesAdmin() {
   }
 
   async function aiGenerateProperty(publishNow = false) {
+    if (!ai.property_name.trim() || !ai.developer_name.trim()) {
+      toast({ title: "Property Name & Builder required", description: "Enter the project name and builder before generating.", variant: "destructive" });
+      return;
+    }
     const result = await generateContent({
       action: "generate-property",
-      context: { listing_type: aiListingType, city: aiCity, property_type: aiPropertyType }
+      context: {
+        property_name: ai.property_name.trim(),
+        developer_name: ai.developer_name.trim(),
+        property_type: ai.property_type,
+        listing_type: ai.listing_type,
+        city: ai.city,
+        state: ai.state,
+        locality: ai.locality.trim() || undefined,
+        bhk: ai.bhk.trim() || undefined,
+        budget_hint: ai.budget_hint.trim() || undefined,
+        extra_notes: ai.extra_notes.trim() || undefined,
+      }
     });
     if (result) {
+      // Always preserve user-entered identity over AI suggestion
+      const finalTitle = ai.property_name.trim() || result.title;
+      const finalBuilder = ai.developer_name.trim() || result.developer_name;
+      const slug = (result.slug || finalTitle?.toLowerCase().replace(/[^a-z0-9]+/g, "-")) as string;
+
+      const payload: any = {
+        title: finalTitle, slug,
+        developer_name: finalBuilder, city: result.city || ai.city,
+        locality: result.locality || ai.locality || null,
+        sector: result.sector || null,
+        property_type: result.property_type || ai.property_type,
+        listing_type: result.listing_type || ai.listing_type,
+        bhk: result.bhk || ai.bhk || null,
+        bhk_min: result.bhk_min || null, bhk_max: result.bhk_max || null,
+        area_sqft: result.area_sqft || null,
+        area_min: result.area_min || null, area_max: result.area_max || null,
+        price: result.price || 0,
+        price_display: result.price_display || null,
+        price_min: result.price_min || null, price_max: result.price_max || null,
+        original_price: result.original_price || null,
+        description: result.description || null, overview: result.overview || null,
+        amenities: result.amenities || [], highlights: result.highlights || [],
+        possession_status: result.possession_status || "under_construction",
+        rera_id: result.rera_id || null,
+        total_floors: result.total_floors || null,
+        total_towers: result.total_towers || null,
+        green_area_pct: result.green_area_pct || null,
+        density: result.density || null,
+        nearest_hospital: result.nearest_hospital || null,
+        nearest_school: result.nearest_school || null,
+        nearest_mall: result.nearest_mall || null,
+        roi_projection: result.roi_projection || null,
+        investment_plan: result.investment_plan || null,
+        rating: result.rating || 0,
+        is_featured: result.is_featured || false,
+        is_price_drop: result.is_price_drop || false,
+        status: "active",
+      };
+
       if (publishNow) {
-        const payload = {
-          title: result.title, slug: result.slug || result.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-          developer_name: result.developer_name || null, city: result.city || aiCity,
-          locality: result.locality || null, property_type: result.property_type || aiPropertyType,
-          listing_type: result.listing_type || aiListingType, bhk: result.bhk || null,
-          area_sqft: result.area_sqft || null, price: result.price || 0,
-          price_display: result.price_display || null, original_price: result.original_price || null,
-          description: result.description || null, overview: result.overview || null,
-          amenities: result.amenities || [], highlights: result.highlights || [],
-          possession_status: result.possession_status || "under_construction",
-          rera_id: result.rera_id || null, total_floors: result.total_floors || null,
-          green_area_pct: result.green_area_pct || null, density: result.density || null,
-          roi_projection: result.roi_projection || null, investment_plan: result.investment_plan || null,
-          rating: result.rating || 0, is_featured: result.is_featured || false,
-          is_price_drop: result.is_price_drop || false, status: "active",
-        };
         await supabase.from("properties").insert(payload);
-        toast({ title: "Property published!", description: `${result.title} is now live` });
+        toast({ title: "Property published!", description: `${finalTitle} is now live` });
         fetchProperties();
+        setAiOpen(false);
       } else {
-        setEditing({
-          title: result.title, slug: result.slug,
-          developer_name: result.developer_name, city: result.city || aiCity,
-          locality: result.locality, property_type: result.property_type || aiPropertyType,
-          listing_type: result.listing_type || aiListingType, bhk: result.bhk,
-          area_sqft: result.area_sqft, price: result.price || 0,
-          price_display: result.price_display, original_price: result.original_price,
-          description: result.description, overview: result.overview,
-          amenities: result.amenities || [], highlights: result.highlights || [],
-          possession_status: result.possession_status || "under_construction",
-          rera_id: result.rera_id, total_floors: result.total_floors,
-          green_area_pct: result.green_area_pct, density: result.density,
-          roi_projection: result.roi_projection, investment_plan: result.investment_plan,
-          rating: result.rating || 0, is_featured: result.is_featured || false,
-          is_price_drop: result.is_price_drop || false, status: "active",
-        } as any);
+        setEditing(payload);
       }
     }
   }
@@ -182,45 +234,126 @@ function PropertiesAdmin() {
 
   return (
     <div>
-      {/* AI Quick Actions */}
-      <div className="bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-xl p-4 mb-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-4 w-4 text-emerald-600" />
-          <span className="text-sm font-bold text-emerald-900">AI Auto-Generate Property</span>
-        </div>
-        <p className="text-xs text-emerald-600 mb-3">Select category — AI fills all details including price, amenities, RERA, ROI</p>
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <select value={aiCity} onChange={e => setAiCity(e.target.value)}
-            className="px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
-            {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select value={aiListingType} onChange={e => setAiListingType(e.target.value)}
-            className="px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
-            <option value="buy">Buy</option>
-            <option value="rent">Rent</option>
-            <option value="pg">PG</option>
-          </select>
-          <select value={aiPropertyType} onChange={e => setAiPropertyType(e.target.value)}
-            className="px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
-            <option value="apartment">Apartment</option>
-            <option value="villa">Villa</option>
-            <option value="plot">Plot</option>
-            <option value="penthouse">Penthouse</option>
-            <option value="independent">Independent House</option>
-          </select>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button onClick={() => aiGenerateProperty(false)} disabled={generating}
-            className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 transition-colors flex-1">
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Generate & Edit
-          </button>
-          <button onClick={() => aiGenerateProperty(true)} disabled={generating}
-            className="flex items-center justify-center gap-2 bg-emerald-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-900 disabled:opacity-50 transition-colors flex-1">
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-            Generate & Publish Live
+      {/* AI Smart Property Generator */}
+      <div className="bg-gradient-to-br from-emerald-50 via-white to-blue-50 border border-emerald-200 rounded-2xl p-5 mb-5 shadow-sm">
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-emerald-600" />
+            <span className="text-base font-bold text-emerald-900">AI Smart Property Generator</span>
+          </div>
+          <button onClick={() => setAiOpen(o => !o)}
+            className="text-xs font-semibold text-emerald-700 hover:text-emerald-900">
+            {aiOpen ? "Hide" : "Open"}
           </button>
         </div>
+        <p className="text-xs text-emerald-700/80 mb-4">
+          Provide project name, builder & location — AI generates a complete, dated, market-priced listing with overview, amenities, RERA, ROI, nearby landmarks and more.
+        </p>
+
+        {aiOpen && (
+          <>
+            {/* Row 1: Project Name + Builder */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Property Name *</label>
+                <input value={ai.property_name} onChange={e => setAi({ ...ai, property_name: e.target.value })}
+                  placeholder="e.g. DLF Privana South"
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Builder / Developer *</label>
+                <input value={ai.developer_name} onChange={e => setAi({ ...ai, developer_name: e.target.value })}
+                  placeholder="e.g. DLF, M3M, Lodha…"
+                  list="builder-suggestions"
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+                <datalist id="builder-suggestions">
+                  {POPULAR_BUILDERS.map(b => <option key={b} value={b} />)}
+                </datalist>
+              </div>
+            </div>
+
+            {/* Row 2: Type + Listing */}
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Property Type</label>
+                <select value={ai.property_type} onChange={e => setAi({ ...ai, property_type: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+                  {PROPERTY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Listing Type</label>
+                <select value={ai.listing_type} onChange={e => setAi({ ...ai, listing_type: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+                  <option value="buy">Buy</option>
+                  <option value="rent">Rent</option>
+                  <option value="pg">PG / Paying Guest</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Row 3: City + State + Locality */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">City</label>
+                <select value={ai.city} onChange={e => setAi({ ...ai, city: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+                  {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">State</label>
+                <select value={ai.state} onChange={e => setAi({ ...ai, state: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white">
+                  {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Locality / Sector</label>
+                <input value={ai.locality} onChange={e => setAi({ ...ai, locality: e.target.value })}
+                  placeholder="e.g. Sector 77, Sohna Road"
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white" />
+              </div>
+            </div>
+
+            {/* Row 4: Optional details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Configuration (optional)</label>
+                <input value={ai.bhk} onChange={e => setAi({ ...ai, bhk: e.target.value })}
+                  placeholder="e.g. 3 BHK or 2-4 BHK"
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Budget Hint (optional)</label>
+                <input value={ai.budget_hint} onChange={e => setAi({ ...ai, budget_hint: e.target.value })}
+                  placeholder="e.g. ₹2-3 Cr or ₹40k/month"
+                  className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white" />
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Additional Notes for AI (optional)</label>
+              <textarea value={ai.extra_notes} onChange={e => setAi({ ...ai, extra_notes: e.target.value })}
+                rows={2}
+                placeholder="e.g. Luxury positioning, focus on green amenities, near metro station…"
+                className="w-full mt-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm bg-white resize-none" />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button onClick={() => aiGenerateProperty(false)} disabled={generating}
+                className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 transition-colors flex-1">
+                {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                Generate & Edit
+              </button>
+              <button onClick={() => aiGenerateProperty(true)} disabled={generating}
+                className="flex items-center justify-center gap-2 bg-emerald-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-900 disabled:opacity-50 transition-colors flex-1">
+                {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                Generate & Publish Live
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="flex items-center justify-between mb-4">
