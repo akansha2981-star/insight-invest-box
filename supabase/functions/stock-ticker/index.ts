@@ -10,7 +10,7 @@ const AUTH_URL = "https://apiconnect.angelone.in/rest/auth/angelbroking/user/v1/
 const MARKET_DATA_URL = "https://apiconnect.angelone.in/rest/secure/angelbroking/market/v1/quote";
 const LOGOUT_URL = "https://apiconnect.angelone.in/rest/secure/angelbroking/user/v1/logout";
 
-const CACHE_TTL_MS = 20_000; // 20 seconds
+const CACHE_TTL_MS = 60_000; // 20 seconds
 
 // In-memory cache
 let cachedResponse: { quotes: any[]; source: string; live: boolean; cachedAt: number } | null = null;
@@ -161,7 +161,7 @@ serve(async (req) => {
 
     if (!apiKey || !clientId || !pin || !totpSecret) {
       return new Response(
-        JSON.stringify(fallbackPayload("missing_config")),
+        JSON.stringify(emptyPayload("missing_config")),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -176,7 +176,7 @@ serve(async (req) => {
         });
       }
       return new Response(
-        JSON.stringify(fallbackPayload("auth_failed")),
+        JSON.stringify(emptyPayload("auth_failed")),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -199,7 +199,7 @@ serve(async (req) => {
         });
       }
       return new Response(
-        JSON.stringify(fallbackPayload("no_data")),
+        JSON.stringify(emptyPayload("no_data")),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
