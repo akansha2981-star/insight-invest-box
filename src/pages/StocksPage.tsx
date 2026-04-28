@@ -230,25 +230,24 @@ export default function StocksPage() {
     if (!canUseToday("iq_stock_refresh")) return;
     setRefreshing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("ai-stock-refresh", {
-        body: { action: "refresh", stocksData: stocks.slice(0, 40) },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      if (data?.stocks?.length) {
-        setStocks(data.stocks);
-      }
-      if (data?.sectorPerformance?.length) {
-        setSectorChart(data.sectorPerformance);
-      }
-      if (data?.fiftyTwoWeekHigh?.length) {
-        setW52High(data.fiftyTwoWeekHigh);
-      }
-      if (data?.fiftyTwoWeekLow?.length) {
-        setW52Low(data.fiftyTwoWeekLow);
-      }
-      setLastUpdated(data?.lastUpdated || new Date().toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" }));
+      const data = await fetchLiveMarketQuotes(true);
+      if (data.source !== "angelone" || !data.quotes.length) throw new Error("Live market data unavailable");
+      setStocks(data.quotes
+        .filter(q => !["SENSEX", "NIFTY", "BANKNIFTY", "NIFTYIT"].includes(q.symbol))
+        .map(q => {
+          const meta = STOCK_CATALOG_BY_SYMBOL[q.symbol];
+          return {
+            symbol: q.symbol,
+            name: meta?.name ?? q.displayName,
+            price: q.price,
+            change: q.change,
+            changePercent: q.changePercent,
+            volume: "—",
+            sector: meta?.sector ?? "—",
+          };
+        })
+      );
+      setLastUpdated(new Date().toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" }));
       markUsedToday("iq_stock_refresh");
     } catch (e) {
       console.error("AI Refresh error:", e);
