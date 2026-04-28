@@ -293,7 +293,15 @@ export default function PropertyDetailPage() {
                 <MapPin className="h-4 w-4" /> {property.locality}{property.locality ? ", " : ""}{property.city}
               </p>
               {property.developer_name && (
-                <p className="text-sm text-muted-foreground mt-1">by <span className="font-semibold text-foreground">{property.developer_name}</span></p>
+                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
+                  <span>by <span className="font-semibold text-foreground">{property.developer_name}</span></span>
+                  {property.developer_website && (
+                    <a href={property.developer_website} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full hover:bg-emerald-100">
+                      <Shield className="h-3 w-3" /> Official Site
+                    </a>
+                  )}
+                </p>
               )}
             </div>
 
