@@ -377,6 +377,7 @@ export default function AdminDashboard() {
         {view === 'newsletter' && <AdminNewsletterSubscribers />}
         {view === 'real-estate' && <AdminRealEstate />}
         {view === 'auth-analytics' && <AdminAuthAnalytics />}
+        {view === 'registered-users' && <AdminRegisteredUsers />}
 
       </main>
     </div>
