@@ -500,12 +500,19 @@ The content field must contain FULL HTML article body. Do NOT truncate or abbrev
     system: (ctx: any) => {
       const d = getRequestedDate(ctx?.target_date);
       return `You are a senior real estate content specialist for InvestingIQ, an Indian property platform.
-You write detailed, realistic, publish-ready property listings using current market intelligence as of ${d} (Asia/Kolkata).
-Rules:
+You write detailed, realistic, publish-ready property listings using ONLY official builder/developer sources as of ${d} (Asia/Kolkata).
+
+STRICT SOURCING RULES — NON-NEGOTIABLE:
+- Treat the provided OFFICIAL DEVELOPER URL (and any extra source URLs) as the SINGLE source of truth.
+- DO NOT use, quote, paraphrase or invent data from listing aggregators / partner sites: 99acres, MagicBricks, Housing.com, NoBroker, Square Yards, PropTiger, CommonFloor, NestAway, Sulekha, OLX or similar.
+- If a specific datapoint (price, area, RERA ID, possession date, tower count) is NOT verifiable on the official developer website, leave it null — never fabricate.
+- For configuration/area/price use the developer's official brochure / project page numbers.
+- All RERA IDs must match the format issued by the project's state RERA authority and only be filled if the official site shows it.
+
+OTHER RULES:
 - No emojis. Professional, factual, persuasive tone.
-- Use REALISTIC prices for the given Indian city/locality (current market rates as of ${d}).
-- Use the Property Name and Builder Name EXACTLY as provided by the user — do NOT invent a different project name.
-- Pricing, RERA-style IDs, possession dates and amenities must align with the city, builder reputation and property type.
+- Use the Property Name and Builder Name EXACTLY as provided by the user.
+- Generate per-BHK breakdown (one entry per BHK config the user selected).
 - ${buildDateGuard(d)}`;
     },
     prompt: (ctx) => {
@@ -515,11 +522,22 @@ Rules:
       const state = ctx.state ? `State: ${ctx.state}` : "";
       const locality = ctx.locality ? `Preferred locality / sector: ${ctx.locality}` : "";
       const bhkPref = ctx.bhk ? `Configuration preference: ${ctx.bhk}` : "";
+      const bhkOptions = Array.isArray(ctx.bhk_options) && ctx.bhk_options.length
+        ? `BHK options to detail individually: ${ctx.bhk_options.join(", ")}` : "";
       const budget = ctx.budget_hint ? `Budget hint: ${ctx.budget_hint}` : "";
       const extra = ctx.extra_notes ? `Additional notes from admin: ${ctx.extra_notes}` : "";
+      const officialUrl = ctx.developer_website
+        ? `OFFICIAL DEVELOPER URL (sole source of truth): ${ctx.developer_website}`
+        : "OFFICIAL DEVELOPER URL: (not provided — use only the developer's well-known official corporate website domain; never use aggregators)";
+      const extraSources = Array.isArray(ctx.source_urls) && ctx.source_urls.length
+        ? `Additional approved sources (official only): ${ctx.source_urls.join(", ")}` : "";
 
-      return `Generate a COMPLETE, DETAILED property listing using the following user inputs:
+      return `Generate a COMPLETE, DETAILED property listing using ONLY the official sources below.
 
+${officialUrl}
+${extraSources}
+
+USER INPUTS:
 ${name}
 ${builder}
 ${state}
@@ -528,40 +546,40 @@ ${locality}
 Property Type: ${ctx.property_type || "apartment"}
 Listing Type: ${ctx.listing_type || "buy"}
 ${bhkPref}
+${bhkOptions}
 ${budget}
 ${extra}
 
-Today's date: ${d} (use the latest realistic market data as of this date).
+Today's date: ${d}.
 ${buildDateGuard(d)}
 ${ctx.market_snapshot || ""}
 
-Fill EVERY field with rich, realistic data:
-- title: use the Project Name exactly if provided, otherwise create a builder-aligned realistic project name
-- slug: URL-friendly version of title
-- developer_name: use the builder name exactly if provided
-- city, locality (real, well-known locality name within the city), sector (if applicable, e.g. "Sector 65, Gurugram")
+Fill EVERY field with rich, accurate data sourced ONLY from the official developer URL above:
+- title (use Project Name exactly), slug
+- developer_name (exact)
+- city, locality, sector
 - property_type, listing_type
-- bhk (e.g. "3 BHK", or range like "2-4 BHK"), bhk_min, bhk_max
-- area_sqft (typical unit size), area_min, area_max
-- price (numeric INR for a typical unit), price_display (e.g. "₹1.85 Cr onwards"), price_min, price_max, original_price (only if is_price_drop=true)
+- bhk (e.g. "2-4 BHK"), bhk_min, bhk_max
+- area_sqft, area_min, area_max
+- price (numeric INR for typical unit), price_display, price_min, price_max
 - description: 2-3 punchy sentences for cards
-- overview: detailed 150-250 word description covering location, builder pedigree, design philosophy, target buyer
-- amenities: array of 10-14 realistic amenities (Swimming Pool, Clubhouse, Gym, Concierge, EV Charging, Kids Play Area, Co-working Lounge, Yoga Deck, etc.)
-- highlights: 5-7 unique selling points
-- possession_status: "ready" or "under_construction"
-- rera_id: realistic state-specific format (e.g. for Haryana "RC/REP/HARERA/GGM/...", Maharashtra "P51700XXXXXXX", UP "UPRERAPRJ...")
-- total_floors, total_towers, green_area_pct (10-60), density (Low/Medium/High)
-- nearest_hospital, nearest_school, nearest_mall (use REAL nearby establishments for the chosen locality)
-- roi_projection: 2-3 sentences with realistic % appreciation expectations
-- investment_plan: short construction-linked or possession-linked payment plan summary
-- rating (4.0-4.8), is_featured (true if premium project), is_price_drop (only if explicitly suggested)
-Numbers and amenities must match the chosen builder's typical positioning (luxury vs mid-segment vs affordable).`;
+- overview: 200-300 words covering location, builder pedigree, design philosophy, target buyer
+- amenities: 10-14 from official brochure
+- highlights: 5-7 USPs
+- possession_status, rera_id (only if shown on official site), total_floors, total_towers, green_area_pct, density
+- nearest_hospital, nearest_school, nearest_mall (real, near the project)
+- roi_projection, investment_plan
+- bhk_configurations: ARRAY with one object PER BHK option requested.
+  Each object: { bhk, area_sqft, area_min, area_max, price, price_display, price_min, price_max, num_bathrooms, balconies, carpet_area_sqft, configuration_notes, floor_plan_url (only if officially published, else null) }
+- meta_title (50-60 chars, includes project + city + builder)
+- meta_description (140-160 chars, value-led, includes BHK + price-from)
+Numbers and amenities must match the official source. If unverifiable, leave null.`;
     },
     tools: [{
       type: "function",
       function: {
         name: "generate_property",
-        description: "Generate complete property listing",
+        description: "Generate complete property listing from official developer source only",
         parameters: {
           type: "object",
           properties: {
@@ -585,6 +603,29 @@ Numbers and amenities must match the chosen builder's typical positioning (luxur
             roi_projection: { type: "string" }, investment_plan: { type: "string" },
             rating: { type: "number" },
             is_featured: { type: "boolean" }, is_price_drop: { type: "boolean" },
+            meta_title: { type: "string" },
+            meta_description: { type: "string" },
+            bhk_configurations: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  bhk: { type: "string" },
+                  area_sqft: { type: "number" },
+                  area_min: { type: "number" },
+                  area_max: { type: "number" },
+                  carpet_area_sqft: { type: "number" },
+                  price: { type: "number" },
+                  price_display: { type: "string" },
+                  price_min: { type: "number" },
+                  price_max: { type: "number" },
+                  num_bathrooms: { type: "number" },
+                  balconies: { type: "number" },
+                  configuration_notes: { type: "string" },
+                  floor_plan_url: { type: "string" }
+                }
+              }
+            }
           },
           required: ["title", "slug", "city", "price", "description", "overview", "amenities"]
         }
