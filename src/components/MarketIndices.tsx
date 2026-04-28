@@ -63,12 +63,16 @@ export function MarketIndices() {
   const [expandedIdx, setExpandedIdx] = useState<string | null>(null);
   const [hoveredIdx, setHoveredIdx] = useState<string | null>(null);
 
+  const [openMap, setOpenMap] = useState<Record<string, number>>({});
+
   const fetchLive = useCallback(async () => {
     try {
       const { data, error } = await supabase.functions.invoke("stock-ticker");
       if (error || data?.error || !data?.quotes) return;
+      // Only treat as live when source is angelone
+      if (data.source !== "angelone") return;
 
-      const quotes = data.quotes as Array<{ symbol: string; price: number; change: number; changePercent: number; high?: number; low?: number }>;
+      const quotes = data.quotes as Array<{ symbol: string; price: number; change: number; changePercent: number; high?: number; low?: number; open?: number }>;
 
       const nameMap: Record<string, string> = {
         "SENSEX": "SENSEX",
@@ -81,6 +85,10 @@ export function MarketIndices() {
       if (!matched.length) return;
 
       setLiveEnabled(true);
+      const newOpens: Record<string, number> = {};
+      matched.forEach(q => { if (q.open) newOpens[nameMap[q.symbol]] = q.open; });
+      setOpenMap(prev => ({ ...prev, ...newOpens }));
+
       setIndices(prev =>
         prev.map(idx => {
           const q = matched.find(m => nameMap[m.symbol] === idx.name);
@@ -96,7 +104,7 @@ export function MarketIndices() {
         })
       );
     } catch {
-      // keep mock data
+      // keep previous data
     }
   }, []);
 
