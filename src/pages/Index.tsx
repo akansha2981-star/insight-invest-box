@@ -38,20 +38,20 @@ interface BlogPost {
 
 /* ── Static data ─────────────────────────────────────────────────── */
 const MARKET_STATS = [
-  { label: "Advances", value: "2,184", color: "text-gain", icon: ArrowUp },
-  { label: "Declines", value: "873", color: "text-loss", icon: ArrowDown },
-  { label: "Unchanged", value: "146", color: "text-muted-foreground", icon: Activity },
-  { label: "52W Highs", value: "483", color: "text-gain", icon: TrendingUp },
-  { label: "52W Lows", value: "127", color: "text-loss", icon: TrendingDown },
-  { label: "Volume", value: "₹94,238 Cr", color: "text-primary", icon: BarChart3 },
+  { label: "Advances", value: "—", color: "text-muted-foreground", icon: ArrowUp },
+  { label: "Declines", value: "—", color: "text-muted-foreground", icon: ArrowDown },
+  { label: "Unchanged", value: "—", color: "text-muted-foreground", icon: Activity },
+  { label: "52W Highs", value: "—", color: "text-muted-foreground", icon: TrendingUp },
+  { label: "52W Lows", value: "—", color: "text-muted-foreground", icon: TrendingDown },
+  { label: "Volume", value: "—", color: "text-muted-foreground", icon: BarChart3 },
 ];
 
 const COMMODITIES = [
-  { name: "Gold", price: "₹87,450", change: "+0.44%", up: true },
-  { name: "Silver", price: "₹98,240", change: "+0.31%", up: true },
-  { name: "Crude Oil", price: "₹6,124", change: "-0.78%", up: false },
-  { name: "Nat Gas", price: "₹238.40", change: "+1.24%", up: true },
-  { name: "Copper", price: "₹856.70", change: "-0.36%", up: false },
+  { name: "Gold", price: "—", change: "—", up: false },
+  { name: "Silver", price: "—", change: "—", up: false },
+  { name: "Crude Oil", price: "—", change: "—", up: false },
+  { name: "Nat Gas", price: "—", change: "—", up: false },
+  { name: "Copper", price: "—", change: "—", up: false },
 ];
 
 const CURRENCIES = [
@@ -445,7 +445,7 @@ export default function Index() {
         <div className="border border-border bg-gradient-to-r from-primary/[0.03] via-card to-primary/[0.03] rounded-xl overflow-hidden">
           <div className="overflow-hidden py-2.5 px-1">
             <div className="index-scroll-animate flex items-center gap-6 whitespace-nowrap" style={{ width: 'max-content' }}>
-              {[...MARKET_STATS, ...COMMODITIES.map(c => ({ label: c.name, value: c.price, color: c.up ? 'text-gain' : 'text-loss', icon: c.up ? ArrowUp : ArrowDown, extra: c.change })), ...MARKET_STATS, ...COMMODITIES.map(c => ({ label: c.name, value: c.price, color: c.up ? 'text-gain' : 'text-loss', icon: c.up ? ArrowUp : ArrowDown, extra: c.change }))].map((item, i) => (
+                {[...MARKET_STATS, ...liveCommodities.map(c => ({ label: c.name, value: c.price, color: c.up ? 'text-gain' : 'text-loss', icon: c.up ? ArrowUp : ArrowDown, extra: c.change })), ...MARKET_STATS, ...liveCommodities.map(c => ({ label: c.name, value: c.price, color: c.up ? 'text-gain' : 'text-loss', icon: c.up ? ArrowUp : ArrowDown, extra: c.change }))].map((item, i) => (
                 <div key={i} className="flex items-center gap-2 shrink-0 px-2">
                   {'icon' in item && item.icon && <item.icon className={`h-3 w-3 ${item.color}`} />}
                   <span className="text-[11px] font-semibold text-muted-foreground">{item.label}</span>
