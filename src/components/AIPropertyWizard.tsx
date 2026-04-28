@@ -293,6 +293,18 @@ export function AIPropertyWizard({ open, onClose, onPublish }: Props) {
                   {POPULAR_BUILDERS.map(b => <option key={b} value={b} />)}
                 </datalist>
               </Field>
+              <Field label="Official Developer URL (recommended)">
+                <input
+                  type="url"
+                  value={form.developer_website}
+                  onChange={e => setForm({ ...form, developer_website: e.target.value })}
+                  placeholder="https://www.dlf.in/projects/privana-south"
+                  className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Paste the official builder/project page. AI will use ONLY this source — no aggregator (99acres, MagicBricks, etc.).
+                </p>
+              </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Property Type">
                   <select value={form.property_type} onChange={e => setForm({ ...form, property_type: e.target.value })}
