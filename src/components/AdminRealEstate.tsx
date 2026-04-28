@@ -16,6 +16,10 @@ interface Property {
   price: number; price_display: string | null; bhk: string | null;
   area_sqft: number | null; amenities: string[] | null;
   description: string | null; developer_name: string | null;
+  developer_website: string | null;
+  source_urls: string[] | null;
+  bhk_configurations: any[] | null;
+  meta_title: string | null; meta_description: string | null;
   cover_image_url: string | null; is_featured: boolean | null;
   is_price_drop: boolean | null; original_price: number | null;
   status: string | null; rating: number | null; reviews_count: number | null;
