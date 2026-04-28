@@ -57,7 +57,32 @@ export function AdminStockReviews() {
   const [editingReview, setEditingReview] = useState<StockReview | null>(null);
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const { generating, generateContent } = useAdminAI();
+
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File too large. Max 2 MB.");
+      e.target.value = "";
+      return;
+    }
+    if (!/^image\/(jpeg|png|webp|jpg)$/.test(file.type)) {
+      alert("Only JPG, PNG, or WebP images are allowed.");
+      e.target.value = "";
+      return;
+    }
+    setUploadingCover(true);
+    const ext = file.name.split(".").pop();
+    const path = `stock-reviews/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { data, error } = await supabase.storage.from("blog-images").upload(path, file, { upsert: true });
+    setUploadingCover(false);
+    if (error) { alert("Image upload failed: " + error.message); e.target.value = ""; return; }
+    const { data: { publicUrl } } = supabase.storage.from("blog-images").getPublicUrl(data.path);
+    setForm((f: any) => ({ ...f, cover_image_url: publicUrl }));
+    e.target.value = "";
+  }
 
   async function aiGenerateReview(topic: string, targetDate: string, publishNow = false) {
     const result = await generateContent({ action: "generate-stock-review", context: { symbol: topic || "", target_date: targetDate } });
