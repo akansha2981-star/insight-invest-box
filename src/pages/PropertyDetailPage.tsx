@@ -11,12 +11,30 @@ import {
   IndianRupee, FileText, Home, Check, Clock, Eye, Brain, Scale, LineChart as LineChartIcon, Map
 } from "lucide-react";
 
+interface BhkConfig {
+  bhk?: string;
+  area_sqft?: number | null;
+  area_min?: number | null;
+  area_max?: number | null;
+  carpet_area_sqft?: number | null;
+  price?: number | null;
+  price_display?: string | null;
+  price_min?: number | null;
+  price_max?: number | null;
+  num_bathrooms?: number | null;
+  balconies?: number | null;
+  configuration_notes?: string | null;
+  floor_plan_url?: string | null;
+}
+
 interface PropertyDetail {
   id: string; title: string; slug: string; property_type: string;
   listing_type: string; city: string; locality: string | null;
   price: number; price_display: string | null; bhk: string | null;
   area_sqft: number | null; amenities: string[] | null;
   description: string | null; developer_name: string | null;
+  developer_website: string | null;
+  source_urls: string[] | null;
   cover_image_url: string | null; images: string[] | null;
   is_featured: boolean | null; is_price_drop: boolean | null;
   original_price: number | null; rating: number | null;
@@ -34,6 +52,9 @@ interface PropertyDetail {
   area_min: number | null; area_max: number | null;
   price_history_detail: any[] | null; total_towers: number | null;
   cover_images: string[] | null; videos: string[] | null;
+  bhk_configurations: BhkConfig[] | null;
+  meta_title: string | null;
+  meta_description: string | null;
 }
 
 function formatPrice(price: number): string {
