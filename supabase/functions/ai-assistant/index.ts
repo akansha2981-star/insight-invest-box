@@ -272,17 +272,25 @@ serve(async (req) => {
 
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const keywords = extractKeywords(query);
-    console.log("Query:", query, "| Keywords:", keywords);
+    const intent = detectIntent(query);
+    const budget = parsePriceBudget(query);
+    console.log("Query:", query, "| Intent:", intent, "| Keywords:", keywords, "| Budget:", budget);
+
+    // Scope searches by detected intent — never mix unrelated domains
+    const wantProp = intent === "property" || intent === "general";
+    const wantStock = intent === "stock" || intent === "general";
+    const wantArticles = intent === "news" || intent === "general" || intent === "mutual_fund" || intent === "crypto";
+    const wantTrends = intent === "property" || intent === "general";
 
     const [properties, stocks, articles, trends] = await Promise.all([
-      searchProperties(sb, keywords),
-      searchStocks(sb, keywords),
-      searchArticles(sb, keywords),
-      searchTrends(sb, keywords),
+      wantProp ? searchProperties(sb, keywords, budget) : Promise.resolve([]),
+      wantStock ? searchStocks(sb, keywords) : Promise.resolve([]),
+      wantArticles ? searchArticles(sb, keywords) : Promise.resolve([]),
+      wantTrends ? searchTrends(sb, keywords) : Promise.resolve([]),
     ]);
 
     const dbResultCount = properties.length + stocks.length + articles.length + trends.length;
-    console.log(`DB results: ${dbResultCount}`);
+    console.log(`DB results: ${dbResultCount} (intent=${intent})`);
 
     // If good DB results, return directly
     if (dbResultCount >= 2) {
