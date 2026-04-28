@@ -84,14 +84,16 @@ function parsePriceBudget(query: string): { min?: number; max?: number } {
   return result;
 }
 
-async function searchProperties(sb: any, keywords: string[]) {
+async function searchProperties(sb: any, keywords: string[], budget?: { min?: number; max?: number }) {
   let query = sb.from("properties").select("title,slug,city,locality,price_display,bhk,property_type,listing_type,developer_name,possession_status,area_sqft,price,amenities,cover_image_url,roi_projection,is_featured,is_price_drop,original_price").eq("status", "active");
   const filters: string[] = [];
   for (const kw of keywords) {
     filters.push(`title.ilike.%${kw}%,city.ilike.%${kw}%,locality.ilike.%${kw}%,property_type.ilike.%${kw}%,bhk.ilike.%${kw}%,developer_name.ilike.%${kw}%,listing_type.ilike.%${kw}%`);
   }
   if (filters.length > 0) query = query.or(filters.join(","));
-  const { data, error } = await query.limit(10);
+  if (budget?.max) query = query.lte("price", budget.max);
+  if (budget?.min) query = query.gte("price", budget.min);
+  const { data, error } = await query.limit(15);
   if (error) console.error("Property search error:", error);
   return data || [];
 }
