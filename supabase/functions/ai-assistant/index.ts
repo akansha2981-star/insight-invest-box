@@ -46,8 +46,42 @@ async function traceToLangSmith(runData: {
 }
 
 function extractKeywords(query: string): string[] {
-  const stopWords = new Set(["the","a","an","is","are","was","were","be","been","being","in","on","at","to","for","of","with","by","from","and","or","but","not","this","that","these","those","it","its","i","me","my","we","our","you","your","he","she","they","them","their","what","which","who","whom","how","where","when","why","do","does","did","will","would","shall","should","can","could","may","might","must","have","has","had","about","into","through","during","before","after","above","below","between","under","over","up","down","out","off","then","than","so","no","yes","any","all","each","every","both","few","more","most","other","some","such","only","own","same","very","just","also","much","many","still","even","here","there","now","well","too","already","really","please","tell","show","give","get","find","best","top","good","great","suggest","recommend","want","need","looking","search","help","know","think","like","new","old","big","small","high","low","buy","sell","rent","invest"]);
+  const stopWords = new Set(["the","a","an","is","are","was","were","be","been","being","in","on","at","to","for","of","with","by","from","and","or","but","not","this","that","these","those","it","its","i","me","my","we","our","you","your","he","she","they","them","their","what","which","who","whom","how","where","when","why","do","does","did","will","would","shall","should","can","could","may","might","must","have","has","had","about","into","through","during","before","after","above","below","between","under","over","up","down","out","off","then","than","so","no","yes","any","all","each","every","both","few","more","most","other","some","such","only","own","same","very","just","also","much","many","still","even","here","there","now","well","too","already","really","please","tell","show","give","get","find","best","top","good","great","suggest","recommend","want","need","looking","search","help","know","think","like","new","old","big","small","high","low","buy","sell","rent","invest","crore","lakh","lakhs","crores","cr","price","under","below","above","near","around","within","budget","property","properties"]);
   return query.toLowerCase().replace(/[^\w\s₹]/g, " ").split(/\s+/).filter(w => w.length > 1 && !stopWords.has(w));
+}
+
+type Intent = "property" | "stock" | "mutual_fund" | "crypto" | "news" | "general";
+
+function detectIntent(query: string): Intent {
+  const q = query.toLowerCase();
+  const propertyTerms = /\b(propert(y|ies)|real\s*estate|flat|flats|apartment|villa|house|home|plot|bhk|rent|rental|pg|paying\s*guest|builder|developer|locality|sqft|sq\.?\s*ft|carpet|possession|rera)\b/;
+  const stockTerms = /\b(stock|stocks|share|shares|equit(y|ies)|nifty|sensex|bse|nse|ipo|dividend|pe\s*ratio|market\s*cap|trading|trader|gainer|loser)\b/;
+  const mfTerms = /\b(mutual\s*fund|mf|sip|nav|elss|etf|index\s*fund|debt\s*fund|liquid\s*fund|hybrid\s*fund)\b/;
+  const cryptoTerms = /\b(crypto|bitcoin|btc|ethereum|eth|altcoin|blockchain|nft|defi|coin|token)\b/;
+  const newsTerms = /\b(news|article|latest\s+update|breaking|budget|policy|rbi|fed|inflation)\b/;
+  if (propertyTerms.test(q)) return "property";
+  if (stockTerms.test(q)) return "stock";
+  if (mfTerms.test(q)) return "mutual_fund";
+  if (cryptoTerms.test(q)) return "crypto";
+  if (newsTerms.test(q)) return "news";
+  return "general";
+}
+
+function parsePriceBudget(query: string): { min?: number; max?: number } {
+  const q = query.toLowerCase();
+  const result: { min?: number; max?: number } = {};
+  // Match patterns like "under 1 crore", "below 50 lakh", "1.5 cr", "₹2 crore"
+  const re = /(?:(under|below|less\s*than|upto|up\s*to|max|maximum|within)\s+)?(?:₹\s*)?(\d+(?:\.\d+)?)\s*(crore|crores|cr|lakh|lakhs|l)\b/gi;
+  let m;
+  while ((m = re.exec(q)) !== null) {
+    const qualifier = m[1];
+    const num = parseFloat(m[2]);
+    const unit = m[3].toLowerCase();
+    const value = unit.startsWith("c") ? num * 10000000 : num * 100000;
+    if (qualifier) result.max = value;
+    else if (!result.max) result.max = value;
+  }
+  return result;
 }
 
 async function searchProperties(sb: any, keywords: string[]) {
