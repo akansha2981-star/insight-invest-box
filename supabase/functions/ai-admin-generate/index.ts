@@ -634,10 +634,21 @@ serve(async (req) => {
     const requestContext = context || {};
     const targetDate = getRequestedDate(requestContext.target_date);
     const marketSnapshot = await fetchMarketSnapshot(targetDate);
+
+    // For stock reviews, fetch REAL live data for the requested symbol
+    let liveStockBlock = "";
+    let liveStockData: any = null;
+    if (action === "generate-stock-review" && requestContext.symbol) {
+      const live = await fetchLiveStockData(String(requestContext.symbol));
+      liveStockBlock = live.promptBlock;
+      liveStockData = live.data;
+    }
+
     const enrichedContext = {
       ...requestContext,
       target_date: targetDate,
       market_snapshot: marketSnapshot,
+      live_stock_data: liveStockBlock,
     };
 
     // Use stronger model for article and stock review generation
@@ -657,7 +668,27 @@ serve(async (req) => {
       });
     }
 
-    const result = extractToolResult(aiData);
+    let result = extractToolResult(aiData);
+
+    // POST-PROCESS: For stock reviews with live data, OVERWRITE AI output with ground-truth values
+    if (action === "generate-stock-review" && result && liveStockData) {
+      result.symbol = String(liveStockData.symbol || result.symbol || "").toUpperCase();
+      result.current_price = Number(liveStockData.price);
+      result.exchange = liveStockData.exchange || result.exchange || "NSE";
+      result.key_metrics = result.key_metrics || {};
+      if (liveStockData.high52 > 0) result.key_metrics["52w_high"] = liveStockData.high52.toFixed(2);
+      if (liveStockData.low52 > 0) result.key_metrics["52w_low"] = liveStockData.low52.toFixed(2);
+
+      // Sanity check on target price (must be within +/- 50% of current)
+      const tgt = Number(result.target_price);
+      if (!tgt || Math.abs(tgt - liveStockData.price) / liveStockData.price > 0.5) {
+        const ratingMul = String(result.rating || "HOLD").toUpperCase().includes("BUY") ? 1.18
+          : String(result.rating || "HOLD").toUpperCase().includes("SELL") ? 0.85
+          : 1.05;
+        result.target_price = Number((liveStockData.price * ratingMul).toFixed(2));
+      }
+    }
+
     const normalizedResult = action === "generate-full-article" && result
       ? normalizeArticleResult(result, enrichedContext)
       : result;
