@@ -348,6 +348,93 @@ export default function PropertyDetailPage() {
                 </div>
               )}
 
+              {activeTab === "configurations" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-lg text-foreground">Available Configurations</h3>
+                    {property.developer_website && (
+                      <a href={property.developer_website} target="_blank" rel="noopener noreferrer"
+                        className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                        Official source <ArrowRight className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
+                  {property.bhk_configurations && property.bhk_configurations.length > 0 ? (
+                    <div className="space-y-4">
+                      {property.bhk_configurations.map((c, i) => (
+                        <article key={i} className="border border-border rounded-2xl p-5 bg-gradient-to-br from-white to-blue-50/40">
+                          <header className="flex items-center justify-between flex-wrap gap-2 mb-4">
+                            <div className="flex items-center gap-2">
+                              <Bed className="h-5 w-5 text-primary" />
+                              <h4 className="font-bold text-foreground text-base">{c.bhk || "Configuration"} {property.property_type}</h4>
+                            </div>
+                            {(c.price_display || c.price) && (
+                              <div className="number-font font-black text-foreground text-lg">
+                                {c.price_display || formatPrice(c.price as number)}
+                              </div>
+                            )}
+                          </header>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                            {(c.area_min && c.area_max) ? (
+                              <div>
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Super Area</div>
+                                <div className="font-semibold text-foreground number-font">{c.area_min}–{c.area_max} sqft</div>
+                              </div>
+                            ) : c.area_sqft ? (
+                              <div>
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Super Area</div>
+                                <div className="font-semibold text-foreground number-font">{c.area_sqft} sqft</div>
+                              </div>
+                            ) : null}
+                            {c.carpet_area_sqft ? (
+                              <div>
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Carpet Area</div>
+                                <div className="font-semibold text-foreground number-font">{c.carpet_area_sqft} sqft</div>
+                              </div>
+                            ) : null}
+                            {c.num_bathrooms ? (
+                              <div>
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Bathrooms</div>
+                                <div className="font-semibold text-foreground number-font">{c.num_bathrooms}</div>
+                              </div>
+                            ) : null}
+                            {c.balconies ? (
+                              <div>
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Balconies</div>
+                                <div className="font-semibold text-foreground number-font">{c.balconies}</div>
+                              </div>
+                            ) : null}
+                            {(c.price_min && c.price_max) ? (
+                              <div className="col-span-2">
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Price Range</div>
+                                <div className="font-semibold text-foreground number-font">{formatPrice(c.price_min)} – {formatPrice(c.price_max)}</div>
+                              </div>
+                            ) : null}
+                          </div>
+                          {c.configuration_notes && (
+                            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{c.configuration_notes}</p>
+                          )}
+                          {c.floor_plan_url && (
+                            <div className="mt-4">
+                              <a href={c.floor_plan_url} target="_blank" rel="noopener noreferrer">
+                                <img src={c.floor_plan_url} alt={`${c.bhk} floor plan`} className="rounded-xl border border-border max-h-72 object-contain" />
+                              </a>
+                            </div>
+                          )}
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground italic">Per-configuration details are not yet published. Please check back soon or contact the developer.</p>
+                  )}
+                  {property.developer_website && (
+                    <p className="text-[11px] text-muted-foreground mt-2">
+                      All configuration details sourced from the official developer site. Verify final specifications before purchase.
+                    </p>
+                  )}
+                </div>
+              )}
+
               {activeTab === "investment" && (
                 <div className="space-y-6">
                   <h3 className="font-bold text-lg text-foreground">Investment Analysis</h3>
