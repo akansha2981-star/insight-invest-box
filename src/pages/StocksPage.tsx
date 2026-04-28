@@ -4,7 +4,9 @@ import { StockTicker } from "@/components/StockTicker";
 import { GainersLosers } from "@/components/GainersLosers";
 import { Footer } from "@/components/Footer";
 import { PageSectionsBanner } from "@/components/PageSectionsBanner";
-import { TOP_GAINERS, TOP_LOSERS } from "@/data/mockStocks";
+import type { StockData } from "@/data/mockStocks";
+import { STOCK_CATALOG_BY_SYMBOL } from "@/data/stockCatalog";
+import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import {
@@ -26,8 +28,6 @@ const SECTOR_CHART_DEFAULT = [
   { name: "Energy", change: -0.67 },
   { name: "Metal", change: 0.73 },
 ];
-
-const ALL_STOCKS = [...TOP_GAINERS, ...TOP_LOSERS];
 
 const SECTOR_OPTIONS = ["All", "IT", "Banking", "Pharma", "Auto", "FMCG", "Energy", "Finance", "Infra", "Telecom", "Realty", "Metal"];
 const CHANGE_OPTIONS = ["All", "Gainers", "Losers"];
@@ -136,7 +136,7 @@ function SentimentBadge({ sentiment, score }: { sentiment: string; score: number
    MAIN PAGE
 ══════════════════════════════ */
 export default function StocksPage() {
-  const [stocks, setStocks] = useState(ALL_STOCKS);
+  const [stocks, setStocks] = useState<StockData[]>([]);
   const [search, setSearch] = useState("");
   const [sectorFilter, setSectorFilter] = useState("All");
   const [changeFilter, setChangeFilter] = useState("All");
@@ -177,7 +177,32 @@ export default function StocksPage() {
       });
   }, []);
 
-  // Removed random price fluctuation - prices only update via live API or AI Refresh
+  useEffect(() => {
+    let mounted = true;
+    async function loadLiveStocks() {
+      const data = await fetchLiveMarketQuotes();
+      if (!mounted || data.source !== "angelone") return;
+      const rows = data.quotes
+        .filter(q => !["SENSEX", "NIFTY", "BANKNIFTY", "NIFTYIT"].includes(q.symbol))
+        .map(q => {
+          const meta = STOCK_CATALOG_BY_SYMBOL[q.symbol];
+          return {
+            symbol: q.symbol,
+            name: meta?.name ?? q.displayName,
+            price: q.price,
+            change: q.change,
+            changePercent: q.changePercent,
+            volume: "—",
+            sector: meta?.sector ?? "—",
+          };
+        });
+      setStocks(rows);
+      setLastUpdated(new Date().toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" }));
+    }
+    loadLiveStocks();
+    const id = setInterval(loadLiveStocks, 30_000);
+    return () => { mounted = false; clearInterval(id); };
+  }, []);
 
   const activeFilters = [sectorFilter, changeFilter, ratingFilter].filter(f => f !== "All").length;
 
