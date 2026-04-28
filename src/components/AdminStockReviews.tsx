@@ -310,10 +310,25 @@ export function AdminStockReviews() {
                   placeholder="e.g. John Smith" className="form-input" />
               </div>
               <div className="col-span-2">
-                <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-0.5 block">Cover Image URL</label>
+                <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-0.5 block">Cover Image</label>
                 <p className="text-[10px] text-muted-foreground mb-1.5">Recommended: 1200 × 630 px · Max 2 MB · JPG/PNG/WebP</p>
-                <input value={form.cover_image_url} onChange={e => setForm((f: any) => ({ ...f, cover_image_url: e.target.value }))}
-                  placeholder="https://..." className="form-input" />
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <label className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-border bg-secondary hover:bg-secondary/80 cursor-pointer text-sm font-medium ${uploadingCover ? "opacity-60 pointer-events-none" : ""}`}>
+                    {uploadingCover ? "Uploading..." : "Upload Image"}
+                    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleCoverUpload} className="hidden" disabled={uploadingCover} />
+                  </label>
+                  <input value={form.cover_image_url} onChange={e => setForm((f: any) => ({ ...f, cover_image_url: e.target.value }))}
+                    placeholder="...or paste an image URL" className="form-input flex-1" />
+                </div>
+                {form.cover_image_url && (
+                  <div className="mt-3 relative inline-block">
+                    <img src={form.cover_image_url} alt="Cover preview" className="h-32 w-auto rounded-lg border border-border object-cover" />
+                    <button type="button" onClick={() => setForm((f: any) => ({ ...f, cover_image_url: "" }))}
+                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 shadow">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="col-span-2">
                 <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1.5 block">Tags (comma separated)</label>
