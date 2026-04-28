@@ -18,8 +18,11 @@ interface DailyStats {
   total: number;
 }
 
+interface UserInfo { email: string; full_name: string; phone: string; }
+
 export function AdminAuthAnalytics() {
   const [events, setEvents] = useState<AuthEvent[]>([]);
+  const [userMap, setUserMap] = useState<Record<string, UserInfo>>({});
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(7);
 
@@ -32,13 +35,21 @@ export function AdminAuthAnalytics() {
     const since = new Date();
     since.setDate(since.getDate() - days);
 
-    const { data } = await supabase
-      .from("auth_events")
-      .select("*")
-      .gte("created_at", since.toISOString())
-      .order("created_at", { ascending: false });
+    const [eventsRes, usersRes] = await Promise.all([
+      supabase.from("auth_events").select("*").gte("created_at", since.toISOString()).order("created_at", { ascending: false }),
+      supabase.functions.invoke("admin-list-users").catch(() => ({ data: null, error: true } as any)),
+    ]);
 
-    setEvents((data as AuthEvent[]) ?? []);
+    setEvents((eventsRes.data as AuthEvent[]) ?? []);
+
+    const map: Record<string, UserInfo> = {};
+    const users = (usersRes as any)?.data?.users;
+    if (Array.isArray(users)) {
+      users.forEach((u: any) => {
+        map[u.id] = { email: u.email || "", full_name: u.full_name || "", phone: u.phone || "" };
+      });
+    }
+    setUserMap(map);
     setLoading(false);
   }
 
