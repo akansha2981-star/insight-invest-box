@@ -16,6 +16,10 @@ interface Property {
   price: number; price_display: string | null; bhk: string | null;
   area_sqft: number | null; amenities: string[] | null;
   description: string | null; developer_name: string | null;
+  developer_website: string | null;
+  source_urls: string[] | null;
+  bhk_configurations: any[] | null;
+  meta_title: string | null; meta_description: string | null;
   cover_image_url: string | null; is_featured: boolean | null;
   is_price_drop: boolean | null; original_price: number | null;
   status: string | null; rating: number | null; reviews_count: number | null;
@@ -313,6 +317,20 @@ function PropertyForm({ property, onChange, onSave, onCancel, onUpload }: {
             <input value={property.developer_name || ""} onChange={e => onChange({ ...property, developer_name: e.target.value })}
               className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
           </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Official Developer / Project URL</label>
+          <input
+            type="url"
+            value={(property as any).developer_website || ""}
+            onChange={e => onChange({ ...property, developer_website: e.target.value } as any)}
+            placeholder="https://www.dlf.in/projects/privana-south"
+            className="w-full mt-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Reference link from the builder's official website. Used as the only trusted source for AI generation/refresh — no aggregator sites.
+          </p>
         </div>
 
         <div className="grid grid-cols-3 gap-4">

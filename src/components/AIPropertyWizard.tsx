@@ -30,10 +30,27 @@ const POSITIONING = [
   { value: "affordable", label: "Affordable" },
 ];
 
+export interface BhkConfig {
+  bhk: string;
+  area_sqft?: number | null;
+  area_min?: number | null;
+  area_max?: number | null;
+  carpet_area_sqft?: number | null;
+  price?: number | null;
+  price_display?: string | null;
+  price_min?: number | null;
+  price_max?: number | null;
+  num_bathrooms?: number | null;
+  balconies?: number | null;
+  configuration_notes?: string | null;
+  floor_plan_url?: string | null;
+}
+
 export interface PropertyDraft {
   title: string;
   slug: string;
   developer_name: string | null;
+  developer_website: string | null;
   city: string;
   locality: string | null;
   sector: string | null;
@@ -69,6 +86,9 @@ export interface PropertyDraft {
   is_featured: boolean;
   is_price_drop: boolean;
   status: string;
+  bhk_configurations: BhkConfig[];
+  meta_title: string | null;
+  meta_description: string | null;
 }
 
 interface Props {
@@ -89,6 +109,7 @@ export function AIPropertyWizard({ open, onClose, onPublish }: Props) {
   const [form, setForm] = useState({
     property_name: "",
     developer_name: "",
+    developer_website: "",
     state: "Haryana",
     city: "Gurugram",
     locality: "",
@@ -107,7 +128,8 @@ export function AIPropertyWizard({ open, onClose, onPublish }: Props) {
     setStep(0);
     setDraft(null);
     setForm({
-      property_name: "", developer_name: "", state: "Haryana", city: "Gurugram",
+      property_name: "", developer_name: "", developer_website: "",
+      state: "Haryana", city: "Gurugram",
       locality: "", property_type: "apartment", listing_type: "buy",
       bhk_list: [], stage: "under_construction", positioning: "mid",
       budget_hint: "", extra_notes: "",
@@ -138,6 +160,7 @@ export function AIPropertyWizard({ open, onClose, onPublish }: Props) {
       context: {
         property_name: form.property_name.trim(),
         developer_name: form.developer_name.trim(),
+        developer_website: form.developer_website.trim() || undefined,
         property_type: form.property_type,
         listing_type: form.listing_type,
         city: form.city,
@@ -164,6 +187,7 @@ export function AIPropertyWizard({ open, onClose, onPublish }: Props) {
       title: finalTitle,
       slug,
       developer_name: finalBuilder,
+      developer_website: form.developer_website.trim() || null,
       city: result.city || form.city,
       locality: result.locality || form.locality || null,
       sector: result.sector || null,
@@ -199,6 +223,9 @@ export function AIPropertyWizard({ open, onClose, onPublish }: Props) {
       is_featured: !!result.is_featured,
       is_price_drop: !!result.is_price_drop,
       status: "active",
+      bhk_configurations: Array.isArray(result.bhk_configurations) ? result.bhk_configurations : [],
+      meta_title: result.meta_title || null,
+      meta_description: result.meta_description || null,
     });
     setStep(4);
   };
@@ -265,6 +292,18 @@ export function AIPropertyWizard({ open, onClose, onPublish }: Props) {
                 <datalist id="wizard-builders">
                   {POPULAR_BUILDERS.map(b => <option key={b} value={b} />)}
                 </datalist>
+              </Field>
+              <Field label="Official Developer URL (recommended)">
+                <input
+                  type="url"
+                  value={form.developer_website}
+                  onChange={e => setForm({ ...form, developer_website: e.target.value })}
+                  placeholder="https://www.dlf.in/projects/privana-south"
+                  className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Paste the official builder/project page. AI will use ONLY this source — no aggregator (99acres, MagicBricks, etc.).
+                </p>
               </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Property Type">

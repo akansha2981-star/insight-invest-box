@@ -11,12 +11,30 @@ import {
   IndianRupee, FileText, Home, Check, Clock, Eye, Brain, Scale, LineChart as LineChartIcon, Map
 } from "lucide-react";
 
+interface BhkConfig {
+  bhk?: string;
+  area_sqft?: number | null;
+  area_min?: number | null;
+  area_max?: number | null;
+  carpet_area_sqft?: number | null;
+  price?: number | null;
+  price_display?: string | null;
+  price_min?: number | null;
+  price_max?: number | null;
+  num_bathrooms?: number | null;
+  balconies?: number | null;
+  configuration_notes?: string | null;
+  floor_plan_url?: string | null;
+}
+
 interface PropertyDetail {
   id: string; title: string; slug: string; property_type: string;
   listing_type: string; city: string; locality: string | null;
   price: number; price_display: string | null; bhk: string | null;
   area_sqft: number | null; amenities: string[] | null;
   description: string | null; developer_name: string | null;
+  developer_website: string | null;
+  source_urls: string[] | null;
   cover_image_url: string | null; images: string[] | null;
   is_featured: boolean | null; is_price_drop: boolean | null;
   original_price: number | null; rating: number | null;
@@ -34,6 +52,9 @@ interface PropertyDetail {
   area_min: number | null; area_max: number | null;
   price_history_detail: any[] | null; total_towers: number | null;
   cover_images: string[] | null; videos: string[] | null;
+  bhk_configurations: BhkConfig[] | null;
+  meta_title: string | null;
+  meta_description: string | null;
 }
 
 function formatPrice(price: number): string {
@@ -61,6 +82,64 @@ export default function PropertyDetailPage() {
     }
     if (slug) fetch();
   }, [slug]);
+
+  // SEO meta + JSON-LD
+  useEffect(() => {
+    if (!property) return;
+    const title = property.meta_title || `${property.title} – ${property.bhk || ""} in ${property.locality || property.city} | InvestingIQ`;
+    const desc = property.meta_description ||
+      `${property.title} by ${property.developer_name || "leading developer"} in ${property.locality ? property.locality + ", " : ""}${property.city}. ${property.bhk || ""} ${property.property_type} starting ${property.price_display || formatPrice(property.price)}.`;
+    document.title = title.slice(0, 70);
+
+    const setMeta = (name: string, content: string, attr: "name" | "property" = "name") => {
+      let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}='${name}']`);
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
+      el.setAttribute("content", content.slice(0, 300));
+    };
+    setMeta("description", desc);
+    setMeta("og:title", title, "property");
+    setMeta("og:description", desc, "property");
+    setMeta("og:type", "product", "property");
+    if (property.cover_image_url) setMeta("og:image", property.cover_image_url, "property");
+
+    let canonical = document.head.querySelector<HTMLLinkElement>("link[rel='canonical']");
+    if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }
+    canonical.setAttribute("href", `${window.location.origin}/property/${property.slug}`);
+
+    const ld = {
+      "@context": "https://schema.org",
+      "@type": "Residence",
+      name: property.title,
+      description: desc,
+      url: `${window.location.origin}/property/${property.slug}`,
+      image: [property.cover_image_url, ...(property.images || [])].filter(Boolean),
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: property.locality || property.city,
+        addressRegion: property.city,
+        addressCountry: "IN",
+      },
+      brand: property.developer_name ? { "@type": "Organization", name: property.developer_name, url: property.developer_website || undefined } : undefined,
+      offers: {
+        "@type": "Offer",
+        price: property.price,
+        priceCurrency: "INR",
+        availability: "https://schema.org/InStock",
+      },
+      aggregateRating: (property.rating ?? 0) > 0 ? {
+        "@type": "AggregateRating",
+        ratingValue: property.rating,
+        reviewCount: property.reviews_count || 1,
+      } : undefined,
+    };
+    let jsonld = document.head.querySelector<HTMLScriptElement>("script[data-jsonld='property']");
+    if (!jsonld) { jsonld = document.createElement("script"); jsonld.type = "application/ld+json"; jsonld.setAttribute("data-jsonld", "property"); document.head.appendChild(jsonld); }
+    jsonld.text = JSON.stringify(ld);
+
+    return () => {
+      jsonld?.remove();
+    };
+  }, [property]);
 
   if (loading) {
     return (
@@ -97,6 +176,7 @@ export default function PropertyDetailPage() {
 
   const TABS = [
     { id: "overview", label: "Overview" },
+    { id: "configurations", label: "Configurations" },
     { id: "investment", label: "Investment Plan" },
     { id: "amenities", label: "Amenities" },
     { id: "floorplan", label: "Floor Plans" },
@@ -213,7 +293,15 @@ export default function PropertyDetailPage() {
                 <MapPin className="h-4 w-4" /> {property.locality}{property.locality ? ", " : ""}{property.city}
               </p>
               {property.developer_name && (
-                <p className="text-sm text-muted-foreground mt-1">by <span className="font-semibold text-foreground">{property.developer_name}</span></p>
+                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
+                  <span>by <span className="font-semibold text-foreground">{property.developer_name}</span></span>
+                  {property.developer_website && (
+                    <a href={property.developer_website} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full hover:bg-emerald-100">
+                      <Shield className="h-3 w-3" /> Official Site
+                    </a>
+                  )}
+                </p>
               )}
             </div>
 
@@ -264,6 +352,93 @@ export default function PropertyDetailPage() {
                         ))}
                       </div>
                     </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === "configurations" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-lg text-foreground">Available Configurations</h3>
+                    {property.developer_website && (
+                      <a href={property.developer_website} target="_blank" rel="noopener noreferrer"
+                        className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                        Official source <ArrowRight className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
+                  {property.bhk_configurations && property.bhk_configurations.length > 0 ? (
+                    <div className="space-y-4">
+                      {property.bhk_configurations.map((c, i) => (
+                        <article key={i} className="border border-border rounded-2xl p-5 bg-gradient-to-br from-white to-blue-50/40">
+                          <header className="flex items-center justify-between flex-wrap gap-2 mb-4">
+                            <div className="flex items-center gap-2">
+                              <Bed className="h-5 w-5 text-primary" />
+                              <h4 className="font-bold text-foreground text-base">{c.bhk || "Configuration"} {property.property_type}</h4>
+                            </div>
+                            {(c.price_display || c.price) && (
+                              <div className="number-font font-black text-foreground text-lg">
+                                {c.price_display || formatPrice(c.price as number)}
+                              </div>
+                            )}
+                          </header>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                            {(c.area_min && c.area_max) ? (
+                              <div>
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Super Area</div>
+                                <div className="font-semibold text-foreground number-font">{c.area_min}–{c.area_max} sqft</div>
+                              </div>
+                            ) : c.area_sqft ? (
+                              <div>
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Super Area</div>
+                                <div className="font-semibold text-foreground number-font">{c.area_sqft} sqft</div>
+                              </div>
+                            ) : null}
+                            {c.carpet_area_sqft ? (
+                              <div>
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Carpet Area</div>
+                                <div className="font-semibold text-foreground number-font">{c.carpet_area_sqft} sqft</div>
+                              </div>
+                            ) : null}
+                            {c.num_bathrooms ? (
+                              <div>
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Bathrooms</div>
+                                <div className="font-semibold text-foreground number-font">{c.num_bathrooms}</div>
+                              </div>
+                            ) : null}
+                            {c.balconies ? (
+                              <div>
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Balconies</div>
+                                <div className="font-semibold text-foreground number-font">{c.balconies}</div>
+                              </div>
+                            ) : null}
+                            {(c.price_min && c.price_max) ? (
+                              <div className="col-span-2">
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Price Range</div>
+                                <div className="font-semibold text-foreground number-font">{formatPrice(c.price_min)} – {formatPrice(c.price_max)}</div>
+                              </div>
+                            ) : null}
+                          </div>
+                          {c.configuration_notes && (
+                            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{c.configuration_notes}</p>
+                          )}
+                          {c.floor_plan_url && (
+                            <div className="mt-4">
+                              <a href={c.floor_plan_url} target="_blank" rel="noopener noreferrer">
+                                <img src={c.floor_plan_url} alt={`${c.bhk} floor plan`} className="rounded-xl border border-border max-h-72 object-contain" />
+                              </a>
+                            </div>
+                          )}
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground italic">Per-configuration details are not yet published. Please check back soon or contact the developer.</p>
+                  )}
+                  {property.developer_website && (
+                    <p className="text-[11px] text-muted-foreground mt-2">
+                      All configuration details sourced from the official developer site. Verify final specifications before purchase.
+                    </p>
                   )}
                 </div>
               )}
