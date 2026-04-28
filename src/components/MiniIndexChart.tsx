@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ArrowUp, ArrowDown, TrendingUp } from "lucide-react";
-import { INDICES, type IndexData } from "@/data/mockStocks";
-import { supabase } from "@/integrations/supabase/client";
+import type { IndexData } from "@/data/mockStocks";
+import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
 
 function generateChartPoints(baseValue: number, positive: boolean, count = 24): number[] {
   const points: number[] = [];
@@ -51,23 +51,24 @@ function AreaChart({ points, positive, width = 220, height = 60 }: { points: num
 }
 
 export function MiniIndexChart() {
-  const [indices, setIndices] = useState<IndexData[]>(INDICES.slice(0, 2)); // SENSEX & NIFTY
+  const [indices, setIndices] = useState<IndexData[]>([]);
   const [active, setActive] = useState(0);
 
   const fetchLive = useCallback(async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("stock-ticker");
-      if (error || !data?.quotes) return;
-      const quotes = data.quotes as Array<{ symbol: string; price: number; change: number; changePercent: number }>;
-      setIndices(prev =>
-        prev.map(idx => {
-          const sym = idx.name === "SENSEX" ? "SENSEX" : idx.name === "NIFTY 50" ? "NIFTY" : null;
-          if (!sym) return idx;
-          const q = quotes.find(q => q.symbol === sym);
-          return q ? { ...idx, value: q.price, change: q.change, changePercent: q.changePercent } : idx;
-        })
-      );
-    } catch { /* keep mock */ }
+      const data = await fetchLiveMarketQuotes();
+      if (data.source !== "angelone") return;
+      const quotes = data.quotes.filter(q => q.symbol === "SENSEX" || q.symbol === "NIFTY");
+      if (!quotes.length) return;
+      setIndices(quotes.map(q => ({
+        name: q.symbol === "NIFTY" ? "NIFTY 50" : q.displayName,
+        value: q.price,
+        change: q.change,
+        changePercent: q.changePercent,
+        high: q.high || q.price,
+        low: q.low || q.price,
+      })));
+    } catch { /* keep previous live data */ }
   }, []);
 
   useEffect(() => { fetchLive(); }, [fetchLive]);
@@ -79,6 +80,14 @@ export function MiniIndexChart() {
   );
 
   const idx = indices[active];
+
+  if (!idx) {
+    return (
+      <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden p-5 text-sm text-muted-foreground">
+        Loading live index chart…
+      </div>
+    );
+  }
   const up = idx.change >= 0;
 
   return (
