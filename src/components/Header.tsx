@@ -131,6 +131,22 @@ export function Header() {
           <button className="hidden md:flex p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">
             <Bell className="h-[18px] w-[18px]" />
           </button>
+
+          <div className="hidden md:flex items-center gap-2 ml-1 text-xs">
+            {user ? (
+              <>
+                <span className="text-muted-foreground">Hi, {user.email?.split('@')[0]}</span>
+                <Link to="/admin" className="text-primary hover:text-primary/80 font-semibold transition-colors">Admin Portal →</Link>
+                <button onClick={() => supabase.auth.signOut()} className="text-muted-foreground hover:text-foreground transition-colors">Logout</button>
+              </>
+            ) : (
+              <>
+                <Link to="/admin/login" className="px-3 py-1.5 text-foreground/80 hover:text-foreground font-medium transition-colors">Login</Link>
+                <Link to="/admin/login" className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md font-semibold hover:bg-primary/90 transition-colors">Register</Link>
+              </>
+            )}
+          </div>
+
           <button
             className="lg:hidden p-2 text-muted-foreground hover:text-foreground"
             onClick={() => setMobileOpen(!mobileOpen)}
