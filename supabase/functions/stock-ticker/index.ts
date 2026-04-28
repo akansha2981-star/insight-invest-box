@@ -15,23 +15,10 @@ const CACHE_TTL_MS = 20_000; // 20 seconds
 // In-memory cache
 let cachedResponse: { quotes: any[]; source: string; live: boolean; cachedAt: number } | null = null;
 
-const FALLBACK_QUOTES = [
-  { symbol: "SENSEX", displayName: "SENSEX", price: 74559.38, change: 352.14, changePercent: 0.47, high: 74600.0, low: 74200.0, open: 74310.2, exchange: "BSE" },
-  { symbol: "NIFTY", displayName: "NIFTY 50", price: 23110.15, change: 108, changePercent: 0.47, high: 23150.0, low: 22980.0, open: 23028.4, exchange: "NSE" },
-  { symbol: "BANKNIFTY", displayName: "BANK NIFTY", price: 53548.2, change: 97.2, changePercent: 0.18, high: 53700.0, low: 53300.0, open: 53441.0, exchange: "NSE" },
-  { symbol: "RELIANCE", displayName: "RELIANCE", price: 1398, change: 13.2, changePercent: 0.95, high: 1405.4, low: 1380.2, open: 1388.0, exchange: "NSE" },
-  { symbol: "TCS", displayName: "TCS", price: 2386, change: 30, changePercent: 1.27, high: 2401.5, low: 2362.1, open: 2371.8, exchange: "NSE" },
-  { symbol: "HDFCBANK", displayName: "HDFC BANK", price: 785, change: -13.2, changePercent: -1.65, high: 798.1, low: 781.6, open: 796.0, exchange: "NSE" },
-  { symbol: "INFY", displayName: "INFOSYS", price: 1242, change: 21.2, changePercent: 1.74, high: 1250.4, low: 1221.2, open: 1226.6, exchange: "NSE" },
-  { symbol: "ICICIBANK", displayName: "ICICI BANK", price: 1258.4, change: 8.3, changePercent: 0.66, high: 1264.7, low: 1248.0, open: 1251.3, exchange: "NSE" },
-  { symbol: "BHARTIARTL", displayName: "AIRTEL", price: 1834, change: 7, changePercent: 0.38, high: 1842.8, low: 1821.0, open: 1829.5, exchange: "NSE" },
-  { symbol: "WIPRO", displayName: "WIPRO", price: 191.19, change: 2.78, changePercent: 1.48, high: 192.6, low: 188.7, open: 189.5, exchange: "NSE" },
-];
-
-function fallbackPayload(reason: string) {
+function emptyPayload(reason: string) {
   return {
-    quotes: FALLBACK_QUOTES,
-    source: "fallback",
+    quotes: [],
+    source: "none",
     live: false,
     fallback: true,
     reason,
