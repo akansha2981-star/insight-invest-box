@@ -109,6 +109,7 @@ export function AIPropertyWizard({ open, onClose, onPublish }: Props) {
   const [form, setForm] = useState({
     property_name: "",
     developer_name: "",
+    developer_website: "",
     state: "Haryana",
     city: "Gurugram",
     locality: "",
@@ -127,7 +128,8 @@ export function AIPropertyWizard({ open, onClose, onPublish }: Props) {
     setStep(0);
     setDraft(null);
     setForm({
-      property_name: "", developer_name: "", state: "Haryana", city: "Gurugram",
+      property_name: "", developer_name: "", developer_website: "",
+      state: "Haryana", city: "Gurugram",
       locality: "", property_type: "apartment", listing_type: "buy",
       bhk_list: [], stage: "under_construction", positioning: "mid",
       budget_hint: "", extra_notes: "",
