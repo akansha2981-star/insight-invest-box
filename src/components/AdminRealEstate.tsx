@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminAI } from "@/hooks/useAdminAI";
+import { AIPropertyWizard, type PropertyDraft } from "@/components/AIPropertyWizard";
 
 type Tab = "properties" | "services" | "trends" | "interior";
 
