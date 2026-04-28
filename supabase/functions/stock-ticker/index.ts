@@ -132,12 +132,21 @@ async function angelOneLogin(apiKey: string, clientId: string, pin: string, totp
   return null;
 }
 
-async function fetchMarketQuotes(apiKey: string, jwtToken: string): Promise<any[]> {
-  const exchangeTokens: Record<string, string[]> = {};
-  for (const info of Object.values(STOCK_TOKENS)) {
-    if (!exchangeTokens[info.exchange]) exchangeTokens[info.exchange] = [];
-    if (!exchangeTokens[info.exchange].includes(info.token)) exchangeTokens[info.exchange].push(info.token);
-  }
+// Angel One quote API limit: max 50 tokens per request (across exchanges)
+const MAX_TOKENS_PER_REQUEST = 50;
+
+function isMarketOpenIST(): boolean {
+  // IST = UTC+5:30
+  const now = new Date();
+  const istMs = now.getTime() + (5 * 60 + 30) * 60_000;
+  const ist = new Date(istMs);
+  const day = ist.getUTCDay(); // 0 Sun .. 6 Sat
+  if (day === 0 || day === 6) return false;
+  const minutes = ist.getUTCHours() * 60 + ist.getUTCMinutes();
+  return minutes >= (9 * 60 + 15) && minutes <= (15 * 60 + 30);
+}
+
+async function fetchQuoteBatch(apiKey: string, jwtToken: string, exchangeTokens: Record<string, string[]>): Promise<any[]> {
   const res = await fetch(MARKET_DATA_URL, {
     method: "POST",
     headers: {
@@ -151,22 +160,59 @@ async function fetchMarketQuotes(apiKey: string, jwtToken: string): Promise<any[
   });
   const data = await res.json();
   if (!data?.data?.fetched || !Array.isArray(data.data.fetched)) {
-    console.error("Market data fetch failed:", data?.message || JSON.stringify(data));
+    console.error("Quote batch failed:", data?.message || JSON.stringify(data).substring(0, 200));
     return [];
   }
+  return data.data.fetched;
+}
+
+async function fetchMarketQuotes(apiKey: string, jwtToken: string): Promise<any[]> {
+  // Build list of {exchange, token} pairs
+  const pairs: { exchange: string; token: string }[] = [];
+  const seen = new Set<string>();
+  for (const info of Object.values(STOCK_TOKENS)) {
+    const k = `${info.exchange}:${info.token}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    pairs.push({ exchange: info.exchange, token: info.token });
+  }
+
+  // Chunk into batches of MAX_TOKENS_PER_REQUEST
+  const batches: Record<string, string[]>[] = [];
+  for (let i = 0; i < pairs.length; i += MAX_TOKENS_PER_REQUEST) {
+    const slice = pairs.slice(i, i + MAX_TOKENS_PER_REQUEST);
+    const batch: Record<string, string[]> = {};
+    for (const p of slice) {
+      if (!batch[p.exchange]) batch[p.exchange] = [];
+      batch[p.exchange].push(p.token);
+    }
+    batches.push(batch);
+  }
+
+  const fetchedAll: any[] = [];
+  for (const batch of batches) {
+    const items = await fetchQuoteBatch(apiKey, jwtToken, batch);
+    fetchedAll.push(...items);
+  }
+
   const results: any[] = [];
-  for (const item of data.data.fetched) {
+  for (const item of fetchedAll) {
     const entry = Object.entries(STOCK_TOKENS).find(([, v]) => v.token === item.symbolToken);
     if (!entry) continue;
     const [symbol, info] = entry;
     const ltp = parseFloat(item.ltp) || 0;
-    const close = parseFloat(item.close) || ltp;
-    const change = +(ltp - close).toFixed(2);
-    const changePercent = close ? +((change / close) * 100).toFixed(2) : 0;
+    const close = parseFloat(item.close) || 0;
+    // When market is closed, Angel One often returns ltp = last traded price of last session.
+    // If ltp is 0 but close exists, use close as the displayed price.
+    const displayPrice = ltp > 0 ? ltp : close;
+    const refClose = close > 0 ? close : ltp;
+    const change = +(displayPrice - refClose).toFixed(2);
+    const changePercent = refClose ? +((change / refClose) * 100).toFixed(2) : 0;
+    if (displayPrice <= 0) continue;
     results.push({
-      symbol, displayName: info.displayName, price: ltp, change, changePercent,
+      symbol, displayName: info.displayName, price: displayPrice, change, changePercent,
       high: parseFloat(item.high) || 0, low: parseFloat(item.low) || 0,
-      open: parseFloat(item.open) || 0, exchange: info.exchange,
+      open: parseFloat(item.open) || 0, close, exchange: info.exchange,
     });
   }
   return results;
@@ -175,13 +221,20 @@ async function fetchMarketQuotes(apiKey: string, jwtToken: string): Promise<any[
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const marketOpen = isMarketOpenIST();
+  // When the market is closed, last-close prices don't change — cache aggressively.
+  const effectiveTtl = marketOpen ? CACHE_TTL_MS : 10 * 60_000;
+
+  const respond = (body: any, status = 200) =>
+    new Response(JSON.stringify({ ...body, marketOpen, lastUpdated: new Date().toISOString() }), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
   try {
-    // Return cached data if fresh
-    if (cachedResponse && (Date.now() - cachedResponse.cachedAt) < CACHE_TTL_MS) {
+    if (cachedResponse && (Date.now() - cachedResponse.cachedAt) < effectiveTtl) {
       console.log("Returning cached data, age:", Math.round((Date.now() - cachedResponse.cachedAt) / 1000), "s");
-      return new Response(JSON.stringify({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live, cached: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return respond({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live && marketOpen, cached: true });
     }
 
     const apiKey = Deno.env.get("ANGELONE_API_KEY");
@@ -190,30 +243,19 @@ serve(async (req) => {
     const totpSecret = Deno.env.get("ANGELONE_TOTP_SECRET");
 
     if (!apiKey || !clientId || !pin || !totpSecret) {
-      return new Response(
-        JSON.stringify(emptyPayload("missing_config")),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return respond(emptyPayload("missing_config"));
     }
 
     const jwtToken = await angelOneLogin(apiKey, clientId, pin, totpSecret);
     if (!jwtToken) {
-      // If we have stale cache, return it instead of failing
       if (cachedResponse) {
-        console.log("Auth failed, returning stale cache");
-        return new Response(JSON.stringify({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live, cached: true, stale: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return respond({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: false, cached: true, stale: true });
       }
-      return new Response(
-        JSON.stringify(emptyPayload("auth_failed")),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return respond(emptyPayload("auth_failed"));
     }
 
     const quotes = await fetchMarketQuotes(apiKey, jwtToken);
 
-    // Best-effort logout
     try {
       await fetch(LOGOUT_URL, {
         method: "POST",
@@ -224,32 +266,20 @@ serve(async (req) => {
 
     if (quotes.length === 0) {
       if (cachedResponse) {
-        return new Response(JSON.stringify({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live, cached: true, stale: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return respond({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: false, cached: true, stale: true });
       }
-      return new Response(
-        JSON.stringify(emptyPayload("no_data")),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return respond(emptyPayload("no_data"));
     }
 
-    // Update cache
-    cachedResponse = { quotes, source: "angelone", live: true, cachedAt: Date.now() };
-    console.log("Cache updated with", quotes.length, "quotes");
+    cachedResponse = { quotes, source: "angelone", live: marketOpen, cachedAt: Date.now() };
+    console.log("Cache updated with", quotes.length, "quotes; marketOpen=", marketOpen);
 
-    return new Response(JSON.stringify({ quotes, source: "angelone", live: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return respond({ quotes, source: "angelone", live: marketOpen });
   } catch (e) {
     console.error("stock-ticker error:", e);
     if (cachedResponse) {
-      return new Response(JSON.stringify({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live, cached: true, stale: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return respond({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: false, cached: true, stale: true });
     }
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return respond({ error: e instanceof Error ? e.message : "Unknown error" }, 200);
   }
 });
