@@ -160,6 +160,7 @@ export function AIPropertyWizard({ open, onClose, onPublish }: Props) {
       context: {
         property_name: form.property_name.trim(),
         developer_name: form.developer_name.trim(),
+        developer_website: form.developer_website.trim() || undefined,
         property_type: form.property_type,
         listing_type: form.listing_type,
         city: form.city,
