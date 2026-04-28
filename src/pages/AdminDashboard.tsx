@@ -10,6 +10,7 @@ import { AdminHomeBanners } from "@/components/AdminHomeBanners";
 import { AdminNewsletterSubscribers } from "@/components/AdminNewsletterSubscribers";
 import { AdminRealEstate } from "@/components/AdminRealEstate";
 import { AdminAuthAnalytics } from "@/components/AdminAuthAnalytics";
+import { AdminRegisteredUsers } from "@/components/AdminRegisteredUsers";
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
