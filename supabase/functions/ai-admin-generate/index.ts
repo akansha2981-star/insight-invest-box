@@ -174,7 +174,74 @@ async function fetchMarketSnapshot(targetDate: string): Promise<string> {
   }
 }
 
-function normalizeArticleResult(result: any, ctx: any) {
+// Fetches REAL live data for a specific symbol from our stock-ticker function.
+// Returns ground-truth numbers + a formatted prompt block the AI is forced to use.
+async function fetchLiveStockData(symbol: string): Promise<{ data: any | null; promptBlock: string }> {
+  if (!symbol) return { data: null, promptBlock: "" };
+  const sym = symbol.toUpperCase().trim();
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const publishableKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY");
+  if (!supabaseUrl || !publishableKey) return { data: null, promptBlock: "" };
+
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/stock-ticker`, {
+      headers: { Authorization: `Bearer ${publishableKey}` },
+    });
+    if (!response.ok) return { data: null, promptBlock: "" };
+    const data = await response.json();
+    const quotes = Array.isArray(data?.quotes) ? data.quotes : [];
+    const match = quotes.find((q: any) => String(q.symbol).toUpperCase() === sym);
+    if (!match) {
+      return {
+        data: null,
+        promptBlock: `\n\n*** WARNING: No live data found for symbol "${sym}". DO NOT invent specific prices, P/E, or market cap. Use phrases like "around recent levels" and clearly mark estimated figures. ***`,
+      };
+    }
+
+    const price = Number(match.price || 0);
+    const changePct = Number(match.changePercent || 0);
+    const change = Number(match.change || 0);
+    const prevClose = Number(match.previousClose || (price - change) || 0);
+    const high52 = Number(match.high52Week || match.yearHigh || 0);
+    const low52 = Number(match.low52Week || match.yearLow || 0);
+    const dayHigh = Number(match.high || 0);
+    const dayLow = Number(match.low || 0);
+    const volume = Number(match.volume || 0);
+    const open = Number(match.open || 0);
+
+    const promptBlock = `
+
+*** GROUND-TRUTH LIVE DATA — YOU MUST USE THESE EXACT NUMBERS, DO NOT INVENT OR ESTIMATE ***
+Symbol: ${match.symbol}
+Company / Display Name: ${match.displayName || match.symbol}
+Exchange: ${match.exchange || "NSE"}
+Current Price (INR): ${price.toFixed(2)}
+Day Change: ${change.toFixed(2)} (${changePct.toFixed(2)}%)
+Previous Close: ${prevClose.toFixed(2)}
+Day Open: ${open.toFixed(2)}
+Day High: ${dayHigh.toFixed(2)} | Day Low: ${dayLow.toFixed(2)}
+52-Week High: ${high52 > 0 ? high52.toFixed(2) : "N/A"}
+52-Week Low: ${low52 > 0 ? low52.toFixed(2) : "N/A"}
+Volume: ${volume.toLocaleString()}
+
+RULES:
+1. Set current_price = ${price.toFixed(2)} EXACTLY.
+2. Set key_metrics["52w_high"] = "${high52 > 0 ? high52.toFixed(2) : "N/A"}" EXACTLY.
+3. Set key_metrics["52w_low"] = "${low52 > 0 ? low52.toFixed(2) : "N/A"}" EXACTLY.
+4. target_price must be within +/- 35% of current_price and reflect a realistic 12-month view.
+5. For financials (revenue, P/E, market cap, EPS, ROE) use ONLY widely-known annual report figures. If unsure, use conservative ranges and clearly say "approx" — DO NOT fabricate precise numbers.
+6. Do NOT mention any price, event, or filing dated after today's IST date.
+*** END GROUND-TRUTH ***`;
+
+    return {
+      data: { ...match, price, changePct, prevClose, high52, low52, dayHigh, dayLow, volume, open },
+      promptBlock,
+    };
+  } catch (e) {
+    console.error("fetchLiveStockData error:", e);
+    return { data: null, promptBlock: "" };
+  }
+
   const targetDate = getRequestedDate(ctx?.target_date);
   const requestedTopic = stripCodeFences(String(ctx?.topic ?? "")).trim();
   const title = stripCodeFences(String((result?.title ?? requestedTopic) || `Market Update for ${targetDate}`)).trim() || `Market Update for ${targetDate}`;
