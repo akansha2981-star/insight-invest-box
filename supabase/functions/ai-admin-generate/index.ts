@@ -174,6 +174,75 @@ async function fetchMarketSnapshot(targetDate: string): Promise<string> {
   }
 }
 
+// Fetches REAL live data for a specific symbol from our stock-ticker function.
+// Returns ground-truth numbers + a formatted prompt block the AI is forced to use.
+async function fetchLiveStockData(symbol: string): Promise<{ data: any | null; promptBlock: string }> {
+  if (!symbol) return { data: null, promptBlock: "" };
+  const sym = symbol.toUpperCase().trim();
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const publishableKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY");
+  if (!supabaseUrl || !publishableKey) return { data: null, promptBlock: "" };
+
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/stock-ticker`, {
+      headers: { Authorization: `Bearer ${publishableKey}` },
+    });
+    if (!response.ok) return { data: null, promptBlock: "" };
+    const data = await response.json();
+    const quotes = Array.isArray(data?.quotes) ? data.quotes : [];
+    const match = quotes.find((q: any) => String(q.symbol).toUpperCase() === sym);
+    if (!match) {
+      return {
+        data: null,
+        promptBlock: `\n\n*** WARNING: No live data found for symbol "${sym}". DO NOT invent specific prices, P/E, or market cap. Use phrases like "around recent levels" and clearly mark estimated figures. ***`,
+      };
+    }
+
+    const price = Number(match.price || 0);
+    const changePct = Number(match.changePercent || 0);
+    const change = Number(match.change || 0);
+    const prevClose = Number(match.previousClose || (price - change) || 0);
+    const high52 = Number(match.high52Week || match.yearHigh || 0);
+    const low52 = Number(match.low52Week || match.yearLow || 0);
+    const dayHigh = Number(match.high || 0);
+    const dayLow = Number(match.low || 0);
+    const volume = Number(match.volume || 0);
+    const open = Number(match.open || 0);
+
+    const promptBlock = `
+
+*** GROUND-TRUTH LIVE DATA — YOU MUST USE THESE EXACT NUMBERS, DO NOT INVENT OR ESTIMATE ***
+Symbol: ${match.symbol}
+Company / Display Name: ${match.displayName || match.symbol}
+Exchange: ${match.exchange || "NSE"}
+Current Price (INR): ${price.toFixed(2)}
+Day Change: ${change.toFixed(2)} (${changePct.toFixed(2)}%)
+Previous Close: ${prevClose.toFixed(2)}
+Day Open: ${open.toFixed(2)}
+Day High: ${dayHigh.toFixed(2)} | Day Low: ${dayLow.toFixed(2)}
+52-Week High: ${high52 > 0 ? high52.toFixed(2) : "N/A"}
+52-Week Low: ${low52 > 0 ? low52.toFixed(2) : "N/A"}
+Volume: ${volume.toLocaleString()}
+
+RULES:
+1. Set current_price = ${price.toFixed(2)} EXACTLY.
+2. Set key_metrics["52w_high"] = "${high52 > 0 ? high52.toFixed(2) : "N/A"}" EXACTLY.
+3. Set key_metrics["52w_low"] = "${low52 > 0 ? low52.toFixed(2) : "N/A"}" EXACTLY.
+4. target_price must be within +/- 35% of current_price and reflect a realistic 12-month view.
+5. For financials (revenue, P/E, market cap, EPS, ROE) use ONLY widely-known annual report figures. If unsure, use conservative ranges and clearly say "approx" — DO NOT fabricate precise numbers.
+6. Do NOT mention any price, event, or filing dated after today's IST date.
+*** END GROUND-TRUTH ***`;
+
+    return {
+      data: { ...match, price, changePct, prevClose, high52, low52, dayHigh, dayLow, volume, open },
+      promptBlock,
+    };
+  } catch (e) {
+    console.error("fetchLiveStockData error:", e);
+    return { data: null, promptBlock: "" };
+  }
+}
+
 function normalizeArticleResult(result: any, ctx: any) {
   const targetDate = getRequestedDate(ctx?.target_date);
   const requestedTopic = stripCodeFences(String(ctx?.topic ?? "")).trim();
@@ -256,21 +325,22 @@ ${ctx.market_snapshot || ""}`;
   "generate-stock-review": {
     system: (ctx: any) => {
       const d = getRequestedDate(ctx.target_date);
-      return `You are a senior equity research analyst for Indian markets (NSE/BSE). Generate comprehensive stock analysis with REALISTIC financial data. Use actual market-like numbers. No emojis. ${buildDateGuard(d)}`;
+      return `You are a senior equity research analyst for Indian markets (NSE/BSE). Generate comprehensive stock analysis. CRITICAL: When ground-truth live data is provided in the user prompt, use those EXACT numbers — never invent prices, 52-week highs/lows, or current price. For metrics not provided (revenue, P/E, market cap), use only widely-known annual report figures and clearly mark uncertain numbers as "approx". No emojis. ${buildDateGuard(d)}`;
     },
     prompt: (ctx) => {
       const d = getRequestedDate(ctx.target_date);
       const topic = ctx.symbol ? `for ${ctx.symbol}` : (ctx.topic ? `for ${ctx.topic}` : "for a trending Indian large-cap stock");
-      return `Generate a COMPLETE stock review ${topic}. Include ALL fields with realistic data:
+      return `Generate a COMPLETE stock review ${topic}. Include ALL fields:
 - symbol, company_name, sector, exchange
-- current_price (realistic market price in INR), target_price
+- current_price (USE GROUND-TRUTH BELOW), target_price (12-month, within +/-35% of current)
 - rating (STRONG BUY/BUY/HOLD/SELL/STRONG SELL)
-- summary (2-3 sentences), investment_thesis (detailed paragraph), risks
-- analyst_name
+- summary (2-3 sentences, factual), investment_thesis (detailed paragraph), risks
+- analyst_name (e.g., "InvestingIQ Research")
 - tags (comma separated)
 - financials: revenue (in Cr), net_profit (in Cr), eps, pe_ratio, debt_equity, roe (%), market_cap (in Cr), book_value
-- key_metrics: 52w_high, 52w_low, dividend_yield (%), promoter_holding (%), fii_holding (%), beta
-ALL numbers must be realistic for the stock as of ${d}. ${buildDateGuard(d)}
+- key_metrics: 52w_high, 52w_low (USE GROUND-TRUTH BELOW), dividend_yield (%), promoter_holding (%), fii_holding (%), beta
+Date context: ${d}. ${buildDateGuard(d)}
+${ctx.live_stock_data || ""}
 ${ctx.market_snapshot || ""}`;
     },
     tools: [{
@@ -564,10 +634,21 @@ serve(async (req) => {
     const requestContext = context || {};
     const targetDate = getRequestedDate(requestContext.target_date);
     const marketSnapshot = await fetchMarketSnapshot(targetDate);
+
+    // For stock reviews, fetch REAL live data for the requested symbol
+    let liveStockBlock = "";
+    let liveStockData: any = null;
+    if (action === "generate-stock-review" && requestContext.symbol) {
+      const live = await fetchLiveStockData(String(requestContext.symbol));
+      liveStockBlock = live.promptBlock;
+      liveStockData = live.data;
+    }
+
     const enrichedContext = {
       ...requestContext,
       target_date: targetDate,
       market_snapshot: marketSnapshot,
+      live_stock_data: liveStockBlock,
     };
 
     // Use stronger model for article and stock review generation
@@ -587,7 +668,27 @@ serve(async (req) => {
       });
     }
 
-    const result = extractToolResult(aiData);
+    let result = extractToolResult(aiData);
+
+    // POST-PROCESS: For stock reviews with live data, OVERWRITE AI output with ground-truth values
+    if (action === "generate-stock-review" && result && liveStockData) {
+      result.symbol = String(liveStockData.symbol || result.symbol || "").toUpperCase();
+      result.current_price = Number(liveStockData.price);
+      result.exchange = liveStockData.exchange || result.exchange || "NSE";
+      result.key_metrics = result.key_metrics || {};
+      if (liveStockData.high52 > 0) result.key_metrics["52w_high"] = liveStockData.high52.toFixed(2);
+      if (liveStockData.low52 > 0) result.key_metrics["52w_low"] = liveStockData.low52.toFixed(2);
+
+      // Sanity check on target price (must be within +/- 50% of current)
+      const tgt = Number(result.target_price);
+      if (!tgt || Math.abs(tgt - liveStockData.price) / liveStockData.price > 0.5) {
+        const ratingMul = String(result.rating || "HOLD").toUpperCase().includes("BUY") ? 1.18
+          : String(result.rating || "HOLD").toUpperCase().includes("SELL") ? 0.85
+          : 1.05;
+        result.target_price = Number((liveStockData.price * ratingMul).toFixed(2));
+      }
+    }
+
     const normalizedResult = action === "generate-full-article" && result
       ? normalizeArticleResult(result, enrichedContext)
       : result;
