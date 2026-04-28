@@ -65,34 +65,6 @@ export function Header() {
 
   return (
     <header className="bg-white border-b border-border sticky top-0 z-50 shadow-sm">
-      {/* Dark top strip */}
-      <div className="bg-slate-900 text-white/80 text-xs">
-        <div className="max-w-[1440px] mx-auto px-4 py-1.5 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span>BSE: <span className="text-emerald-400 font-semibold">OPEN</span></span>
-            <span className="text-white/20">|</span>
-            <span>NSE: <span className="text-emerald-400 font-semibold">OPEN</span></span>
-            <span className="text-white/20 hidden md:inline">|</span>
-            <span className="hidden md:inline">MCX: <span className="text-emerald-400 font-semibold">OPEN</span></span>
-          </div>
-          <div className="flex items-center gap-3">
-            {user ? (
-              <>
-                <span className="text-white/60">Hi, {user.email?.split('@')[0]}</span>
-                <Link to="/admin" className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">Admin Portal →</Link>
-                <button onClick={() => supabase.auth.signOut()} className="text-white/40 hover:text-white/70 transition-colors">Logout</button>
-              </>
-            ) : (
-              <>
-                <Link to="/admin/login" className="hover:text-white transition-colors">Login</Link>
-                <span className="text-white/20">|</span>
-                <Link to="/admin/login" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">Register</Link>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Main header row */}
       <div className="max-w-[1440px] mx-auto px-4 py-3 flex items-center gap-5">
         <Link to="/" className="flex items-center gap-2 shrink-0 group">
