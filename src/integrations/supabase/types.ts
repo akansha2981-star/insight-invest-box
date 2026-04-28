@@ -207,6 +207,7 @@ export type Database = {
           area_min: number | null
           area_sqft: number | null
           bhk: string | null
+          bhk_configurations: Json | null
           bhk_max: string | null
           bhk_min: string | null
           city: string
@@ -216,6 +217,7 @@ export type Database = {
           density: string | null
           description: string | null
           developer_name: string | null
+          developer_website: string | null
           floor_plans: string[] | null
           green_area_pct: number | null
           highlights: string[] | null
@@ -226,6 +228,8 @@ export type Database = {
           is_price_drop: boolean | null
           listing_type: string
           locality: string | null
+          meta_description: string | null
+          meta_title: string | null
           nearest_hospital: string | null
           nearest_mall: string | null
           nearest_school: string | null
@@ -245,6 +249,7 @@ export type Database = {
           roi_projection: string | null
           sector: string | null
           slug: string
+          source_urls: string[] | null
           status: string | null
           title: string
           total_floors: number | null
@@ -259,6 +264,7 @@ export type Database = {
           area_min?: number | null
           area_sqft?: number | null
           bhk?: string | null
+          bhk_configurations?: Json | null
           bhk_max?: string | null
           bhk_min?: string | null
           city: string
@@ -268,6 +274,7 @@ export type Database = {
           density?: string | null
           description?: string | null
           developer_name?: string | null
+          developer_website?: string | null
           floor_plans?: string[] | null
           green_area_pct?: number | null
           highlights?: string[] | null
@@ -278,6 +285,8 @@ export type Database = {
           is_price_drop?: boolean | null
           listing_type?: string
           locality?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
           nearest_hospital?: string | null
           nearest_mall?: string | null
           nearest_school?: string | null
@@ -297,6 +306,7 @@ export type Database = {
           roi_projection?: string | null
           sector?: string | null
           slug: string
+          source_urls?: string[] | null
           status?: string | null
           title: string
           total_floors?: number | null
@@ -311,6 +321,7 @@ export type Database = {
           area_min?: number | null
           area_sqft?: number | null
           bhk?: string | null
+          bhk_configurations?: Json | null
           bhk_max?: string | null
           bhk_min?: string | null
           city?: string
@@ -320,6 +331,7 @@ export type Database = {
           density?: string | null
           description?: string | null
           developer_name?: string | null
+          developer_website?: string | null
           floor_plans?: string[] | null
           green_area_pct?: number | null
           highlights?: string[] | null
@@ -330,6 +342,8 @@ export type Database = {
           is_price_drop?: boolean | null
           listing_type?: string
           locality?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
           nearest_hospital?: string | null
           nearest_mall?: string | null
           nearest_school?: string | null
@@ -349,6 +363,7 @@ export type Database = {
           roi_projection?: string | null
           sector?: string | null
           slug?: string
+          source_urls?: string[] | null
           status?: string | null
           title?: string
           total_floors?: number | null
