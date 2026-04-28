@@ -74,7 +74,7 @@ function pctFrom52High(price: number, high52: number) {
 }
 
 export default function StockScreenerPage() {
-  const [liveStocks, setLiveStocks] = useState(MOCK_STOCKS);
+  const [liveStocks, setLiveStocks] = useState<typeof MOCK_STOCKS>([]);
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("All");
   const [rating, setRating] = useState("All");
@@ -184,7 +184,7 @@ export default function StockScreenerPage() {
               </div>
             </div>
             <div className="flex flex-wrap gap-4 mt-5 text-xs text-white/60">
-              <span className="flex items-center gap-1"><BarChart3 className="h-3.5 w-3.5" /> {MOCK_STOCKS.length} Stocks</span>
+              <span className="flex items-center gap-1"><BarChart3 className="h-3.5 w-3.5" /> {liveStocks.length || "—"} Stocks</span>
               <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> {SECTORS.length - 1} Sectors</span>
               <span className="flex items-center gap-1"><Activity className="h-3.5 w-3.5" /> Real-time Data</span>
             </div>
@@ -311,7 +311,7 @@ export default function StockScreenerPage() {
         {/* Results Count */}
         <div className="flex items-center justify-between mb-3 px-1">
           <p className="text-xs text-muted-foreground font-medium">
-            Showing <span className="text-foreground font-bold">{filtered.length}</span> of {MOCK_STOCKS.length} stocks
+            Showing <span className="text-foreground font-bold">{filtered.length}</span> of {liveStocks.length} stocks
           </p>
           <p className="text-[10px] text-muted-foreground">Click column headers to sort</p>
         </div>
