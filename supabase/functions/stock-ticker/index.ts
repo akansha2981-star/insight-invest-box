@@ -132,12 +132,21 @@ async function angelOneLogin(apiKey: string, clientId: string, pin: string, totp
   return null;
 }
 
-async function fetchMarketQuotes(apiKey: string, jwtToken: string): Promise<any[]> {
-  const exchangeTokens: Record<string, string[]> = {};
-  for (const info of Object.values(STOCK_TOKENS)) {
-    if (!exchangeTokens[info.exchange]) exchangeTokens[info.exchange] = [];
-    if (!exchangeTokens[info.exchange].includes(info.token)) exchangeTokens[info.exchange].push(info.token);
-  }
+// Angel One quote API limit: max 50 tokens per request (across exchanges)
+const MAX_TOKENS_PER_REQUEST = 50;
+
+function isMarketOpenIST(): boolean {
+  // IST = UTC+5:30
+  const now = new Date();
+  const istMs = now.getTime() + (5 * 60 + 30) * 60_000;
+  const ist = new Date(istMs);
+  const day = ist.getUTCDay(); // 0 Sun .. 6 Sat
+  if (day === 0 || day === 6) return false;
+  const minutes = ist.getUTCHours() * 60 + ist.getUTCMinutes();
+  return minutes >= (9 * 60 + 15) && minutes <= (15 * 60 + 30);
+}
+
+async function fetchQuoteBatch(apiKey: string, jwtToken: string, exchangeTokens: Record<string, string[]>): Promise<any[]> {
   const res = await fetch(MARKET_DATA_URL, {
     method: "POST",
     headers: {
@@ -151,22 +160,59 @@ async function fetchMarketQuotes(apiKey: string, jwtToken: string): Promise<any[
   });
   const data = await res.json();
   if (!data?.data?.fetched || !Array.isArray(data.data.fetched)) {
-    console.error("Market data fetch failed:", data?.message || JSON.stringify(data));
+    console.error("Quote batch failed:", data?.message || JSON.stringify(data).substring(0, 200));
     return [];
   }
+  return data.data.fetched;
+}
+
+async function fetchMarketQuotes(apiKey: string, jwtToken: string): Promise<any[]> {
+  // Build list of {exchange, token} pairs
+  const pairs: { exchange: string; token: string }[] = [];
+  const seen = new Set<string>();
+  for (const info of Object.values(STOCK_TOKENS)) {
+    const k = `${info.exchange}:${info.token}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    pairs.push({ exchange: info.exchange, token: info.token });
+  }
+
+  // Chunk into batches of MAX_TOKENS_PER_REQUEST
+  const batches: Record<string, string[]>[] = [];
+  for (let i = 0; i < pairs.length; i += MAX_TOKENS_PER_REQUEST) {
+    const slice = pairs.slice(i, i + MAX_TOKENS_PER_REQUEST);
+    const batch: Record<string, string[]> = {};
+    for (const p of slice) {
+      if (!batch[p.exchange]) batch[p.exchange] = [];
+      batch[p.exchange].push(p.token);
+    }
+    batches.push(batch);
+  }
+
+  const fetchedAll: any[] = [];
+  for (const batch of batches) {
+    const items = await fetchQuoteBatch(apiKey, jwtToken, batch);
+    fetchedAll.push(...items);
+  }
+
   const results: any[] = [];
-  for (const item of data.data.fetched) {
+  for (const item of fetchedAll) {
     const entry = Object.entries(STOCK_TOKENS).find(([, v]) => v.token === item.symbolToken);
     if (!entry) continue;
     const [symbol, info] = entry;
     const ltp = parseFloat(item.ltp) || 0;
-    const close = parseFloat(item.close) || ltp;
-    const change = +(ltp - close).toFixed(2);
-    const changePercent = close ? +((change / close) * 100).toFixed(2) : 0;
+    const close = parseFloat(item.close) || 0;
+    // When market is closed, Angel One often returns ltp = last traded price of last session.
+    // If ltp is 0 but close exists, use close as the displayed price.
+    const displayPrice = ltp > 0 ? ltp : close;
+    const refClose = close > 0 ? close : ltp;
+    const change = +(displayPrice - refClose).toFixed(2);
+    const changePercent = refClose ? +((change / refClose) * 100).toFixed(2) : 0;
+    if (displayPrice <= 0) continue;
     results.push({
-      symbol, displayName: info.displayName, price: ltp, change, changePercent,
+      symbol, displayName: info.displayName, price: displayPrice, change, changePercent,
       high: parseFloat(item.high) || 0, low: parseFloat(item.low) || 0,
-      open: parseFloat(item.open) || 0, exchange: info.exchange,
+      open: parseFloat(item.open) || 0, close, exchange: info.exchange,
     });
   }
   return results;
