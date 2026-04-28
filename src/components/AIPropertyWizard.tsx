@@ -187,6 +187,7 @@ export function AIPropertyWizard({ open, onClose, onPublish }: Props) {
       title: finalTitle,
       slug,
       developer_name: finalBuilder,
+      developer_website: form.developer_website.trim() || null,
       city: result.city || form.city,
       locality: result.locality || form.locality || null,
       sector: result.sector || null,
