@@ -83,6 +83,64 @@ export default function PropertyDetailPage() {
     if (slug) fetch();
   }, [slug]);
 
+  // SEO meta + JSON-LD
+  useEffect(() => {
+    if (!property) return;
+    const title = property.meta_title || `${property.title} – ${property.bhk || ""} in ${property.locality || property.city} | InvestingIQ`;
+    const desc = property.meta_description ||
+      `${property.title} by ${property.developer_name || "leading developer"} in ${property.locality ? property.locality + ", " : ""}${property.city}. ${property.bhk || ""} ${property.property_type} starting ${property.price_display || formatPrice(property.price)}.`;
+    document.title = title.slice(0, 70);
+
+    const setMeta = (name: string, content: string, attr: "name" | "property" = "name") => {
+      let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}='${name}']`);
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
+      el.setAttribute("content", content.slice(0, 300));
+    };
+    setMeta("description", desc);
+    setMeta("og:title", title, "property");
+    setMeta("og:description", desc, "property");
+    setMeta("og:type", "product", "property");
+    if (property.cover_image_url) setMeta("og:image", property.cover_image_url, "property");
+
+    let canonical = document.head.querySelector<HTMLLinkElement>("link[rel='canonical']");
+    if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }
+    canonical.setAttribute("href", `${window.location.origin}/property/${property.slug}`);
+
+    const ld = {
+      "@context": "https://schema.org",
+      "@type": "Residence",
+      name: property.title,
+      description: desc,
+      url: `${window.location.origin}/property/${property.slug}`,
+      image: [property.cover_image_url, ...(property.images || [])].filter(Boolean),
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: property.locality || property.city,
+        addressRegion: property.city,
+        addressCountry: "IN",
+      },
+      brand: property.developer_name ? { "@type": "Organization", name: property.developer_name, url: property.developer_website || undefined } : undefined,
+      offers: {
+        "@type": "Offer",
+        price: property.price,
+        priceCurrency: "INR",
+        availability: "https://schema.org/InStock",
+      },
+      aggregateRating: (property.rating ?? 0) > 0 ? {
+        "@type": "AggregateRating",
+        ratingValue: property.rating,
+        reviewCount: property.reviews_count || 1,
+      } : undefined,
+    };
+    let jsonld = document.head.querySelector<HTMLScriptElement>("script[data-jsonld='property']");
+    if (!jsonld) { jsonld = document.createElement("script"); jsonld.type = "application/ld+json"; jsonld.setAttribute("data-jsonld", "property"); document.head.appendChild(jsonld); }
+    jsonld.text = JSON.stringify(ld);
+
+    return () => {
+      jsonld?.remove();
+    };
+  }, [property]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
