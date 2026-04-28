@@ -19,6 +19,8 @@ export interface LiveMarketResponse {
   cached?: boolean;
   stale?: boolean;
   reason?: string;
+  marketOpen?: boolean;
+  lastUpdated?: string;
 }
 
 const CLIENT_CACHE_TTL_MS = 25_000;
@@ -27,7 +29,7 @@ let cachedResponse: { data: LiveMarketResponse; cachedAt: number } | null = null
 let inflightRequest: Promise<LiveMarketResponse> | null = null;
 
 function normalizeResponse(data: any): LiveMarketResponse {
-  const isBrokerData = data?.source === "angelone" && data?.fallback !== true;
+  const isBrokerData = data?.source === "angelone";
   const quotes = Array.isArray(data?.quotes) && isBrokerData
     ? data.quotes.filter((q: any) =>
         q && typeof q.symbol === "string" && Number.isFinite(Number(q.price)) && Number(q.price) > 0
@@ -49,6 +51,8 @@ function normalizeResponse(data: any): LiveMarketResponse {
     cached: data?.cached === true,
     stale: data?.stale === true,
     reason: data?.reason,
+    marketOpen: data?.marketOpen === true,
+    lastUpdated: typeof data?.lastUpdated === "string" ? data.lastUpdated : undefined,
   };
 }
 
