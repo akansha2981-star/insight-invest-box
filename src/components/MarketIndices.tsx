@@ -200,13 +200,13 @@ export function MarketIndices() {
                     <div className="bg-muted/40 rounded-lg p-2">
                       <div className="text-[9px] text-muted-foreground">Open</div>
                       <div className="number-font text-[12px] font-semibold text-foreground">
-                        {(idx.value - idx.change).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        {(openMap[idx.name] ?? (idx.value - idx.change)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </div>
                     </div>
                     <div className="bg-muted/40 rounded-lg p-2">
                       <div className="text-[9px] text-muted-foreground">Prev Close</div>
                       <div className="number-font text-[12px] font-semibold text-foreground">
-                        {(idx.value - idx.change).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        {(idx.value - idx.change).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </div>
                     </div>
                   </div>
