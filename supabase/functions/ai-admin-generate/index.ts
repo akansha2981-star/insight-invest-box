@@ -241,7 +241,9 @@ RULES:
     console.error("fetchLiveStockData error:", e);
     return { data: null, promptBlock: "" };
   }
+}
 
+function normalizeArticleResult(result: any, ctx: any) {
   const targetDate = getRequestedDate(ctx?.target_date);
   const requestedTopic = stripCodeFences(String(ctx?.topic ?? "")).trim();
   const title = stripCodeFences(String((result?.title ?? requestedTopic) || `Market Update for ${targetDate}`)).trim() || `Market Update for ${targetDate}`;
