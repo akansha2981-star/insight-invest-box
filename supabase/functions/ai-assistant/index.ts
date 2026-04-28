@@ -312,59 +312,67 @@ serve(async (req) => {
       }
     }
 
-    // Build context for AI
-    const [allPropsRes, allStocksRes, allPostsRes, allTrendsRes] = await Promise.all([
-      sb.from("properties").select("title,slug,city,locality,price_display,bhk,property_type,listing_type,developer_name,area_sqft,price").eq("status", "active").limit(50),
-      sb.from("stock_reviews").select("symbol,company_name,sector,rating,current_price,target_price,summary").eq("status", "published").limit(30),
-      sb.from("blog_posts").select("title,slug,category,excerpt").eq("status", "published").order("published_at", { ascending: false }).limit(15),
-      sb.from("re_price_trends").select("city,locality,avg_price_sqft,change_pct,ai_insights").limit(20),
+    // Build context for AI — only fetch domains relevant to intent
+    const ctxQueries = await Promise.all([
+      wantProp ? sb.from("properties").select("title,slug,city,locality,price_display,bhk,property_type,listing_type,developer_name,area_sqft,price").eq("status", "active").limit(50) : Promise.resolve({ data: [] }),
+      wantStock ? sb.from("stock_reviews").select("symbol,company_name,sector,rating,current_price,target_price,summary").eq("status", "published").limit(30) : Promise.resolve({ data: [] }),
+      wantArticles ? sb.from("blog_posts").select("title,slug,category,excerpt").eq("status", "published").order("published_at", { ascending: false }).limit(15) : Promise.resolve({ data: [] }),
+      wantTrends ? sb.from("re_price_trends").select("city,locality,avg_price_sqft,change_pct,ai_insights").limit(20) : Promise.resolve({ data: [] }),
     ]);
+    const [allPropsRes, allStocksRes, allPostsRes, allTrendsRes] = ctxQueries;
 
-    const propsCtx = (allPropsRes.data || []).map(p => `${p.title} | ${p.city}${p.locality ? ', ' + p.locality : ''} | ${p.price_display || '₹' + p.price} | ${p.bhk || '-'} BHK | ${p.property_type} | slug:${p.slug}`).join("\n");
-    const stocksCtx = (allStocksRes.data || []).map(s => `${s.symbol} ${s.company_name} | ${s.sector} | Rating:${s.rating || 'N/A'} | CMP:₹${s.current_price || 'N/A'} | Target:₹${s.target_price || 'N/A'}`).join("\n");
-    const articlesCtx = (allPostsRes.data || []).map(a => `${a.title} | ${a.category} | slug:${a.slug}`).join("\n");
-    const trendsCtx = (allTrendsRes.data || []).map(t => `${t.city}${t.locality ? '/' + t.locality : ''} | ₹${t.avg_price_sqft}/sqft | ${t.change_pct}%`).join("\n");
+    const propsCtx = (allPropsRes.data || []).map((p: any) => `${p.title} | ${p.city}${p.locality ? ', ' + p.locality : ''} | ${p.price_display || '₹' + p.price} | ${p.bhk || '-'} BHK | ${p.property_type} | slug:${p.slug}`).join("\n");
+    const stocksCtx = (allStocksRes.data || []).map((s: any) => `${s.symbol} ${s.company_name} | ${s.sector} | Rating:${s.rating || 'N/A'} | CMP:₹${s.current_price || 'N/A'} | Target:₹${s.target_price || 'N/A'}`).join("\n");
+    const articlesCtx = (allPostsRes.data || []).map((a: any) => `${a.title} | ${a.category} | slug:${a.slug}`).join("\n");
+    const trendsCtx = (allTrendsRes.data || []).map((t: any) => `${t.city}${t.locality ? '/' + t.locality : ''} | ₹${t.avg_price_sqft}/sqft | ${t.change_pct}%`).join("\n");
+
+    const intentInstruction = {
+      property: "USER IS ASKING ABOUT REAL ESTATE / PROPERTY. Only respond about properties, real estate, rentals, builders, localities. DO NOT mention stocks, mutual funds, or crypto unless explicitly asked.",
+      stock: "USER IS ASKING ABOUT STOCKS / EQUITIES. Only respond about stocks, equities, indices, sectors. DO NOT mention real estate or unrelated domains.",
+      mutual_fund: "USER IS ASKING ABOUT MUTUAL FUNDS / SIP / ETF. Only respond about mutual funds, SIP, NAV, fund categories. Do not pivot to stocks or real estate.",
+      crypto: "USER IS ASKING ABOUT CRYPTOCURRENCY. Only respond about crypto/blockchain. Do not mention stocks or property.",
+      news: "USER WANTS NEWS / ARTICLES. Surface relevant articles only.",
+      general: "Answer the user's question directly using only the most relevant domain."
+    }[intent];
 
     const dbSearchSummary = dbResultCount > 0
       ? `\nDB SEARCH for "${query}" (${dbResultCount} matches):\n` +
-        (properties.length ? `Properties: ${properties.map(p => p.title).join(', ')}\n` : '') +
-        (stocks.length ? `Stocks: ${stocks.map(s => s.symbol).join(', ')}\n` : '') +
-        (articles.length ? `Articles: ${articles.map(a => a.title).join(', ')}\n` : '') +
-        (trends.length ? `Trends: ${trends.map(t => t.city).join(', ')}\n` : '')
+        (properties.length ? `Properties: ${properties.map((p: any) => p.title).join(', ')}\n` : '') +
+        (stocks.length ? `Stocks: ${stocks.map((s: any) => s.symbol).join(', ')}\n` : '') +
+        (articles.length ? `Articles: ${articles.map((a: any) => a.title).join(', ')}\n` : '') +
+        (trends.length ? `Trends: ${trends.map((t: any) => t.city).join(', ')}\n` : '')
       : `\nNo matching results in our database for "${query}".`;
 
     const systemPrompt = `You are InvestingIQ's AI assistant — an expert financial and real estate advisor for the Indian market.
 Current time: ${new Date().toISOString()}
+Detected user intent: ${intent.toUpperCase()}
+${budget.max ? `User budget: up to ₹${(budget.max / 10000000).toFixed(2)} Cr` : ''}
+
+CRITICAL INTENT RULE: ${intentInstruction}
 
 RULES:
-1. Check database results below first. Present matches with CARD FORMAT.
-2. If NO relevant data in database, use your knowledge about Indian markets/stocks/real estate/mutual funds.
-3. Answer in SAME LANGUAGE as user.
-4. Concise, helpful, actionable. Use bullet points and headers.
-5. NEVER use emojis. Clean professional formatting.
-6. No disclaimers — UI adds them.
+1. STICK STRICTLY to the detected intent domain. Never mix domains (e.g. don't show stocks when asked about property).
+2. Check database results below first. Present matches with CARD FORMAT.
+3. If NO relevant data in database, use your knowledge about Indian markets/stocks/real estate/mutual funds — but only within the user's intent.
+4. Answer in SAME LANGUAGE as user.
+5. Concise, helpful, actionable. Use bullet points and headers.
+6. NEVER use emojis. Clean professional formatting.
+7. No disclaimers — UI adds them.
 
 ${dbSearchSummary}
 
-DATABASE:
-PROPERTIES (${(allPropsRes.data || []).length}):
-${propsCtx || "None."}
+DATABASE (only ${intent}-relevant data shown):
+${wantProp ? `PROPERTIES (${(allPropsRes.data || []).length}):\n${propsCtx || "None."}\n` : ''}
+${wantStock ? `STOCKS (${(allStocksRes.data || []).length}):\n${stocksCtx || "None."}\n` : ''}
+${wantArticles ? `ARTICLES (${(allPostsRes.data || []).length}):\n${articlesCtx || "None."}\n` : ''}
+${wantTrends ? `PRICE TRENDS:\n${trendsCtx || "None."}\n` : ''}
 
-STOCKS (${(allStocksRes.data || []).length}):
-${stocksCtx || "None."}
-
-ARTICLES (${(allPostsRes.data || []).length}):
-${articlesCtx || "None."}
-
-PRICE TRENDS:
-${trendsCtx || "None."}
-
-CARD FORMAT:
+CARD FORMAT (use ONLY the type matching the intent):
 <!--CARDS:[{"type":"property","title":"Name","subtitle":"City, BHK","price":"₹XX","link":"/real-estate/SLUG"}]-->
 <!--CARDS:[{"type":"stock","title":"SYMBOL","subtitle":"Sector | Rating","price":"₹CMP","link":"/stocks/review/SYMBOL"}]-->
 <!--CARDS:[{"type":"article","title":"Title","subtitle":"Category","link":"/news/SLUG"}]-->
 
-If topic NOT in database, answer from knowledge — do NOT refuse.`;
+If topic NOT in database, answer from your knowledge within the intent domain — do NOT refuse, do NOT pivot to other domains.`;
 
     const response = await callAI(systemPrompt, query);
 
