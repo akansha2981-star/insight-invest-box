@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Helmet } from "react-helmet-async";
+import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
 import {
   Search, ArrowUp, ArrowDown, Filter, SlidersHorizontal,
   TrendingUp, TrendingDown, ChevronDown, ChevronUp, BarChart3,
@@ -73,6 +74,7 @@ function pctFrom52High(price: number, high52: number) {
 }
 
 export default function StockScreenerPage() {
+  const [liveStocks, setLiveStocks] = useState<typeof MOCK_STOCKS>([]);
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("All");
   const [rating, setRating] = useState("All");
@@ -91,12 +93,31 @@ export default function StockScreenerPage() {
     divIdx !== 0 ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
 
+  useEffect(() => {
+    let mounted = true;
+    async function loadLivePrices() {
+      const data = await fetchLiveMarketQuotes();
+      if (!mounted || data.source !== "angelone") return;
+      const quoteMap = new Map(data.quotes.map(q => [q.symbol, q]));
+      setLiveStocks(MOCK_STOCKS
+        .filter(s => quoteMap.has(s.symbol))
+        .map(s => {
+          const q = quoteMap.get(s.symbol)!;
+          return { ...s, price: q.price, change: q.changePercent };
+        })
+      );
+    }
+    loadLivePrices();
+    const id = setInterval(loadLivePrices, 30_000);
+    return () => { mounted = false; clearInterval(id); };
+  }, []);
+
   const filtered = useMemo(() => {
     const mcap = MCAP_RANGES[mcapIdx];
     const pe = PE_RANGES[peIdx];
     const div = DIV_RANGES[divIdx];
 
-    return MOCK_STOCKS
+    return liveStocks
       .filter(s => {
         if (query && !s.symbol.toLowerCase().includes(query.toLowerCase()) && !s.name.toLowerCase().includes(query.toLowerCase())) return false;
         if (sector !== "All" && s.sector !== sector) return false;
@@ -110,7 +131,7 @@ export default function StockScreenerPage() {
         const mul = sortDir === "asc" ? 1 : -1;
         return ((a[sortBy] as number) - (b[sortBy] as number)) * mul;
       });
-  }, [query, sector, rating, mcapIdx, peIdx, divIdx, sortBy, sortDir]);
+  }, [liveStocks, query, sector, rating, mcapIdx, peIdx, divIdx, sortBy, sortDir]);
 
   function toggleSort(key: SortKey) {
     if (sortBy === key) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -163,7 +184,7 @@ export default function StockScreenerPage() {
               </div>
             </div>
             <div className="flex flex-wrap gap-4 mt-5 text-xs text-white/60">
-              <span className="flex items-center gap-1"><BarChart3 className="h-3.5 w-3.5" /> {MOCK_STOCKS.length} Stocks</span>
+              <span className="flex items-center gap-1"><BarChart3 className="h-3.5 w-3.5" /> {liveStocks.length || "—"} Stocks</span>
               <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> {SECTORS.length - 1} Sectors</span>
               <span className="flex items-center gap-1"><Activity className="h-3.5 w-3.5" /> Real-time Data</span>
             </div>
@@ -290,7 +311,7 @@ export default function StockScreenerPage() {
         {/* Results Count */}
         <div className="flex items-center justify-between mb-3 px-1">
           <p className="text-xs text-muted-foreground font-medium">
-            Showing <span className="text-foreground font-bold">{filtered.length}</span> of {MOCK_STOCKS.length} stocks
+            Showing <span className="text-foreground font-bold">{filtered.length}</span> of {liveStocks.length} stocks
           </p>
           <p className="text-[10px] text-muted-foreground">Click column headers to sort</p>
         </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ArrowUp, ArrowDown, TrendingUp, TrendingDown, WifiOff } from "lucide-react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
 import { isMarketOpen } from "@/lib/marketTime";
 
 interface LiveStock {
@@ -60,9 +60,9 @@ export function GainersLosers() {
 
   const fetchLive = useCallback(async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("stock-ticker");
-      if (error || !data?.quotes) return;
-      const quotes = (data.quotes as LiveStock[]).filter(q => !EXCLUDE.has(q.symbol));
+      const data = await fetchLiveMarketQuotes();
+      if (data.source !== "angelone") return;
+      const quotes = data.quotes.filter(q => !EXCLUDE.has(q.symbol));
       if (!quotes.length) return;
       setAllStocks(quotes);
       setIsLive(data.live === true && data.source === "angelone");

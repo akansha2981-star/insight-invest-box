@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { Search, TrendingUp, FileText, X, BarChart2, Building2, PieChart, Bitcoin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { TOP_GAINERS, TOP_LOSERS } from "@/data/mockStocks";
+import { STOCK_CATALOG } from "@/data/stockCatalog";
 import { TOP_MUTUAL_FUNDS, TOP_CRYPTOS } from "@/data/mockMFCrypto";
 
-const ALL_STOCKS = [...TOP_GAINERS, ...TOP_LOSERS];
+const ALL_STOCKS = STOCK_CATALOG;
 
 interface SearchResult {
   type: "stock" | "article" | "review" | "property" | "mf" | "crypto";

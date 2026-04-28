@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { ArrowUp, ArrowDown, Wifi, WifiOff, ChevronDown, ChevronUp, TrendingUp, TrendingDown } from "lucide-react";
-import { INDICES, type IndexData } from "@/data/mockStocks";
-import { supabase } from "@/integrations/supabase/client";
+import type { IndexData } from "@/data/mockStocks";
+import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
 import { isMarketOpen } from "@/lib/marketTime";
 
 function generateSparkPoints(baseValue: number, positive: boolean, count = 20): { x: number; y: number }[] {
@@ -58,7 +58,7 @@ function HoverAreaChart({ points, positive, width = 140, height = 40 }: {
 }
 
 export function MarketIndices() {
-  const [indices, setIndices] = useState<IndexData[]>(INDICES);
+  const [indices, setIndices] = useState<IndexData[]>([]);
   const [liveEnabled, setLiveEnabled] = useState(false);
   const [expandedIdx, setExpandedIdx] = useState<string | null>(null);
   const [hoveredIdx, setHoveredIdx] = useState<string | null>(null);
@@ -67,12 +67,9 @@ export function MarketIndices() {
 
   const fetchLive = useCallback(async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("stock-ticker");
-      if (error || data?.error || !data?.quotes) return;
-      // Only treat as live when source is angelone
+      const data = await fetchLiveMarketQuotes();
       if (data.source !== "angelone") return;
-
-      const quotes = data.quotes as Array<{ symbol: string; price: number; change: number; changePercent: number; high?: number; low?: number; open?: number }>;
+      const quotes = data.quotes;
 
       const nameMap: Record<string, string> = {
         "SENSEX": "SENSEX",
@@ -84,25 +81,19 @@ export function MarketIndices() {
       const matched = quotes.filter(q => nameMap[q.symbol]);
       if (!matched.length) return;
 
-      setLiveEnabled(true);
+      setLiveEnabled(data.live === true);
       const newOpens: Record<string, number> = {};
       matched.forEach(q => { if (q.open) newOpens[nameMap[q.symbol]] = q.open; });
       setOpenMap(prev => ({ ...prev, ...newOpens }));
 
-      setIndices(prev =>
-        prev.map(idx => {
-          const q = matched.find(m => nameMap[m.symbol] === idx.name);
-          if (!q) return idx;
-          return {
-            ...idx,
-            value: q.price,
-            change: q.change,
-            changePercent: q.changePercent,
-            ...(q.high ? { high: q.high } : {}),
-            ...(q.low ? { low: q.low } : {}),
-          };
-        })
-      );
+      setIndices(matched.map(q => ({
+        name: nameMap[q.symbol],
+        value: q.price,
+        change: q.change,
+        changePercent: q.changePercent,
+        high: q.high || q.price,
+        low: q.low || q.price,
+      })));
     } catch {
       // keep previous data
     }

@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { ArrowUp, ArrowDown, Wifi, WifiOff } from "lucide-react";
-import { TICKER_STOCKS } from "@/data/mockStocks";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
 import { isMarketOpen } from "@/lib/marketTime";
 
 interface TickerStock {
@@ -13,31 +12,18 @@ interface TickerStock {
 }
 
 export function StockTicker() {
-  const [stocks, setStocks] = useState<TickerStock[]>(
-    TICKER_STOCKS.map(s => ({ symbol: s.symbol, name: s.name, price: s.price, change: s.change, changePercent: s.changePercent }))
-  );
+  const [stocks, setStocks] = useState<TickerStock[]>([]);
   const [liveEnabled, setLiveEnabled] = useState(false);
   const [lastFetch, setLastFetch] = useState<Date | null>(null);
 
   const fetchLiveData = useCallback(async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("stock-ticker");
-      if (error || data?.error || !data?.quotes) return;
-
-      const quotes = data.quotes as Array<{ symbol: string; displayName: string; price: number; change: number; changePercent: number }>;
+      const data = await fetchLiveMarketQuotes();
+      const quotes = data.quotes;
       if (!quotes.length) return;
-
-      setLiveEnabled(true);
+      setLiveEnabled(data.live === true && data.source === "angelone");
       setLastFetch(new Date());
-      setStocks(prev => {
-        const updated = [...prev];
-        quotes.forEach(q => {
-          const idx = updated.findIndex(s => s.symbol === q.symbol);
-          if (idx === -1) return;
-          updated[idx] = { ...updated[idx], price: q.price, change: q.change, changePercent: q.changePercent };
-        });
-        return updated;
-      });
+      setStocks(quotes.map(q => ({ symbol: q.symbol, name: q.displayName, price: q.price, change: q.change, changePercent: q.changePercent })));
     } catch {
       // network error — keep existing data
     }
@@ -49,7 +35,7 @@ export function StockTicker() {
     return () => clearInterval(liveInterval);
   }, [fetchLiveData]);
 
-  const doubled = [...stocks, ...stocks];
+  const doubled = stocks.length ? [...stocks, ...stocks] : [];
 
   return (
     <div className="bg-ticker overflow-hidden py-2.5 border-b border-border">
@@ -62,8 +48,13 @@ export function StockTicker() {
           )}
         </div>
         <div className="overflow-hidden flex-1">
-          <div className="ticker-animate flex items-center gap-7 whitespace-nowrap" style={{ width: 'max-content' }}>
-            {doubled.map((stock, i) => (
+          {doubled.length === 0 ? (
+            <div className="text-[12px] text-muted-foreground font-medium py-1">
+              {isMarketOpen() ? "Loading live NSE/BSE prices…" : "Market closed · prices update when live feed is available"}
+            </div>
+          ) : (
+            <div className="ticker-animate flex items-center gap-7 whitespace-nowrap" style={{ width: 'max-content' }}>
+              {doubled.map((stock, i) => (
               <div key={`${stock.symbol}-${i}`} className="flex items-center gap-2 shrink-0">
                 <span className="text-foreground/60 text-[11px] font-semibold tracking-wide">{stock.name}</span>
                 <span className={`number-font text-[13px] font-bold ${stock.changePercent >= 0 ? 'text-gain' : 'text-loss'}`}>
@@ -75,8 +66,9 @@ export function StockTicker() {
                 </span>
                 <span className="text-border text-base">|</span>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
         {lastFetch && (
           <div className="text-muted-foreground text-[9px] px-3 shrink-0 hidden md:block">
