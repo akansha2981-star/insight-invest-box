@@ -221,13 +221,20 @@ async function fetchMarketQuotes(apiKey: string, jwtToken: string): Promise<any[
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const marketOpen = isMarketOpenIST();
+  // When the market is closed, last-close prices don't change — cache aggressively.
+  const effectiveTtl = marketOpen ? CACHE_TTL_MS : 10 * 60_000;
+
+  const respond = (body: any, status = 200) =>
+    new Response(JSON.stringify({ ...body, marketOpen, lastUpdated: new Date().toISOString() }), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
   try {
-    // Return cached data if fresh
-    if (cachedResponse && (Date.now() - cachedResponse.cachedAt) < CACHE_TTL_MS) {
+    if (cachedResponse && (Date.now() - cachedResponse.cachedAt) < effectiveTtl) {
       console.log("Returning cached data, age:", Math.round((Date.now() - cachedResponse.cachedAt) / 1000), "s");
-      return new Response(JSON.stringify({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live, cached: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return respond({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live && marketOpen, cached: true });
     }
 
     const apiKey = Deno.env.get("ANGELONE_API_KEY");
@@ -236,30 +243,19 @@ serve(async (req) => {
     const totpSecret = Deno.env.get("ANGELONE_TOTP_SECRET");
 
     if (!apiKey || !clientId || !pin || !totpSecret) {
-      return new Response(
-        JSON.stringify(emptyPayload("missing_config")),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return respond(emptyPayload("missing_config"));
     }
 
     const jwtToken = await angelOneLogin(apiKey, clientId, pin, totpSecret);
     if (!jwtToken) {
-      // If we have stale cache, return it instead of failing
       if (cachedResponse) {
-        console.log("Auth failed, returning stale cache");
-        return new Response(JSON.stringify({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live, cached: true, stale: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return respond({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: false, cached: true, stale: true });
       }
-      return new Response(
-        JSON.stringify(emptyPayload("auth_failed")),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return respond(emptyPayload("auth_failed"));
     }
 
     const quotes = await fetchMarketQuotes(apiKey, jwtToken);
 
-    // Best-effort logout
     try {
       await fetch(LOGOUT_URL, {
         method: "POST",
@@ -270,32 +266,20 @@ serve(async (req) => {
 
     if (quotes.length === 0) {
       if (cachedResponse) {
-        return new Response(JSON.stringify({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live, cached: true, stale: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return respond({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: false, cached: true, stale: true });
       }
-      return new Response(
-        JSON.stringify(emptyPayload("no_data")),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return respond(emptyPayload("no_data"));
     }
 
-    // Update cache
-    cachedResponse = { quotes, source: "angelone", live: true, cachedAt: Date.now() };
-    console.log("Cache updated with", quotes.length, "quotes");
+    cachedResponse = { quotes, source: "angelone", live: marketOpen, cachedAt: Date.now() };
+    console.log("Cache updated with", quotes.length, "quotes; marketOpen=", marketOpen);
 
-    return new Response(JSON.stringify({ quotes, source: "angelone", live: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return respond({ quotes, source: "angelone", live: marketOpen });
   } catch (e) {
     console.error("stock-ticker error:", e);
     if (cachedResponse) {
-      return new Response(JSON.stringify({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: cachedResponse.live, cached: true, stale: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return respond({ quotes: cachedResponse.quotes, source: cachedResponse.source, live: false, cached: true, stale: true });
     }
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return respond({ error: e instanceof Error ? e.message : "Unknown error" }, 200);
   }
 });
