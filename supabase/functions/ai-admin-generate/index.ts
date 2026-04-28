@@ -325,21 +325,22 @@ ${ctx.market_snapshot || ""}`;
   "generate-stock-review": {
     system: (ctx: any) => {
       const d = getRequestedDate(ctx.target_date);
-      return `You are a senior equity research analyst for Indian markets (NSE/BSE). Generate comprehensive stock analysis with REALISTIC financial data. Use actual market-like numbers. No emojis. ${buildDateGuard(d)}`;
+      return `You are a senior equity research analyst for Indian markets (NSE/BSE). Generate comprehensive stock analysis. CRITICAL: When ground-truth live data is provided in the user prompt, use those EXACT numbers — never invent prices, 52-week highs/lows, or current price. For metrics not provided (revenue, P/E, market cap), use only widely-known annual report figures and clearly mark uncertain numbers as "approx". No emojis. ${buildDateGuard(d)}`;
     },
     prompt: (ctx) => {
       const d = getRequestedDate(ctx.target_date);
       const topic = ctx.symbol ? `for ${ctx.symbol}` : (ctx.topic ? `for ${ctx.topic}` : "for a trending Indian large-cap stock");
-      return `Generate a COMPLETE stock review ${topic}. Include ALL fields with realistic data:
+      return `Generate a COMPLETE stock review ${topic}. Include ALL fields:
 - symbol, company_name, sector, exchange
-- current_price (realistic market price in INR), target_price
+- current_price (USE GROUND-TRUTH BELOW), target_price (12-month, within +/-35% of current)
 - rating (STRONG BUY/BUY/HOLD/SELL/STRONG SELL)
-- summary (2-3 sentences), investment_thesis (detailed paragraph), risks
-- analyst_name
+- summary (2-3 sentences, factual), investment_thesis (detailed paragraph), risks
+- analyst_name (e.g., "InvestingIQ Research")
 - tags (comma separated)
 - financials: revenue (in Cr), net_profit (in Cr), eps, pe_ratio, debt_equity, roe (%), market_cap (in Cr), book_value
-- key_metrics: 52w_high, 52w_low, dividend_yield (%), promoter_holding (%), fii_holding (%), beta
-ALL numbers must be realistic for the stock as of ${d}. ${buildDateGuard(d)}
+- key_metrics: 52w_high, 52w_low (USE GROUND-TRUTH BELOW), dividend_yield (%), promoter_holding (%), fii_holding (%), beta
+Date context: ${d}. ${buildDateGuard(d)}
+${ctx.live_stock_data || ""}
 ${ctx.market_snapshot || ""}`;
     },
     tools: [{
