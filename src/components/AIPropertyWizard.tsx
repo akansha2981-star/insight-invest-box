@@ -223,6 +223,9 @@ export function AIPropertyWizard({ open, onClose, onPublish }: Props) {
       is_featured: !!result.is_featured,
       is_price_drop: !!result.is_price_drop,
       status: "active",
+      bhk_configurations: Array.isArray(result.bhk_configurations) ? result.bhk_configurations : [],
+      meta_title: result.meta_title || null,
+      meta_description: result.meta_description || null,
     });
     setStep(4);
   };
