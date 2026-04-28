@@ -18,8 +18,11 @@ interface DailyStats {
   total: number;
 }
 
+interface UserInfo { email: string; full_name: string; phone: string; }
+
 export function AdminAuthAnalytics() {
   const [events, setEvents] = useState<AuthEvent[]>([]);
+  const [userMap, setUserMap] = useState<Record<string, UserInfo>>({});
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(7);
 
@@ -32,13 +35,21 @@ export function AdminAuthAnalytics() {
     const since = new Date();
     since.setDate(since.getDate() - days);
 
-    const { data } = await supabase
-      .from("auth_events")
-      .select("*")
-      .gte("created_at", since.toISOString())
-      .order("created_at", { ascending: false });
+    const [eventsRes, usersRes] = await Promise.all([
+      supabase.from("auth_events").select("*").gte("created_at", since.toISOString()).order("created_at", { ascending: false }),
+      supabase.functions.invoke("admin-list-users").catch(() => ({ data: null, error: true } as any)),
+    ]);
 
-    setEvents((data as AuthEvent[]) ?? []);
+    setEvents((eventsRes.data as AuthEvent[]) ?? []);
+
+    const map: Record<string, UserInfo> = {};
+    const users = (usersRes as any)?.data?.users;
+    if (Array.isArray(users)) {
+      users.forEach((u: any) => {
+        map[u.id] = { email: u.email || "", full_name: u.full_name || "", phone: u.phone || "" };
+      });
+    }
+    setUserMap(map);
     setLoading(false);
   }
 
@@ -162,41 +173,51 @@ export function AdminAuthAnalytics() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-muted/30 border-b border-border">
-                    {["User ID", "Type", "Provider", "Date & Time"].map((h) => (
+                    {["User", "Email", "Phone", "Type", "Provider", "Date & Time"].map((h) => (
                       <th key={h} className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {events.slice(0, 20).map((ev) => (
-                    <tr key={ev.id} className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors">
-                      <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{ev.user_id.slice(0, 8)}...</td>
-                      <td className="px-5 py-3">
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
-                          ev.event_type === 'signup' ? 'bg-purple-50 border-purple-200 text-purple-700' : 'bg-blue-50 border-blue-200 text-blue-700'
-                        }`}>
-                          {ev.event_type}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className={`flex items-center gap-1.5 text-xs font-semibold ${
-                          ev.provider === 'google' ? 'text-green-700' : 'text-foreground'
-                        }`}>
-                          {ev.provider === 'google' ? <Chrome className="h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}
-                          {ev.provider}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-xs text-muted-foreground">
-                        {new Date(ev.created_at).toLocaleString("en-IN", {
-                          day: "numeric", month: "short", year: "numeric",
-                          hour: "2-digit", minute: "2-digit",
-                        })}
-                      </td>
-                    </tr>
-                  ))}
+                  {events.slice(0, 30).map((ev) => {
+                    const u = userMap[ev.user_id];
+                    return (
+                      <tr key={ev.id} className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors">
+                        <td className="px-5 py-3">
+                          <div className="text-sm font-semibold text-foreground">
+                            {u?.full_name || <span className="text-muted-foreground italic">Unnamed</span>}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground font-mono">{ev.user_id.slice(0, 8)}...</div>
+                        </td>
+                        <td className="px-5 py-3 text-xs text-foreground">{u?.email || <span className="text-muted-foreground">—</span>}</td>
+                        <td className="px-5 py-3 text-xs text-foreground">{u?.phone || <span className="text-muted-foreground">—</span>}</td>
+                        <td className="px-5 py-3">
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                            ev.event_type === 'signup' ? 'bg-purple-50 border-purple-200 text-purple-700' : 'bg-blue-50 border-blue-200 text-blue-700'
+                          }`}>
+                            {ev.event_type}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className={`flex items-center gap-1.5 text-xs font-semibold ${
+                            ev.provider === 'google' ? 'text-green-700' : 'text-foreground'
+                          }`}>
+                            {ev.provider === 'google' ? <Chrome className="h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}
+                            {ev.provider}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                          {new Date(ev.created_at).toLocaleString("en-IN", {
+                            day: "numeric", month: "short", year: "numeric",
+                            hour: "2-digit", minute: "2-digit",
+                          })}
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {events.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="text-center py-10 text-muted-foreground text-sm">No events recorded</td>
+                      <td colSpan={6} className="text-center py-10 text-muted-foreground text-sm">No events recorded</td>
                     </tr>
                   )}
                 </tbody>
