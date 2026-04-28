@@ -30,10 +30,27 @@ const POSITIONING = [
   { value: "affordable", label: "Affordable" },
 ];
 
+export interface BhkConfig {
+  bhk: string;
+  area_sqft?: number | null;
+  area_min?: number | null;
+  area_max?: number | null;
+  carpet_area_sqft?: number | null;
+  price?: number | null;
+  price_display?: string | null;
+  price_min?: number | null;
+  price_max?: number | null;
+  num_bathrooms?: number | null;
+  balconies?: number | null;
+  configuration_notes?: string | null;
+  floor_plan_url?: string | null;
+}
+
 export interface PropertyDraft {
   title: string;
   slug: string;
   developer_name: string | null;
+  developer_website: string | null;
   city: string;
   locality: string | null;
   sector: string | null;
@@ -69,6 +86,9 @@ export interface PropertyDraft {
   is_featured: boolean;
   is_price_drop: boolean;
   status: string;
+  bhk_configurations: BhkConfig[];
+  meta_title: string | null;
+  meta_description: string | null;
 }
 
 interface Props {
