@@ -176,6 +176,7 @@ export default function PropertyDetailPage() {
 
   const TABS = [
     { id: "overview", label: "Overview" },
+    { id: "configurations", label: "Configurations" },
     { id: "investment", label: "Investment Plan" },
     { id: "amenities", label: "Amenities" },
     { id: "floorplan", label: "Floor Plans" },
