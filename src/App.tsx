@@ -18,6 +18,7 @@ import StockReviewPage from "./pages/StockReviewPage";
 import StockReviewDetailPage from "./pages/StockReviewDetailPage";
 import RealEstatePage from "./pages/RealEstatePage";
 import PropertyDetailPage from "./pages/PropertyDetailPage";
+import CityBucketPage from "./pages/CityBucketPage";
 import SIPCalculatorPage from "./pages/SIPCalculatorPage";
 import EMICalculatorPage from "./pages/EMICalculatorPage";
 import FDCalculatorPage from "./pages/FDCalculatorPage";
@@ -55,6 +56,7 @@ const App = () => (
           <Route path="/stocks/reviews" element={<StockReviewPage />} />
           <Route path="/stocks/review/:symbol" element={<StockReviewDetailPage />} />
           <Route path="/real-estate" element={<RealEstatePage />} />
+          <Route path="/real-estate/:city/:bucket" element={<CityBucketPage />} />
           <Route path="/real-estate/:slug" element={<PropertyDetailPage />} />
           <Route path="/tools/sip" element={<SIPCalculatorPage />} />
           <Route path="/tools/emi" element={<EMICalculatorPage />} />
