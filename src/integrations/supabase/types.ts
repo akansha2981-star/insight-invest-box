@@ -512,6 +512,75 @@ export type Database = {
         }
         Relationships: []
       }
+      sitemap_meta: {
+        Row: {
+          base_url: string
+          id: number
+          last_added_count: number
+          last_generated_at: string | null
+          last_updated_at: string | null
+          total_urls: number
+          updated_at: string
+        }
+        Insert: {
+          base_url?: string
+          id?: number
+          last_added_count?: number
+          last_generated_at?: string | null
+          last_updated_at?: string | null
+          total_urls?: number
+          updated_at?: string
+        }
+        Update: {
+          base_url?: string
+          id?: number
+          last_added_count?: number
+          last_generated_at?: string | null
+          last_updated_at?: string | null
+          total_urls?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sitemap_urls: {
+        Row: {
+          changefreq: string
+          first_seen: string
+          id: string
+          is_active: boolean
+          lastmod: string
+          path: string
+          priority: number
+          source: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          changefreq?: string
+          first_seen?: string
+          id?: string
+          is_active?: boolean
+          lastmod?: string
+          path: string
+          priority?: number
+          source?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          changefreq?: string
+          first_seen?: string
+          id?: string
+          is_active?: boolean
+          lastmod?: string
+          path?: string
+          priority?: number
+          source?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       stock_reviews: {
         Row: {
           analyst_name: string | null
