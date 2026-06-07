@@ -34,6 +34,13 @@ import SitemapPage from "./pages/SitemapPage";
 import NotFound from "./pages/NotFound";
 import UserLogin from "./pages/UserLogin";
 import { FloatingAIButton } from "./components/FloatingAIButton";
+import { useParams, Navigate as RRNavigate } from "react-router-dom";
+
+const NewsToBlogRedirect = () => {
+  const { slug } = useParams();
+  return <RRNavigate to={`/news/${slug}`} replace />;
+};
+
 const queryClient = new QueryClient();
 
 const App = () => (
