@@ -34,6 +34,13 @@ import SitemapPage from "./pages/SitemapPage";
 import NotFound from "./pages/NotFound";
 import UserLogin from "./pages/UserLogin";
 import { FloatingAIButton } from "./components/FloatingAIButton";
+import { useParams, Navigate as RRNavigate } from "react-router-dom";
+
+const NewsToBlogRedirect = () => {
+  const { slug } = useParams();
+  return <RRNavigate to={`/news/${slug}`} replace />;
+};
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -48,6 +55,10 @@ const App = () => (
           <Route path="/index.html" element={<Navigate to="/" replace />} />
           <Route path="/news" element={<NewsPage />} />
           <Route path="/news/:slug" element={<NewsDetailPage />} />
+          {/* Legacy/alias routes to prevent 404s from older internal links */}
+          <Route path="/blog" element={<Navigate to="/news" replace />} />
+          <Route path="/blog/:slug" element={<NewsToBlogRedirect />} />
+          <Route path="/mutual-funds" element={<Navigate to="/mf" replace />} />
           <Route path="/markets" element={<MarketsPage />} />
           <Route path="/stocks" element={<StocksPage />} />
           <Route path="/economy" element={<EconomyPage />} />

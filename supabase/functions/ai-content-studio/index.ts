@@ -125,7 +125,7 @@ function fleschReadingEase(plain: string): number {
 
 function buildJsonLd(article: any): string {
   const today = new Date().toISOString();
-  const url = `https://www.investingiq.in/blog/${article.slug || ""}`;
+  const url = `https://www.investingiq.in/news/${article.slug || ""}`;
   const schemas: any[] = [];
 
   // Article
@@ -149,7 +149,7 @@ function buildJsonLd(article: any): string {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://www.investingiq.in/" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.investingiq.in/blog" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.investingiq.in/news" },
       { "@type": "ListItem", position: 3, name: article.title, item: url },
     ],
   });
@@ -193,7 +193,7 @@ function injectJsonLd(article: any): any {
 const ABOUT_INVESTINGIQ_HTML = `
 <h2>About InvestingIQ</h2>
 <p><strong>InvestingIQ</strong> is India's AI-powered investing intelligence platform built for retail investors, traders, and finance enthusiasts. We combine real-time market data from <strong>NSE</strong> and <strong>BSE</strong>, deep equity research, mutual fund analytics, real estate insights, and personal finance tools — all distilled into clear, actionable guidance for the Indian market.</p>
-<p>From live stock quotes, AI-driven stock reviews, and SIP/EMI/Tax calculators to curated news on IPOs, RBI policy, SEBI updates, and macro trends, <a href="/">InvestingIQ</a> helps you make smarter money decisions every day. Explore our <a href="/blog">latest market insights</a>, <a href="/stocks">stock research</a>, <a href="/mutual-funds">mutual fund analysis</a>, and <a href="/real-estate">real estate intelligence</a> — all designed for the Indian investor.</p>
+<p>From live stock quotes, AI-driven stock reviews, and SIP/EMI/Tax calculators to curated news on IPOs, RBI policy, SEBI updates, and macro trends, <a href="/">InvestingIQ</a> helps you make smarter money decisions every day. Explore our <a href="/news">latest market insights</a>, <a href="/stocks">stock research</a>, <a href="/mf">mutual fund analysis</a>, and <a href="/real-estate">real estate intelligence</a> — all designed for the Indian investor.</p>
 `;
 
 function appendAboutInvestingIQ(html: string): string {
@@ -209,7 +209,7 @@ function appendAboutInvestingIQ(html: string): string {
 // Auto-inject internal links if AI didn't add enough
 function autoInjectInternalLinks(html: string, posts: Array<{ title: string; slug: string; tags?: string[] }>, minLinks = 4): { html: string; injected: number } {
   if (!html || !posts?.length) return { html, injected: 0 };
-  const existing = [...html.matchAll(/<a[^>]+href=["']\/blog\/([^"']+)["']/gi)].map(m => m[1]);
+  const existing = [...html.matchAll(/<a[^>]+href=["']\/news\/([^"']+)["']/gi)].map(m => m[1]);
   const existingSlugs = new Set(existing);
   let injected = 0;
   let out = html;
@@ -236,9 +236,9 @@ function autoInjectInternalLinks(html: string, posts: Array<{ title: string; slu
     out = out.replace(/<p>([\s\S]*?)<\/p>/gi, (full, inner) => {
       if (replaced) return full;
       // skip if already contains a link to this slug or overlapping anchor
-      if (inner.includes(`/blog/${c.slug}`)) return full;
+      if (inner.includes(`/news/${c.slug}`)) return full;
       if (re.test(inner) && !/<a[^>]*>[^<]*\b/i.test(inner.match(re)?.[0] || "")) {
-        const newInner = inner.replace(re, `<a href="/blog/${c.slug}" title="${c.title.replace(/"/g, "&quot;")}">$1</a>`);
+        const newInner = inner.replace(re, `<a href="/news/${c.slug}" title="${c.title.replace(/"/g, "&quot;")}">$1</a>`);
         replaced = true;
         return `<p>${newInner}</p>`;
       }
@@ -549,7 +549,7 @@ Return ONLY JSON:
         .limit(40);
 
       const linkCorpus = (existingPosts || []).map((p: any) =>
-        `- "${p.title}" → /blog/${p.slug} [${p.category}] tags: ${(p.tags || []).join(", ")}`
+        `- "${p.title}" → /news/${p.slug} [${p.category}] tags: ${(p.tags || []).join(", ")}`
       ).join("\n") || "(no existing posts yet)";
 
       const system = `You are India's top financial SEO content writer. You write deeply researched, SEO-optimised, E-E-A-T compliant long-form articles for an Indian audience.
@@ -562,7 +562,7 @@ NON-NEGOTIABLE:
 - Today: ${today}
 
 INTERNAL LINKING (CRITICAL FOR SEO):
-You MUST insert 4-7 contextual internal links to the following existing articles where topically relevant. Use natural anchor text (NOT "click here"). Format: <a href="/blog/{slug}">descriptive anchor</a>
+You MUST insert 4-7 contextual internal links to the following existing articles where topically relevant. Use natural anchor text (NOT "click here"). Format: <a href="/news/{slug}">descriptive anchor</a>
 Available articles:
 ${linkCorpus}
 
@@ -656,7 +656,7 @@ Target density: ${kd}% (~${targetOccurrences} occurrences)`;
           .select("title, slug")
           .eq("status", "published")
           .limit(30);
-        const linkCorpus = (existingPosts || []).map((p: any) => `- "${p.title}" → /blog/${p.slug}`).join("\n");
+        const linkCorpus = (existingPosts || []).map((p: any) => `- "${p.title}" → /news/${p.slug}`).join("\n");
 
         const system = `You are a senior SEO editor. Refine this article HTML to fix the failing/warning checks below WITHOUT changing the core message. Keep word count similar. Maintain India focus, ₹ symbol, SEBI disclaimer. Strengthen meta_title/meta_description with power words. Add internal links from the list if needed. Use natural anchor text. If images exist, add loading="lazy" and prefer .webp paths.
 
@@ -734,7 +734,7 @@ Return ONLY JSON:
       const serpPreview = {
         meta_title: optimized.meta_title,
         meta_description: optimized.meta_description,
-        url: `https://www.investingiq.in/blog/${optimized.slug}`,
+        url: `https://www.investingiq.in/news/${optimized.slug}`,
         breadcrumbs: ["investingiq.in", "blog", optimized.category].filter(Boolean),
       };
 
