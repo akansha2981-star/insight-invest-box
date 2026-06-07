@@ -157,6 +157,7 @@ export function AdminAIContentStudio() {
       setAudit(data.audit);
       setImprovements(data.improvements || []);
       setPreviousScore(data.previous_score ?? null);
+      setSerpPreview(data.serp_preview ?? null);
       setStage("audit-review");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Audit failed");
