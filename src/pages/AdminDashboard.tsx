@@ -22,11 +22,12 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio' | 'sitemap';
 
 const NAV_ITEMS = [
   { id: 'dashboard',        label: 'Dashboard',          icon: BarChart2 },
   { id: 'ai-studio',        label: 'AI Content Studio',  icon: Sparkles },
+  { id: 'sitemap',          label: 'Sitemap Manager',    icon: ListTree },
   { id: 'posts',            label: 'All Articles',       icon: Newspaper },
   { id: 'create',           label: 'Write Article',      icon: PenSquare },
   { id: 'stock-reviews',    label: 'Stock Reviews',      icon: LineChart },
