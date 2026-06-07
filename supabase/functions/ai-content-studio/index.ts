@@ -68,33 +68,109 @@ serve(async (req) => {
     const { action, topic, category, keywords, wordLimit, keywordDensity, primaryKeyword } = await req.json();
     const today = new Date().toISOString().split("T")[0];
 
+async function fetchText(url: string, timeoutMs = 8000): Promise<string | null> {
+  try {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), timeoutMs);
+    const r = await fetch(url, {
+      signal: ac.signal,
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; InvestingIQ-Bot/1.0)" },
+    });
+    clearTimeout(t);
+    if (!r.ok) return null;
+    return await r.text();
+  } catch (e) {
+    console.error("fetchText fail", url, e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
+// ── Live data sources (free, no API key) ──
+async function getGoogleTrendsIndia(): Promise<Array<{ title: string; traffic: string; source: string }>> {
+  const xml = await fetchText("https://trends.google.com/trending/rss?geo=IN");
+  if (!xml) return [];
+  const items: Array<{ title: string; traffic: string; source: string }> = [];
+  const itemRe = /<item>([\s\S]*?)<\/item>/g;
+  let m;
+  while ((m = itemRe.exec(xml)) !== null) {
+    const block = m[1];
+    const title = (block.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1] || "").trim();
+    const traffic = (block.match(/<ht:approx_traffic>([\s\S]*?)<\/ht:approx_traffic>/)?.[1] || "").trim();
+    if (title) items.push({ title, traffic: traffic || "1,000+", source: "Google Trends IN" });
+  }
+  return items;
+}
+
+async function getRssHeadlines(url: string, source: string, limit = 15): Promise<Array<{ title: string; source: string }>> {
+  const xml = await fetchText(url);
+  if (!xml) return [];
+  const titles: Array<{ title: string; source: string }> = [];
+  const itemRe = /<item>([\s\S]*?)<\/item>/g;
+  let m;
+  while ((m = itemRe.exec(xml)) !== null && titles.length < limit) {
+    const t = (m[1].match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1] || "").trim();
+    if (t) titles.push({ title: t, source });
+  }
+  return titles;
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  try {
+    const auth = req.headers.get("authorization");
+    if (!auth) return new Response(JSON.stringify({ error: "Authentication required" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
+    const { action, topic, category, keywords, wordLimit, keywordDensity, primaryKeyword } = await req.json();
+    const today = new Date().toISOString().split("T")[0];
+
     if (action === "discover-topics") {
+      // Pull live signals in parallel
+      const [trends, et, mc, etRealty, etMf] = await Promise.all([
+        getGoogleTrendsIndia(),
+        getRssHeadlines("https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms", "Economic Times Markets"),
+        getRssHeadlines("https://www.moneycontrol.com/rss/business.xml", "Moneycontrol Business"),
+        getRssHeadlines("https://economictimes.indiatimes.com/wealth/real-estate/rssfeeds/13357135.cms", "ET Real Estate"),
+        getRssHeadlines("https://economictimes.indiatimes.com/mf/rssfeeds/16678014.cms", "ET Mutual Funds"),
+      ]);
+
+      const liveContext = [
+        `GOOGLE TRENDS INDIA (live, today):\n${trends.slice(0, 20).map(t => `- ${t.title} | est. traffic: ${t.traffic}`).join("\n") || "(no data)"}`,
+        `ECONOMIC TIMES MARKETS (live headlines):\n${et.slice(0, 15).map(t => `- ${t.title}`).join("\n") || "(no data)"}`,
+        `MONEYCONTROL BUSINESS (live headlines):\n${mc.slice(0, 15).map(t => `- ${t.title}`).join("\n") || "(no data)"}`,
+        `ET REAL ESTATE (live):\n${etRealty.slice(0, 10).map(t => `- ${t.title}`).join("\n") || "(no data)"}`,
+        `ET MUTUAL FUNDS (live):\n${etMf.slice(0, 10).map(t => `- ${t.title}`).join("\n") || "(no data)"}`,
+      ].join("\n\n");
+
       const system = `You are an Indian financial markets SEO research analyst.
-Your job is to surface 10 high-search-volume, trending topics that Indian users are actively searching RIGHT NOW.
+You have been given LIVE trending search data and LIVE news headlines from India today (${today}).
 
-STRICT RULES:
-- ONLY topics related to: Indian Stock Market, Mutual Funds, Real Estate (India), Personal Finance, Tax, IPO, Cryptocurrency, Investment Strategy, Economy (India)
-- Focus EXCLUSIVELY on Indian market context (NSE, BSE, SEBI, RBI, Indian companies, Indian cities, Rupee, Indian regulations)
-- Topics must be timely, newsworthy, or evergreen high-intent searches
-- Provide realistic ESTIMATED monthly search volumes for India (based on your knowledge of Indian search behaviour; these are estimates, not live data)
-- Date context: ${today}
+YOUR JOB:
+1. Identify the 10 BEST high-search-intent article topics for an Indian finance publisher.
+2. Use the live data as the PRIMARY signal. Combine multiple headlines into one topic where they cover the same story.
+3. STRICTLY ONLY allow topics related to: Indian Stock Market, Mutual Funds, Real Estate (India), Personal Finance, Tax, IPO, Crypto, Investment Strategy, Economy/RBI/SEBI.
+4. REJECT anything off-topic (sports, entertainment, politics unless directly affecting markets).
+5. For Google Trends items, use the provided traffic number as a strong volume signal. For news-only items, estimate realistic India monthly search volume.
 
-Return ONLY valid JSON. No markdown, no commentary. Schema:
+Return ONLY valid JSON, no markdown:
 {
   "topics": [
     {
       "title": "Catchy SEO-friendly article title",
-      "primary_keyword": "main search keyword",
+      "primary_keyword": "main keyword",
       "search_volume": 12000,
       "difficulty": "Low" | "Medium" | "High",
       "intent": "Informational" | "Transactional" | "Navigational",
       "category": "Stocks" | "Mutual Funds" | "Real Estate" | "Personal Finance" | "Tax" | "IPO" | "Crypto" | "Economy",
-      "rationale": "1 sentence why this is trending in India right now"
+      "rationale": "1 sentence citing the live signal (mention Google Trends or the news source)",
+      "source": "Google Trends IN" | "Economic Times" | "Moneycontrol" | "Mixed"
     }
   ]
 }`;
-      const user = `Generate 10 trending Indian-finance topics for ${today}. Mix of evergreen + currently trending. Vary categories.`;
-      const data = await callAI(system, user, 3000);
+      const user = `LIVE DATA (fetched just now):\n\n${liveContext}\n\nGenerate 10 topics. Mix at least 4 from Google Trends (if relevant ones exist) and the rest from news signals.`;
+      const data = await callAI(system, user, 3500);
       if (!data) return new Response(JSON.stringify({ error: "AI unavailable" }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (data.__error === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded. Try again in a minute." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (data.__error === 402) return new Response(JSON.stringify({ error: "AI credits exhausted." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -102,9 +178,19 @@ Return ONLY valid JSON. No markdown, no commentary. Schema:
       const raw = stripCodeFence(extractText(data));
       try {
         const parsed = JSON.parse(raw);
-        return new Response(JSON.stringify(parsed), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({
+          ...parsed,
+          live_sources: {
+            google_trends: trends.length,
+            et_markets: et.length,
+            moneycontrol: mc.length,
+            et_realty: etRealty.length,
+            et_mf: etMf.length,
+          },
+          fetched_at: new Date().toISOString(),
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch {
-        return new Response(JSON.stringify({ error: "AI returned invalid JSON", raw }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "AI returned invalid JSON", raw: raw.slice(0, 1000) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
 

@@ -13,6 +13,7 @@ interface Topic {
   intent: string;
   category: string;
   rationale: string;
+  source?: string;
 }
 
 interface DraftArticle {
@@ -167,7 +168,7 @@ export function AdminAIContentStudio() {
             </div>
             <h2 className="text-xl font-bold mb-1">Discover what India is searching now</h2>
             <p className="text-sm text-white/70 max-w-xl">
-              AI scans trending searches across Stocks, Mutual Funds, Real Estate, Personal Finance, Tax, IPO & Crypto — India-focused only.
+              Live pull from <strong>Google Trends India</strong>, <strong>Economic Times</strong> & <strong>Moneycontrol</strong> — AI curates only Investment, Stocks, MF, Real Estate, Tax, IPO & Crypto topics.
             </p>
           </div>
           <button
@@ -202,6 +203,11 @@ export function AdminAIContentStudio() {
                       <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded">{t.category}</span>
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${diffColor(t.difficulty)}`}>{t.difficulty}</span>
                       <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded">{t.intent}</span>
+                      {t.source && (
+                        <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" /> {t.source}
+                        </span>
+                      )}
                     </div>
                     <h4 className="font-bold text-foreground text-base leading-snug mb-1">{t.title}</h4>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
