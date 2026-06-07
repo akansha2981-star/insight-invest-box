@@ -569,14 +569,16 @@ Target density: ${kd}% (~${targetOccurrences} occurrences)`;
         return new Response(JSON.stringify({ error: "article required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // Run deterministic audit
-      const audit = runDeepSeoAudit(article, primaryKeyword || article.title || "");
+      const semKw: string[] = Array.isArray(article.semantic_keywords) ? article.semantic_keywords : [];
 
-      // If score < 90, run AI optimiser pass to fix gaps
+      // Initial audit on raw article (without forced schema)
+      const initialAudit = runDeepSeoAudit(article, primaryKeyword || article.title || "", semKw);
+
+      // AI optimiser pass if score below threshold
       let optimized = article;
       let improvements: string[] = [];
-      if (audit.score < 92) {
-        const fails = audit.checks.filter(c => c.status !== "pass").map(c => `- [${c.status.toUpperCase()}] ${c.label}${c.detail ? ` (${c.detail})` : ""}`).join("\n");
+      if (initialAudit.score < 92) {
+        const fails = initialAudit.checks.filter(c => c.status !== "pass").map(c => `- [${c.status.toUpperCase()}] ${c.label}${c.detail ? ` (${c.detail})` : ""}`).join("\n");
 
         const { data: existingPosts } = await supabase
           .from("blog_posts")
@@ -585,30 +587,29 @@ Target density: ${kd}% (~${targetOccurrences} occurrences)`;
           .limit(30);
         const linkCorpus = (existingPosts || []).map((p: any) => `- "${p.title}" → /blog/${p.slug}`).join("\n");
 
-        const system = `You are a senior SEO editor. Refine the given article HTML to fix the failing/warning checks below WITHOUT changing the core message. Keep word count similar. Maintain India focus, ₹ symbol, SEBI disclaimer.
+        const system = `You are a senior SEO editor. Refine this article HTML to fix the failing/warning checks below WITHOUT changing the core message. Keep word count similar. Maintain India focus, ₹ symbol, SEBI disclaimer. Strengthen meta_title/meta_description with power words. Add internal links from the list if needed. Use natural anchor text. If images exist, add loading="lazy" and prefer .webp paths.
 
 Failing/warning checks to fix:
 ${fails}
 
-If internal links are insufficient, embed more from this list:
+Available internal links to embed:
 ${linkCorpus}
 
 Return ONLY JSON:
 {
-  "title": "...",
-  "slug": "...",
-  "meta_title": "55-60 chars with keyword",
-  "meta_description": "150-160 chars with keyword + actionable verb",
-  "excerpt": "...",
-  "category": "...",
-  "tags": [...],
+  "title": "...", "slug": "...",
+  "meta_title": "55-60 chars with keyword near start + power word",
+  "meta_description": "150-160 chars with keyword + power word + CTA verb",
+  "excerpt": "...", "category": "...", "tags": [...],
+  "semantic_keywords": ["10-15 LSI keywords used"],
   "html_content": "improved HTML",
-  "improvements": ["bullet list of what you changed"]
+  "improvements": ["short bullets of what you changed"]
 }`;
-        const user = `Primary keyword: ${primaryKeyword}\n\nCurrent article JSON:\n${JSON.stringify({
+        const user = `Primary keyword: ${primaryKeyword}\n\nCurrent article:\n${JSON.stringify({
           title: article.title, slug: article.slug, meta_title: article.meta_title,
           meta_description: article.meta_description, excerpt: article.excerpt,
-          category: article.category, tags: article.tags, html_content: article.html_content,
+          category: article.category, tags: article.tags, semantic_keywords: semKw,
+          html_content: article.html_content,
         })}`;
 
         const aiData = await callAI(system, user, 16000);
@@ -618,7 +619,6 @@ Return ONLY JSON:
             if (refined?.html_content) {
               improvements = Array.isArray(refined.improvements) ? refined.improvements : [];
               optimized = { ...article, ...refined };
-              // recompute stats
               const plain = String(optimized.html_content || "").replace(/<[^>]+>/g, " ");
               const wordsArr = plain.trim().split(/\s+/).filter(Boolean);
               const re = new RegExp(`\\b${(primaryKeyword || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi");
@@ -631,14 +631,27 @@ Return ONLY JSON:
         }
       }
 
-      const finalAudit = runDeepSeoAudit(optimized, primaryKeyword || optimized.title || "");
+      // ALWAYS inject JSON-LD schemas (Article + BreadcrumbList + FAQPage) into final HTML
+      optimized = injectJsonLd(optimized);
+      const optSemKw: string[] = Array.isArray(optimized.semantic_keywords) ? optimized.semantic_keywords : semKw;
+
+      const finalAudit = runDeepSeoAudit(optimized, primaryKeyword || optimized.title || "", optSemKw);
+
+      // SERP preview data
+      const serpPreview = {
+        meta_title: optimized.meta_title,
+        meta_description: optimized.meta_description,
+        url: `https://www.investingiq.in/blog/${optimized.slug}`,
+        breadcrumbs: ["investingiq.in", "blog", optimized.category].filter(Boolean),
+      };
 
       return new Response(JSON.stringify({
         article: optimized,
         audit: finalAudit,
         improvements,
-        previous_score: audit.score,
+        previous_score: initialAudit.score,
         final_score: finalAudit.score,
+        serp_preview: serpPreview,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
