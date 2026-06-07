@@ -184,10 +184,72 @@ function buildJsonLd(article: any): string {
 
 function injectJsonLd(article: any): any {
   const html = String(article.html_content || "");
-  // strip existing JSON-LD to avoid dupes
   const cleaned = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/gi, "").trim();
   const ld = buildJsonLd({ ...article, html_content: cleaned });
   return { ...article, html_content: `${ld}\n${cleaned}` };
+}
+
+// About InvestingIQ block appended to every article
+const ABOUT_INVESTINGIQ_HTML = `
+<h2>About InvestingIQ</h2>
+<p><strong>InvestingIQ</strong> is India's AI-powered investing intelligence platform built for retail investors, traders, and finance enthusiasts. We combine real-time market data from <strong>NSE</strong> and <strong>BSE</strong>, deep equity research, mutual fund analytics, real estate insights, and personal finance tools — all distilled into clear, actionable guidance for the Indian market.</p>
+<p>From live stock quotes, AI-driven stock reviews, and SIP/EMI/Tax calculators to curated news on IPOs, RBI policy, SEBI updates, and macro trends, <a href="/">InvestingIQ</a> helps you make smarter money decisions every day. Explore our <a href="/blog">latest market insights</a>, <a href="/stocks">stock research</a>, <a href="/mutual-funds">mutual fund analysis</a>, and <a href="/real-estate">real estate intelligence</a> — all designed for the Indian investor.</p>
+`;
+
+function appendAboutInvestingIQ(html: string): string {
+  if (!html) return html;
+  if (/About InvestingIQ/i.test(html)) return html;
+  const disclaimerRe = /<p[^>]*>\s*<em>\s*Disclaimer[\s\S]*?<\/em>\s*<\/p>/i;
+  if (disclaimerRe.test(html)) {
+    return html.replace(disclaimerRe, (m) => `${ABOUT_INVESTINGIQ_HTML}\n${m}`);
+  }
+  return `${html}\n${ABOUT_INVESTINGIQ_HTML}`;
+}
+
+// Auto-inject internal links if AI didn't add enough
+function autoInjectInternalLinks(html: string, posts: Array<{ title: string; slug: string; tags?: string[] }>, minLinks = 4): { html: string; injected: number } {
+  if (!html || !posts?.length) return { html, injected: 0 };
+  const existing = [...html.matchAll(/<a[^>]+href=["']\/blog\/([^"']+)["']/gi)].map(m => m[1]);
+  const existingSlugs = new Set(existing);
+  let injected = 0;
+  let out = html;
+
+  type Cand = { phrase: string; slug: string; title: string };
+  const candidates: Cand[] = [];
+  for (const p of posts) {
+    if (existingSlugs.has(p.slug)) continue;
+    const titleAnchor = p.title.replace(/[:|–—-].*$/, "").trim();
+    if (titleAnchor && titleAnchor.split(/\s+/).length <= 8) {
+      candidates.push({ phrase: titleAnchor, slug: p.slug, title: p.title });
+    }
+    for (const t of (p.tags || []).slice(0, 3)) {
+      if (t && t.length >= 4) candidates.push({ phrase: t, slug: p.slug, title: p.title });
+    }
+  }
+
+  const usedSlugs = new Set<string>(existingSlugs);
+  for (const c of candidates) {
+    if (existing.length + injected >= minLinks + 2) break;
+    if (usedSlugs.has(c.slug)) continue;
+    const re = new RegExp(`\\b(${c.phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})\\b`, "i");
+    let replaced = false;
+    out = out.replace(/<p>([\s\S]*?)<\/p>/gi, (full, inner) => {
+      if (replaced) return full;
+      // skip if already contains a link to this slug or overlapping anchor
+      if (inner.includes(`/blog/${c.slug}`)) return full;
+      if (re.test(inner) && !/<a[^>]*>[^<]*\b/i.test(inner.match(re)?.[0] || "")) {
+        const newInner = inner.replace(re, `<a href="/blog/${c.slug}" title="${c.title.replace(/"/g, "&quot;")}">$1</a>`);
+        replaced = true;
+        return `<p>${newInner}</p>`;
+      }
+      return full;
+    });
+    if (replaced) {
+      usedSlugs.add(c.slug);
+      injected++;
+    }
+  }
+  return { html: out, injected };
 }
 
 function runDeepSeoAudit(article: any, primaryKeyword: string, semanticKeywords: string[] = []): { score: number; checks: Check[]; summary: any } {
