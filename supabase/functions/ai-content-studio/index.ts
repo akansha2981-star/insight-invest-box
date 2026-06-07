@@ -521,13 +521,14 @@ STRUCTURE (clean HTML, no <html>/<body>):
 
 OUTPUT — JSON only, no code fence:
 {
-  "title": "50-70 chars, includes keyword",
+  "title": "50-70 chars, includes keyword (with power word and/or number)",
   "slug": "url-friendly-slug-with-keyword",
-  "meta_title": "55-60 chars, includes keyword",
-  "meta_description": "150-160 chars compelling, includes keyword and an actionable verb",
+  "meta_title": "55-60 chars, includes keyword near the start",
+  "meta_description": "150-160 chars compelling, includes keyword + power word + actionable verb",
   "excerpt": "120-160 char hook",
   "category": "Markets|Mutual Funds|Real Estate|Personal Finance|Tax|IPO|Crypto|Economy",
   "tags": ["6-10 relevant tags"],
+  "semantic_keywords": ["10-15 LSI/related entity keywords actually used in body"],
   "html_content": "FULL HTML body with internal+external links embedded",
   "word_count": 1500,
   "keyword_occurrences": 22
