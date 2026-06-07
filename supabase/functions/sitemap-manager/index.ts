@@ -155,7 +155,7 @@ serve(async (req) => {
         base_url: baseUrl,
         source_breakdown: sourceCounts,
         recent,
-        public_sitemap_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/sitemap-xml`,
+        public_sitemap_url: `${baseUrl}/sitemap.xml`,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -219,7 +219,7 @@ serve(async (req) => {
         scanned: rows.length,
         deactivated: !isRefresh ? (existing || []).filter((e: any) => !incomingPaths.has(e.path) && e.is_active).length : 0,
         new_urls: newRows.slice(0, 50).map(r => r.url),
-        public_sitemap_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/sitemap-xml`,
+        public_sitemap_url: `${baseUrl}/sitemap.xml`,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

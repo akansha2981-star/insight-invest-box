@@ -192,7 +192,7 @@ export function AdminSitemapManager() {
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              This URL is always live and reflects the latest generated sitemap. Submit it once in Search Console; future refreshes update automatically.
+              Submit this URL once to Google Search Console. The file is regenerated from your database on every "Generate Sitemap" run and goes live with the next deploy/publish of the site.
             </p>
           </div>
           <div className="flex gap-2">
