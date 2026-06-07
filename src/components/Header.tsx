@@ -110,10 +110,10 @@ export function Header() {
               </>
             ) : (
               <>
-                <Link to="/admin/login" className="px-3 py-1.5 text-foreground/80 hover:text-primary font-medium transition-colors">
+                <Link to="/login" className="px-3 py-1.5 text-foreground/80 hover:text-primary font-medium transition-colors">
                   Login
                 </Link>
-                <Link to="/admin/login" className="px-3.5 py-1.5 bg-primary text-primary-foreground rounded-md font-semibold hover:bg-primary/90 transition-colors text-[13px]">
+                <Link to="/login?mode=signup" className="px-3.5 py-1.5 bg-primary text-primary-foreground rounded-md font-semibold hover:bg-primary/90 transition-colors text-[13px]">
                   Sign Up
                 </Link>
               </>
