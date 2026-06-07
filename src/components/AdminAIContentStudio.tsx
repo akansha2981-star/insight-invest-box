@@ -168,7 +168,7 @@ export function AdminAIContentStudio() {
             </div>
             <h2 className="text-xl font-bold mb-1">Discover what India is searching now</h2>
             <p className="text-sm text-white/70 max-w-xl">
-              AI scans trending searches across Stocks, Mutual Funds, Real Estate, Personal Finance, Tax, IPO & Crypto — India-focused only.
+              Live pull from <strong>Google Trends India</strong>, <strong>Economic Times</strong> & <strong>Moneycontrol</strong> — AI curates only Investment, Stocks, MF, Real Estate, Tax, IPO & Crypto topics.
             </p>
           </div>
           <button
