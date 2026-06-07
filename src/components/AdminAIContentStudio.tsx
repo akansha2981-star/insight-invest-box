@@ -59,6 +59,7 @@ export function AdminAIContentStudio() {
   const [audit, setAudit] = useState<AuditResult | null>(null);
   const [improvements, setImprovements] = useState<string[]>([]);
   const [previousScore, setPreviousScore] = useState<number | null>(null);
+  const [serpPreview, setSerpPreview] = useState<{ meta_title: string; meta_description: string; url: string; breadcrumbs: string[] } | null>(null);
 
   // Load saved topics from localStorage
   useEffect(() => {
@@ -156,6 +157,7 @@ export function AdminAIContentStudio() {
       setAudit(data.audit);
       setImprovements(data.improvements || []);
       setPreviousScore(data.previous_score ?? null);
+      setSerpPreview(data.serp_preview ?? null);
       setStage("audit-review");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Audit failed");
@@ -490,10 +492,41 @@ export function AdminAIContentStudio() {
                 <Mini label="Words" v={audit.summary.word_count} />
                 <Mini label="Density" v={`${audit.summary.keyword_density}%`} />
                 <Mini label="Internal" v={audit.summary.internal_links} icon={<Link2 className="h-3 w-3" />} />
-                <Mini label="H2s" v={audit.summary.h2_count} />
+                <Mini label="Flesch" v={(audit.summary as any).flesch_score ?? "—"} />
+                <Mini label="LSI" v={`${(audit.summary as any).lsi_coverage_pct ?? 0}%`} />
+                <Mini label="Passive" v={`${(audit.summary as any).passive_voice_pct ?? 0}%`} />
               </div>
             </div>
+            {/* Schema badges */}
+            {(audit.summary as any).schemas && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {Object.entries((audit.summary as any).schemas).filter(([k]) => k !== "count").map(([k, v]) => (
+                  <span key={k} className={`text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 ${v ? "bg-white/25 text-white" : "bg-white/10 text-white/60 line-through"}`}>
+                    {v ? <CheckCircle2 className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                    {k === "article" ? "Article schema" : k === "faq" ? "FAQPage schema" : "Breadcrumb schema"}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* SERP preview */}
+          {serpPreview && (
+            <div className="border border-border rounded-xl p-4 mb-4 bg-white">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Google SERP Preview</div>
+              <div className="font-sans">
+                <div className="flex items-center gap-1 text-xs text-gray-600 mb-1">
+                  {serpPreview.breadcrumbs.map((b, i) => (
+                    <span key={i}>{b}{i < serpPreview.breadcrumbs.length - 1 && " › "}</span>
+                  ))}
+                </div>
+                <div className="text-[#1a0dab] text-lg font-normal leading-tight hover:underline cursor-pointer truncate">
+                  {serpPreview.meta_title}
+                </div>
+                <div className="text-sm text-gray-700 mt-1 line-clamp-2">{serpPreview.meta_description}</div>
+              </div>
+            </div>
+          )}
 
           {improvements.length > 0 && (
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-4">
