@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users, Menu, X, RefreshCw } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users, Menu, X, RefreshCw, Sparkles } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 import { AdminPageSections } from "@/components/AdminPageSections";
 import { AdminBreakingNews } from "@/components/AdminBreakingNews";
@@ -11,6 +11,7 @@ import { AdminNewsletterSubscribers } from "@/components/AdminNewsletterSubscrib
 import { AdminRealEstate } from "@/components/AdminRealEstate";
 import { AdminAuthAnalytics } from "@/components/AdminAuthAnalytics";
 import { AdminRegisteredUsers } from "@/components/AdminRegisteredUsers";
+import { AdminAIContentStudio } from "@/components/AdminAIContentStudio";
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
@@ -20,21 +21,22 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio';
 
 const NAV_ITEMS = [
-  { id: 'dashboard',        label: 'Dashboard',        icon: BarChart2 },
-  { id: 'posts',            label: 'All Articles',      icon: Newspaper },
-  { id: 'create',           label: 'Write Article',     icon: PenSquare },
-  { id: 'stock-reviews',    label: 'Stock Reviews',     icon: LineChart },
-  { id: 'home-banners',     label: 'Homepage Banners',  icon: Image },
-  { id: 'pages',            label: 'Pages Content',     icon: FileText },
-  { id: 'page-sections',    label: 'Section Blocks',    icon: Layout },
-  { id: 'breaking-news',    label: 'Breaking News',     icon: Radio },
-  { id: 'real-estate',      label: 'Real Estate',       icon: Home },
-  { id: 'newsletter',       label: 'Subscribers',       icon: Mail },
-  { id: 'registered-users', label: 'Registered Users',  icon: Users },
-  { id: 'auth-analytics',   label: 'Login Analytics',   icon: Users },
+  { id: 'dashboard',        label: 'Dashboard',          icon: BarChart2 },
+  { id: 'ai-studio',        label: 'AI Content Studio',  icon: Sparkles },
+  { id: 'posts',            label: 'All Articles',       icon: Newspaper },
+  { id: 'create',           label: 'Write Article',      icon: PenSquare },
+  { id: 'stock-reviews',    label: 'Stock Reviews',      icon: LineChart },
+  { id: 'home-banners',     label: 'Homepage Banners',   icon: Image },
+  { id: 'pages',            label: 'Pages Content',      icon: FileText },
+  { id: 'page-sections',    label: 'Section Blocks',     icon: Layout },
+  { id: 'breaking-news',    label: 'Breaking News',      icon: Radio },
+  { id: 'real-estate',      label: 'Real Estate',        icon: Home },
+  { id: 'newsletter',       label: 'Subscribers',        icon: Mail },
+  { id: 'registered-users', label: 'Registered Users',   icon: Users },
+  { id: 'auth-analytics',   label: 'Login Analytics',    icon: Users },
 ];
 
 export default function AdminDashboard() {
@@ -377,6 +379,7 @@ export default function AdminDashboard() {
         {view === 'newsletter' && <AdminNewsletterSubscribers />}
         {view === 'real-estate' && <AdminRealEstate />}
         {view === 'auth-analytics' && <AdminAuthAnalytics />}
+        {view === 'ai-studio' && <AdminAIContentStudio />}
         {view === 'registered-users' && <AdminRegisteredUsers />}
 
       </main>
