@@ -149,7 +149,7 @@ function buildJsonLd(article: any): string {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://www.investingiq.in/" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.investingiq.in/blog" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.investingiq.in/news" },
       { "@type": "ListItem", position: 3, name: article.title, item: url },
     ],
   });
@@ -209,7 +209,7 @@ function appendAboutInvestingIQ(html: string): string {
 // Auto-inject internal links if AI didn't add enough
 function autoInjectInternalLinks(html: string, posts: Array<{ title: string; slug: string; tags?: string[] }>, minLinks = 4): { html: string; injected: number } {
   if (!html || !posts?.length) return { html, injected: 0 };
-  const existing = [...html.matchAll(/<a[^>]+href=["']\/blog\/([^"']+)["']/gi)].map(m => m[1]);
+  const existing = [...html.matchAll(/<a[^>]+href=["']\/news\/([^"']+)["']/gi)].map(m => m[1]);
   const existingSlugs = new Set(existing);
   let injected = 0;
   let out = html;
