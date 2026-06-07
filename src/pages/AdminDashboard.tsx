@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users, Menu, X, RefreshCw, Sparkles } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users, Menu, X, RefreshCw, Sparkles, ListTree } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 import { AdminPageSections } from "@/components/AdminPageSections";
 import { AdminBreakingNews } from "@/components/AdminBreakingNews";
@@ -12,6 +12,7 @@ import { AdminRealEstate } from "@/components/AdminRealEstate";
 import { AdminAuthAnalytics } from "@/components/AdminAuthAnalytics";
 import { AdminRegisteredUsers } from "@/components/AdminRegisteredUsers";
 import { AdminAIContentStudio } from "@/components/AdminAIContentStudio";
+import { AdminSitemapManager } from "@/components/AdminSitemapManager";
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
