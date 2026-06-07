@@ -59,6 +59,7 @@ export function AdminAIContentStudio() {
   const [audit, setAudit] = useState<AuditResult | null>(null);
   const [improvements, setImprovements] = useState<string[]>([]);
   const [previousScore, setPreviousScore] = useState<number | null>(null);
+  const [serpPreview, setSerpPreview] = useState<{ meta_title: string; meta_description: string; url: string; breadcrumbs: string[] } | null>(null);
 
   // Load saved topics from localStorage
   useEffect(() => {
