@@ -702,7 +702,29 @@ Return ONLY JSON:
         }
       }
 
-      // ALWAYS inject JSON-LD schemas (Article + BreadcrumbList + FAQPage) into final HTML
+      // Fetch posts for link injection (separate from optimiser fetch for clarity)
+      const { data: linkPosts } = await supabase
+        .from("blog_posts")
+        .select("title, slug, tags")
+        .eq("status", "published")
+        .order("published_at", { ascending: false })
+        .limit(40);
+
+      // Enforce internal linking (auto-inject if AI didn't)
+      const linkInjection = autoInjectInternalLinks(String(optimized.html_content || ""), linkPosts || [], 4);
+      optimized.html_content = linkInjection.html;
+      if (linkInjection.injected > 0) {
+        improvements.push(`Auto-injected ${linkInjection.injected} contextual internal link(s) to existing articles.`);
+      }
+
+      // Always append "About InvestingIQ" section
+      const beforeAbout = optimized.html_content;
+      optimized.html_content = appendAboutInvestingIQ(optimized.html_content);
+      if (beforeAbout !== optimized.html_content) {
+        improvements.push("Appended 'About InvestingIQ' branding section with site-wide internal links.");
+      }
+
+      // ALWAYS inject JSON-LD schemas (Article + BreadcrumbList + FAQPage)
       optimized = injectJsonLd(optimized);
       const optSemKw: string[] = Array.isArray(optimized.semantic_keywords) ? optimized.semantic_keywords : semKw;
 
