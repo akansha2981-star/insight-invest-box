@@ -611,6 +611,14 @@ Target density: ${kd}% (~${targetOccurrences} occurrences)`;
       const raw = stripCodeFence(extractText(data));
       try {
         const parsed = JSON.parse(raw);
+
+        // Ensure internal links — auto-inject if AI under-delivered
+        const injection = autoInjectInternalLinks(String(parsed.html_content || ""), existingPosts || [], 4);
+        parsed.html_content = injection.html;
+
+        // Always append "About InvestingIQ" block
+        parsed.html_content = appendAboutInvestingIQ(parsed.html_content);
+
         const plain = String(parsed.html_content || "").replace(/<[^>]+>/g, " ");
         const words = plain.trim().split(/\s+/).filter(Boolean);
         const wc = words.length;
@@ -620,6 +628,7 @@ Target density: ${kd}% (~${targetOccurrences} occurrences)`;
         parsed.keyword_occurrences = occ;
         parsed.actual_density = wc ? +((occ / wc) * 100).toFixed(2) : 0;
         parsed.internal_links_count = [...String(parsed.html_content || "").matchAll(/<a[^>]+href=["']\/[^"']*["']/gi)].length;
+        parsed.internal_links_injected = injection.injected;
         return new Response(JSON.stringify(parsed), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch {
         return new Response(JSON.stringify({ error: "AI returned invalid JSON", raw: raw.slice(0, 2000) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
