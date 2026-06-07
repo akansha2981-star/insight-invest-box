@@ -382,6 +382,7 @@ export default function AdminDashboard() {
         {view === 'real-estate' && <AdminRealEstate />}
         {view === 'auth-analytics' && <AdminAuthAnalytics />}
         {view === 'ai-studio' && <AdminAIContentStudio />}
+        {view === 'sitemap' && <AdminSitemapManager />}
         {view === 'registered-users' && <AdminRegisteredUsers />}
 
       </main>
