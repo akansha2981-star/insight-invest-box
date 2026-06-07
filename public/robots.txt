@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://euxpopovbfjkzhxiclrl.supabase.co/functions/v1/sitemap-xml
+Sitemap: https://investingiq.in/sitemap.xml
