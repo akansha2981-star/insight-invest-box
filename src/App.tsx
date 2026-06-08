@@ -77,6 +77,8 @@ const App = () => (
           <Route path="/tools/tax" element={<TaxCalculatorPage />} />
           <Route path="/tools/screener" element={<StockScreenerPage />} />
           <Route path="/tools/portfolio" element={<PortfolioTesterPage />} />
+          <Route path="/currency-converter" element={<CurrencyConverterPage />} />
+          <Route path="/currency-converter/:pair" element={<CurrencyConverterPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/careers" element={<CareersPage />} />
           <Route path="/contact" element={<ContactPage />} />
