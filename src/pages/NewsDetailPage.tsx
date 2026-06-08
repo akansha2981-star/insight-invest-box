@@ -125,6 +125,75 @@ function Bullets({ items }: { items?: (string | unknown)[] }) {
   );
 }
 
+/* ============ PREMIUM SECTION COMPONENTS ============ */
+
+interface PremiumProps { title: string; eyebrow?: string; children: React.ReactNode; }
+
+function PremiumShell({
+  title, eyebrow, icon: Icon, gradient, iconBg, borderAccent, children,
+}: PremiumProps & {
+  icon: React.ComponentType<{ className?: string }>;
+  gradient: string;
+  iconBg: string;
+  borderAccent: string;
+}) {
+  return (
+    <section className={`relative overflow-hidden rounded-2xl border ${borderAccent} bg-white shadow-sm hover:shadow-lg transition-all duration-300 group`}>
+      <div className={`absolute inset-0 opacity-[0.04] group-hover:opacity-[0.07] transition-opacity ${gradient}`} />
+      <div className="absolute top-0 right-0 -mr-16 -mt-16 h-48 w-48 rounded-full blur-3xl opacity-20 pointer-events-none" style={{ background: "currentColor" }} />
+      <div className="relative p-5 sm:p-6">
+        <div className="flex items-start gap-4 mb-5">
+          <div className={`h-12 w-12 rounded-2xl ${iconBg} flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-black/5`}>
+            <Icon className="h-6 w-6" />
+          </div>
+          <div className="min-w-0 flex-1">
+            {eyebrow && <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-1">{eyebrow}</div>}
+            <h2 className="text-lg sm:text-xl font-bold text-foreground leading-tight tracking-tight">{title}</h2>
+          </div>
+        </div>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function PremiumProse({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-[15px] leading-[1.75] text-foreground/85 first-letter:text-3xl first-letter:font-bold first-letter:text-foreground first-letter:mr-1 first-letter:float-left first-letter:leading-none first-letter:mt-1">
+      {children}
+    </div>
+  );
+}
+
+function sentimentScore(s?: string) {
+  const v = (s ?? "").toLowerCase();
+  if (v.includes("very bull")) return 92;
+  if (v.includes("bull")) return 78;
+  if (v.includes("very bear")) return 12;
+  if (v.includes("bear")) return 28;
+  if (v.includes("mixed") || v.includes("neutral")) return 50;
+  return 50;
+}
+
+function impactBarValue(impact?: string) {
+  const v = (v0 => v0)((impact ?? "").toLowerCase());
+  if (v.includes("very pos") || v.includes("strong pos")) return 90;
+  if (v.includes("pos")) return 72;
+  if (v.includes("very neg") || v.includes("strong neg")) return 10;
+  if (v.includes("neg")) return 28;
+  if (v.includes("mix")) return 50;
+  return 50;
+}
+
+function impactBarColor(impact?: string) {
+  const v = (impact ?? "").toLowerCase();
+  if (v.includes("pos")) return "from-emerald-400 to-emerald-600";
+  if (v.includes("neg")) return "from-red-400 to-red-600";
+  if (v.includes("mix")) return "from-amber-400 to-amber-600";
+  return "from-slate-300 to-slate-500";
+}
+
+
 export default function NewsDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const [post, setPost] = useState<BlogPost | null>(null);
