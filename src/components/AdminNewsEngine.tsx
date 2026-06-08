@@ -95,8 +95,6 @@ export function AdminNewsEngine() {
       await new Promise(r => setTimeout(r, 15000));
       await fetchAll();
     }
-    return;
-    await fetchAll();
   }
 
   async function act(action: "approve" | "reject" | "publish", ids: string[]) {
