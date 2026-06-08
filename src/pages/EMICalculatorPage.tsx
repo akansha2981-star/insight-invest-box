@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ComplianceDisclaimer } from "@/components/ComplianceDisclaimer";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Home, TrendingUp, Info, HelpCircle, CheckCircle, ArrowRight } from "lucide-react";
@@ -211,6 +212,7 @@ export default function EMICalculatorPage() {
             <p>Major banks offer home loan rates between 8.25% to 9.50% p.a. SBI offers the lowest starting rate at 8.25%, followed by HDFC Bank at 8.35% and ICICI Bank at 8.40%. Rates vary based on your credit score, loan amount, and property location.</p>
           </div>
         </section>
+        <ComplianceDisclaimer variant="card" className="mt-8" />
       </main>
       <Footer />
     </div>

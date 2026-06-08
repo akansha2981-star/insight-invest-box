@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ComplianceDisclaimer } from "@/components/ComplianceDisclaimer";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Calculator, TrendingUp, Info, HelpCircle, ArrowRight, CheckCircle } from "lucide-react";
@@ -213,6 +214,7 @@ export default function SIPCalculatorPage() {
             <p>For most investors, SIP is preferred because it eliminates the need to time the market. Through rupee cost averaging, you automatically buy more units when prices are low and fewer when high. Studies show that over 10+ year periods, SIP and lump sum returns converge, but SIP offers better risk management.</p>
           </div>
         </section>
+        <ComplianceDisclaimer variant="card" className="mt-8" />
       </main>
       <Footer />
     </div>

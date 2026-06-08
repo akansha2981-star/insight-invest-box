@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ComplianceDisclaimer } from "@/components/ComplianceDisclaimer";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FileText, Info, HelpCircle, ArrowRight, CheckCircle } from "lucide-react";
@@ -220,6 +221,7 @@ export default function TaxCalculatorPage() {
             ))}
           </div>
         </section>
+        <ComplianceDisclaimer variant="card" className="mt-8" />
       </main>
       <Footer />
     </div>

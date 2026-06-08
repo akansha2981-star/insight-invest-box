@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ComplianceDisclaimer } from "@/components/ComplianceDisclaimer";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Landmark, TrendingUp, HelpCircle, ArrowRight, CheckCircle } from "lucide-react";
@@ -186,6 +187,7 @@ export default function FDCalculatorPage() {
             ))}
           </div>
         </section>
+        <ComplianceDisclaimer variant="card" className="mt-8" />
       </main>
       <Footer />
     </div>
