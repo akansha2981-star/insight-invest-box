@@ -645,11 +645,11 @@ export default function NewsDetailPage() {
                   </div>
                   <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                     {[
-                      { label: "Short term", tone: "amber" },
-                      { label: "Medium term", tone: "sky" },
-                      { label: "Long term", tone: "emerald" },
+                      { label: "Short term", cls: "bg-amber-50/60 border-amber-200 text-amber-700" },
+                      { label: "Medium term", cls: "bg-sky-50/60 border-sky-200 text-sky-700" },
+                      { label: "Long term", cls: "bg-emerald-50/60 border-emerald-200 text-emerald-700" },
                     ].map(t => (
-                      <div key={t.label} className={`rounded-lg border px-2 py-1.5 bg-${t.tone}-50/60 border-${t.tone}-200 text-[10px] font-bold uppercase tracking-wider text-${t.tone}-700`}>
+                      <div key={t.label} className={`rounded-lg border px-2 py-1.5 ${t.cls} text-[10px] font-bold uppercase tracking-wider`}>
                         {t.label}
                       </div>
                     ))}
