@@ -35,6 +35,7 @@ export function Footer() {
               { label: "Portfolio", to: "/portfolio" },
             ]},
             { title: "Tools", links: [
+              { label: "Currency Converter", to: "/currency-converter" },
               { label: "SIP Calculator", to: "/tools/sip" },
               { label: "EMI Calculator", to: "/tools/emi" },
               { label: "Stock Screener", to: "/tools/screener" },
