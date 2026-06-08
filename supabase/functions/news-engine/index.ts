@@ -238,8 +238,10 @@ Hard rules: do not fabricate prices/quotes; if uncertain say "reportedly" or omi
             blog_post_id: inserted!.id, reviewed_by: userId,
           }).eq("id", d.id);
           published++;
-        } catch (e) {
-          errors.push({ id: d.id, error: e instanceof Error ? e.message : "unknown" });
+        } catch (e: any) {
+          const msg = e?.message || e?.error_description || e?.details || e?.hint || (typeof e === "string" ? e : JSON.stringify(e));
+          console.error("publish error for draft", d.id, msg, e);
+          errors.push({ id: d.id, error: msg || "unknown" });
         }
       }
       return json({ ok: true, published, errors });
