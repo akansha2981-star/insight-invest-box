@@ -47,30 +47,14 @@ function slugify(s: string): string {
 }
 
 function buildPublishedHtml(d: any): string {
-  const ins = d.insights ?? {};
-  const sec = (title: string, body: string) => body ? `<section class="news-insight"><h2>${title}</h2>${body}</section>` : "";
-  const list = (arr: any) => Array.isArray(arr) ? `<ul>${arr.map((x: any) => `<li>${typeof x === "string" ? x : JSON.stringify(x)}</li>`).join("")}</ul>` : "";
-  const faqs = Array.isArray(ins.faqs) ? `<div class="news-faqs">${ins.faqs.map((f: any) => `<details><summary><strong>${f.q ?? f.question ?? ""}</strong></summary><p>${f.a ?? f.answer ?? ""}</p></details>`).join("")}</div>` : "";
+  // IMPORTANT: only return the raw news story. All insight sections
+  // (what_is, why_matters, market_impact, pros, risks, FAQs, etc.) are
+  // rendered as dedicated premium UI blocks on the News Detail Page,
+  // so we must NOT duplicate them inside the article body.
   const summary = d.summary ? `<p class="news-lede"><strong>${d.summary}</strong></p>` : "";
-  return [
-    summary,
-    d.content ?? "",
-    sec("What is this news about?", ins.what_is ? `<p>${ins.what_is}</p>` : ""),
-    sec("Why this news matters", ins.why_matters ? `<p>${ins.why_matters}</p>` : ""),
-    sec("Potential impact on the stock market", ins.market_impact ? `<p>${ins.market_impact}</p>` : ""),
-    sec("Impact on investors", ins.investor_impact ? `<p>${ins.investor_impact}</p>` : ""),
-    sec("Impact on the Indian economy", ins.economy_impact ? `<p>${ins.economy_impact}</p>` : ""),
-    sec("Pros & positive outcomes", list(ins.pros)),
-    sec("Risks & concerns", list(ins.risks)),
-    sec("Companies & sectors affected", list(ins.companies_affected)),
-    sec("Market sentiment", ins.sentiment ? `<p><strong>${ins.sentiment}</strong></p>` : ""),
-    sec("Expert AI analysis", ins.expert_analysis ? `<p>${ins.expert_analysis}</p>` : ""),
-    sec("Key facts & numbers", list(ins.key_facts)),
-    sec("Frequently asked questions", faqs),
-    sec("Educational context", ins.educational_context ? `<p>${ins.educational_context}</p>` : ""),
-    sec("Related topics", list(ins.related_topics)),
-  ].filter(Boolean).join("\n");
+  return [summary, d.content ?? ""].filter(Boolean).join("\n");
 }
+
 
 function scoreSeo(d: any): number {
   let s = 0;

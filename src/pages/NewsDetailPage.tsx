@@ -9,8 +9,9 @@ import {
   ArrowLeft, Clock, User, Share2, Tag, Newspaper, Info, Target, LineChart,
   Layers, Globe, ThumbsUp, AlertTriangle, Building2, Activity, Brain, ListChecks,
   HelpCircle, BookOpen, Hash, Search, Sparkles, ExternalLink, Quote, Lightbulb,
-  Radio,
+  Radio, TrendingUp, TrendingDown, Minus, Gauge,
 } from "lucide-react";
+
 import { ComplianceDisclaimer } from "@/components/ComplianceDisclaimer";
 
 interface Faq { q?: string; a?: string; question?: string; answer?: string; }
@@ -195,6 +196,43 @@ function impactBarColor(impact?: string) {
   if (v.includes("neg")) return "from-red-400 to-red-600";
   if (v.includes("mix")) return "from-amber-400 to-amber-600";
   return "from-slate-300 to-slate-500";
+}
+
+function ImpactTrendIcon({ impact, className = "h-4 w-4" }: { impact?: string; className?: string }) {
+  const v = (impact ?? "").toLowerCase();
+  if (v.includes("pos")) return <TrendingUp className={`${className} text-emerald-600`} />;
+  if (v.includes("neg")) return <TrendingDown className={`${className} text-red-600`} />;
+  if (v.includes("mix")) return <Activity className={`${className} text-amber-600`} />;
+  return <Minus className={`${className} text-slate-500`} />;
+}
+
+/**
+ * Strip legacy insight sections out of the article body to prevent
+ * duplication — they are rendered as dedicated premium cards below.
+ */
+function stripDuplicatedInsightSections(html: string): string {
+  if (!html) return html;
+  let out = html;
+  out = out.replace(/<section[^>]*class=["'][^"']*news-insight[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, "");
+  out = out.replace(/<div[^>]*class=["'][^"']*news-faqs[^"']*["'][^>]*>[\s\S]*?<\/div>/gi, "");
+  const headings = [
+    "what is this news about", "why this news matters",
+    "potential impact on the stock market", "impact on investors",
+    "impact on the indian economy",
+    "pros & positive outcomes", "pros and positive outcomes",
+    "risks & concerns", "risks and concerns",
+    "companies & sectors affected", "companies and sectors affected",
+    "market sentiment", "expert ai analysis",
+    "key facts & numbers", "key facts and numbers",
+    "frequently asked questions", "educational context",
+    "related topics", "key takeaways",
+  ];
+  for (const h of headings) {
+    const esc = h.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(`<h2[^>]*>\\s*${esc}\\s*<\\/h2>[\\s\\S]*?(?=<h2|$)`, "gi");
+    out = out.replace(re, "");
+  }
+  return out.trim();
 }
 
 
@@ -392,15 +430,24 @@ export default function NewsDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-8">
           {/* Left column — section cards */}
           <div className="space-y-5 sm:space-y-6">
-            {/* Article body */}
-            {post.content && (
-              <article className="bg-white border border-border rounded-2xl p-5 sm:p-8 shadow-sm">
-                <div
-                  className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-xl prose-p:leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: post.content }}
-                />
-              </article>
-            )}
+            {/* Article body — raw news story only (insight sections are rendered as dedicated cards below) */}
+            {(() => {
+              const cleaned = stripDuplicatedInsightSections(post.content || "");
+              if (!cleaned) return null;
+              return (
+                <article className="relative bg-white border border-border rounded-2xl p-5 sm:p-8 shadow-sm overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-sky-500 to-emerald-500" />
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-4">
+                    <Newspaper className="h-3.5 w-3.5 text-primary" /> The Story
+                  </div>
+                  <div
+                    className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-xl prose-p:leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: cleaned }}
+                  />
+                </article>
+              );
+            })()}
+
 
             {/* AI enrichment loading banner */}
             {enriching && !insightsAreRich(ins) && (
@@ -528,6 +575,7 @@ export default function NewsDetailPage() {
                               <Layers className="h-3.5 w-3.5" />
                             </div>
                             <span className="font-bold text-foreground text-sm truncate">{s.sector}</span>
+                            <ImpactTrendIcon impact={s.impact} className="h-4 w-4 flex-shrink-0" />
                           </div>
                           <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${impactPillClass(s.impact)}`}>
                             {s.impact ?? "Neutral"}
@@ -570,6 +618,39 @@ export default function NewsDetailPage() {
                       <div key={m.label} className="rounded-lg bg-white border border-teal-100 px-3 py-2 text-center">
                         <div className="text-[10px] uppercase tracking-wider text-teal-700 font-bold">{m.label}</div>
                         <div className="text-[11px] text-muted-foreground">{m.val}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PremiumShell>
+            )}
+
+            {/* INVESTOR IMPACT */}
+            {ins?.investor_impact && (
+              <PremiumShell
+                eyebrow="Portfolio lens"
+                title="Impact on Investors"
+                icon={Gauge}
+                iconBg="bg-gradient-to-br from-slate-700 to-slate-900 text-white"
+                gradient="bg-gradient-to-br from-slate-200 to-slate-400"
+                borderAccent="border-slate-200"
+              >
+                <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50/70 to-white p-5">
+                  <div className="grid sm:grid-cols-[auto_1fr] gap-5 items-start">
+                    <div className="hidden sm:flex flex-col items-center gap-1.5 pr-5 border-r border-slate-200">
+                      <Gauge className="h-9 w-9 text-slate-700" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Retail</span>
+                    </div>
+                    <div className="text-[15px] leading-[1.8] text-foreground/85">{ins.investor_impact}</div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                    {[
+                      { label: "Short term", cls: "bg-amber-50/60 border-amber-200 text-amber-700" },
+                      { label: "Medium term", cls: "bg-sky-50/60 border-sky-200 text-sky-700" },
+                      { label: "Long term", cls: "bg-emerald-50/60 border-emerald-200 text-emerald-700" },
+                    ].map(t => (
+                      <div key={t.label} className={`rounded-lg border px-2 py-1.5 ${t.cls} text-[10px] font-bold uppercase tracking-wider`}>
+                        {t.label}
                       </div>
                     ))}
                   </div>
@@ -640,9 +721,17 @@ export default function NewsDetailPage() {
                       return (
                         <div key={i} className="px-4 py-3 hover:bg-slate-50 transition-colors">
                           <div className="grid grid-cols-[1fr_auto_auto] gap-3 items-center">
-                            <div className="min-w-0">
-                              <div className="font-bold text-foreground text-sm truncate">{co.name}</div>
-                              {co.ticker && <div className="text-[11px] text-slate-500 number-font tracking-wider">{co.ticker}</div>}
+                            <div className="min-w-0 flex items-center gap-2">
+                              <div className="h-8 w-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0 text-[10px] font-black number-font">
+                                {(co.name ?? "?").slice(0, 2).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-bold text-foreground text-sm truncate flex items-center gap-1.5">
+                                  {co.name}
+                                  <ImpactTrendIcon impact={co.impact} className="h-3.5 w-3.5 flex-shrink-0" />
+                                </div>
+                                {co.ticker && <div className="text-[11px] text-slate-500 number-font tracking-wider">{co.ticker}</div>}
+                              </div>
                             </div>
                             <div className="w-20 sm:w-28 h-1.5 rounded-full bg-slate-200 overflow-hidden">
                               <div className={`h-full bg-gradient-to-r ${impactBarColor(co.impact)}`} style={{ width: `${val}%` }} />
