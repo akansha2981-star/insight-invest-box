@@ -176,8 +176,14 @@ function sentimentScore(s?: string) {
 }
 
 function impactBarValue(impact?: string) {
-  const v = (v0 => v0)((impact ?? "").toLowerCase());
+  const v = (impact ?? "").toLowerCase();
   if (v.includes("very pos") || v.includes("strong pos")) return 90;
+  if (v.includes("pos")) return 72;
+  if (v.includes("very neg") || v.includes("strong neg")) return 10;
+  if (v.includes("neg")) return 28;
+  if (v.includes("mix")) return 50;
+  return 50;
+}
   if (v.includes("pos")) return 72;
   if (v.includes("very neg") || v.includes("strong neg")) return 10;
   if (v.includes("neg")) return 28;
