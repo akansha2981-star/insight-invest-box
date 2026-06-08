@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NewsPage from "./pages/NewsPage";
+import NewsHubPage from "./pages/NewsHubPage";
 import NewsDetailPage from "./pages/NewsDetailPage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -55,6 +56,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/index.html" element={<Navigate to="/" replace />} />
           <Route path="/news" element={<NewsPage />} />
+          <Route path="/news-hub" element={<NewsHubPage />} />
           <Route path="/news/:slug" element={<NewsDetailPage />} />
           {/* Legacy/alias routes to prevent 404s from older internal links */}
           <Route path="/blog" element={<Navigate to="/news" replace />} />

@@ -16,6 +16,7 @@ import { AdminSitemapManager } from "@/components/AdminSitemapManager";
 import { AdminSmartRefresh } from "@/components/AdminSmartRefresh";
 import { AdminForexMonitor } from "@/components/AdminForexMonitor";
 import { AdminAIOptimizer } from "@/components/AdminAIOptimizer";
+import { AdminNewsEngine } from "@/components/AdminNewsEngine";
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
@@ -25,10 +26,11 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio' | 'sitemap' | 'smart-refresh' | 'forex' | 'ai-optimizer';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio' | 'sitemap' | 'smart-refresh' | 'forex' | 'ai-optimizer' | 'news-engine';
 
 const NAV_ITEMS = [
   { id: 'dashboard',        label: 'Dashboard',          icon: BarChart2 },
+  { id: 'news-engine',      label: 'News Engine',        icon: Newspaper },
   { id: 'ai-optimizer',     label: 'AI Optimizer',       icon: Sparkles },
   { id: 'smart-refresh',    label: 'Smart Refresh',      icon: Zap },
   { id: 'forex',            label: 'Forex Monitor',      icon: Globe },
@@ -392,6 +394,7 @@ export default function AdminDashboard() {
         {view === 'smart-refresh' && <AdminSmartRefresh />}
         {view === 'forex' && <AdminForexMonitor />}
         {view === 'ai-optimizer' && <AdminAIOptimizer />}
+        {view === 'news-engine' && <AdminNewsEngine />}
         {view === 'registered-users' && <AdminRegisteredUsers />}
 
       </main>
