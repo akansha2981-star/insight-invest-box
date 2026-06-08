@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { Clock, User, Eye, Tag, ArrowLeft, Share2, Newspaper } from "lucide-react";
 import { AIInsightTeaser } from "@/components/AIInsightTeaser";
 import { AIArticleSummary } from "@/components/AIArticleSummary";
+import { ComplianceDisclaimer } from "@/components/ComplianceDisclaimer";
 
 interface BlogPost {
   id: string;
@@ -172,6 +173,7 @@ export default function NewsDetailPage() {
                 </div>
               </div>
             )}
+            <ComplianceDisclaimer variant="card" className="mt-8" />
           </article>
 
           {/* Sidebar */}

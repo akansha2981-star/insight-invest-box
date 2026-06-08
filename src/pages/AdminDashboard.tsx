@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users, Menu, X, RefreshCw, Sparkles, ListTree } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users, Menu, X, RefreshCw, Sparkles, ListTree, Zap } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 import { AdminPageSections } from "@/components/AdminPageSections";
 import { AdminBreakingNews } from "@/components/AdminBreakingNews";
@@ -13,6 +13,7 @@ import { AdminAuthAnalytics } from "@/components/AdminAuthAnalytics";
 import { AdminRegisteredUsers } from "@/components/AdminRegisteredUsers";
 import { AdminAIContentStudio } from "@/components/AdminAIContentStudio";
 import { AdminSitemapManager } from "@/components/AdminSitemapManager";
+import { AdminSmartRefresh } from "@/components/AdminSmartRefresh";
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
@@ -22,10 +23,11 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio' | 'sitemap';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio' | 'sitemap' | 'smart-refresh';
 
 const NAV_ITEMS = [
   { id: 'dashboard',        label: 'Dashboard',          icon: BarChart2 },
+  { id: 'smart-refresh',    label: 'Smart Refresh',      icon: Zap },
   { id: 'ai-studio',        label: 'AI Content Studio',  icon: Sparkles },
   { id: 'sitemap',          label: 'Sitemap Manager',    icon: ListTree },
   { id: 'posts',            label: 'All Articles',       icon: Newspaper },
@@ -383,6 +385,7 @@ export default function AdminDashboard() {
         {view === 'auth-analytics' && <AdminAuthAnalytics />}
         {view === 'ai-studio' && <AdminAIContentStudio />}
         {view === 'sitemap' && <AdminSitemapManager />}
+        {view === 'smart-refresh' && <AdminSmartRefresh />}
         {view === 'registered-users' && <AdminRegisteredUsers />}
 
       </main>
