@@ -220,7 +220,7 @@ Hard rules: do not fabricate prices/quotes; if uncertain say "reportedly" or omi
             author_name: "InvestingIQ AI Desk",
             meta_title: d.meta_title,
             meta_description: d.meta_description,
-            meta_keywords: d.meta_keywords ?? [],
+            
             insights: d.insights ?? {},
             schema_jsonld: d.schema_jsonld ?? {},
             internal_links: d.internal_links ?? [],
@@ -238,8 +238,10 @@ Hard rules: do not fabricate prices/quotes; if uncertain say "reportedly" or omi
             blog_post_id: inserted!.id, reviewed_by: userId,
           }).eq("id", d.id);
           published++;
-        } catch (e) {
-          errors.push({ id: d.id, error: e instanceof Error ? e.message : "unknown" });
+        } catch (e: any) {
+          const msg = e?.message || e?.error_description || e?.details || e?.hint || (typeof e === "string" ? e : JSON.stringify(e));
+          console.error("publish error for draft", d.id, msg, e);
+          errors.push({ id: d.id, error: msg || "unknown" });
         }
       }
       return json({ ok: true, published, errors });
