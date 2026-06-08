@@ -89,8 +89,12 @@ export function AdminNewsEngine() {
       setError(error?.message ?? data?.error ?? "Generation failed");
       return;
     }
-    setInfo(`Discovered ${data?.discovered ?? 0}, generated ${data?.generated ?? 0} drafts. Review them in the Pending tab.`);
-    await fetchAll();
+    setInfo(data?.message ?? `Run queued. Drafts will appear in the Pending tab shortly.`);
+    // Poll for new drafts a few times so the UI updates as background work completes.
+    for (let i = 0; i < 8; i++) {
+      await new Promise(r => setTimeout(r, 15000));
+      await fetchAll();
+    }
   }
 
   async function act(action: "approve" | "reject" | "publish", ids: string[]) {

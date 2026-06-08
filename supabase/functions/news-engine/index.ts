@@ -197,78 +197,97 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
-    // ───────────── GENERATE (discover + generate batch) ─────────────
+    // ───────────── GENERATE (discover + generate batch, BACKGROUND) ─────────────
     if (action !== "generate") return json({ error: "Unknown action" }, 400);
 
     const requested = Math.max(1, Math.min(100, Number(body.count) || 10));
     const focusCategories: string[] = Array.isArray(body.categories) && body.categories.length ? body.categories : CATEGORIES;
 
-    const { data: runRow } = await admin.from("news_runs").insert({
+    const { data: runRow, error: runErr } = await admin.from("news_runs").insert({
       triggered_by: userId, trigger_type: "manual", requested_count: requested, status: "running",
     }).select("id").single();
-    const runId = runRow!.id as string;
+    if (runErr || !runRow) return json({ error: runErr?.message ?? "Failed to create run" }, 500);
+    const runId = runRow.id as string;
 
-    // 1. DISCOVER topics
-    const today = new Date().toISOString().slice(0, 10);
-    const topics = await llmJson(
-      "You are an Indian financial news editor. Identify currently trending, news-worthy topics for InvestingIQ readers. Return strict JSON: {topics:[{topic, category, trending, brief, sources:[{name,url}]}]}",
-      `Today is ${today}. List ${requested} CURRENTLY trending, high-interest finance/investment news topics most relevant to Indian readers across these categories: ${focusCategories.join(", ")}. Bias toward this week's developments: market moves, RBI/SEBI actions, IPOs, results, policy, global cues, crypto, real estate. Each item must include category (one of the provided list), trending (boolean), 2-sentence brief, and 1-3 plausible source names.`
-    );
-    const topicList: any[] = Array.isArray(topics?.topics) ? topics.topics.slice(0, requested) : [];
-    await admin.from("news_runs").update({ discovered: topicList.length }).eq("id", runId);
-
-    if (!topicList.length) {
-      await admin.from("news_runs").update({ status: "failed", error: "No topics discovered", completed_at: new Date().toISOString() }).eq("id", runId);
-      return json({ error: "Discovery failed" }, 500);
-    }
-
-    // 2. GENERATE each article (concurrency 3)
-    let generated = 0, failed = 0;
-    const concurrency = 3;
-    const drafts: any[] = [];
-
-    async function processOne(t: any) {
+    // Run the slow work in the background so we don't hit the edge-function wall clock.
+    const work = (async () => {
       try {
-        const article = await generateArticle(t.topic ?? t.brief ?? "Trending finance update", t.category);
-        if (!article || !article.headline) { failed++; return; }
-        const seo_score = scoreSeo(article);
-        drafts.push({
-          run_id: runId, status: "pending",
-          topic: t.topic ?? article.headline, source_summary: { sources: t.sources ?? [], brief: t.brief ?? null },
-          category: t.category ?? article.category ?? "Stock Market",
-          tags: article.tags ?? [], trending: !!t.trending,
-          headline: article.headline, slug: slugify(article.headline),
-          summary: article.summary, content: article.content,
-          read_time_min: article.read_time_min ?? 4,
-          meta_title: article.meta_title, meta_description: article.meta_description,
-          meta_keywords: article.meta_keywords ?? [],
-          featured_image_prompt: article.featured_image_prompt,
-          insights: article.insights ?? {}, schema_jsonld: article.schema_jsonld ?? {},
-          social_meta: article.social_meta ?? {},
-          internal_links: article.internal_links ?? [], seo_score,
-        });
-        generated++;
-      } catch { failed++; }
-    }
+        const today = new Date().toISOString().slice(0, 10);
+        const topics = await llmJson(
+          "You are an Indian financial news editor. Identify currently trending, news-worthy topics for InvestingIQ readers. Return strict JSON: {topics:[{topic, category, trending, brief, sources:[{name,url}]}]}",
+          `Today is ${today}. List ${requested} CURRENTLY trending, high-interest finance/investment news topics most relevant to Indian readers across these categories: ${focusCategories.join(", ")}. Bias toward this week's developments: market moves, RBI/SEBI actions, IPOs, results, policy, global cues, crypto, real estate. Each item must include category (one of the provided list), trending (boolean), 2-sentence brief, and 1-3 plausible source names.`
+        );
+        const topicList: any[] = Array.isArray(topics?.topics) ? topics.topics.slice(0, requested) : [];
+        await admin.from("news_runs").update({ discovered: topicList.length }).eq("id", runId);
 
-    for (let i = 0; i < topicList.length; i += concurrency) {
-      await Promise.all(topicList.slice(i, i + concurrency).map(processOne));
-      await admin.from("news_runs").update({ generated, failed }).eq("id", runId);
-    }
+        if (!topicList.length) {
+          await admin.from("news_runs").update({ status: "failed", error: "No topics discovered", completed_at: new Date().toISOString() }).eq("id", runId);
+          return;
+        }
 
-    if (drafts.length) await admin.from("news_drafts").insert(drafts);
+        let generated = 0, failed = 0;
+        const concurrency = 3;
 
-    const summary = { categories: drafts.reduce((acc: any, d: any) => { acc[d.category] = (acc[d.category] ?? 0) + 1; return acc; }, {}) };
-    await admin.from("news_runs").update({
-      status: failed === topicList.length ? "failed" : "success",
-      completed_at: new Date().toISOString(), generated, failed, summary,
-    }).eq("id", runId);
+        async function processOne(t: any) {
+          try {
+            const article = await generateArticle(t.topic ?? t.brief ?? "Trending finance update", t.category);
+            if (!article || !article.headline) { failed++; return; }
+            const seo_score = scoreSeo(article);
+            const draft = {
+              run_id: runId, status: "pending",
+              topic: t.topic ?? article.headline,
+              source_summary: { sources: t.sources ?? [], brief: t.brief ?? null },
+              category: t.category ?? article.category ?? "Stock Market",
+              tags: article.tags ?? [], trending: !!t.trending,
+              headline: article.headline, slug: slugify(article.headline),
+              summary: article.summary, content: article.content,
+              read_time_min: article.read_time_min ?? 4,
+              meta_title: article.meta_title, meta_description: article.meta_description,
+              meta_keywords: article.meta_keywords ?? [],
+              featured_image_prompt: article.featured_image_prompt,
+              insights: article.insights ?? {}, schema_jsonld: article.schema_jsonld ?? {},
+              social_meta: article.social_meta ?? {},
+              internal_links: article.internal_links ?? [], seo_score,
+            };
+            // Insert immediately so admin sees progress in Pending tab.
+            const { error: insErr } = await admin.from("news_drafts").insert(draft);
+            if (insErr) { failed++; console.error("draft insert error", insErr.message); return; }
+            generated++;
+          } catch (e) { failed++; console.error("generate error", e); }
+        }
 
-    return json({ ok: true, run_id: runId, discovered: topicList.length, generated, failed });
+        for (let i = 0; i < topicList.length; i += concurrency) {
+          await Promise.all(topicList.slice(i, i + concurrency).map(processOne));
+          await admin.from("news_runs").update({ generated, failed }).eq("id", runId);
+        }
+
+        await admin.from("news_runs").update({
+          status: failed === topicList.length ? "failed" : "success",
+          completed_at: new Date().toISOString(), generated, failed,
+        }).eq("id", runId);
+      } catch (e) {
+        console.error("background run error", e);
+        await admin.from("news_runs").update({
+          status: "failed",
+          error: e instanceof Error ? e.message : "Unknown error",
+          completed_at: new Date().toISOString(),
+        }).eq("id", runId);
+      }
+    })();
+
+    // @ts-ignore EdgeRuntime is provided by Supabase edge runtime
+    if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(work);
+
+    return json({
+      ok: true, run_id: runId, queued: true, requested,
+      message: "Generation started in the background. Drafts will appear in the Pending tab over the next 1-3 minutes.",
+    });
   } catch (e) {
+    console.error("news-engine fatal", e);
     return json({ error: e instanceof Error ? e.message : "Unknown error" }, 500);
   }
 });
+
 
 async function generateArticle(topic: string, category?: string): Promise<any | null> {
   return await llmJson(
