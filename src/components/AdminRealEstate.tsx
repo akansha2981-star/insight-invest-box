@@ -181,6 +181,9 @@ function PropertiesAdmin() {
 
       <AIPropertyWizard open={wizardOpen} onClose={() => setWizardOpen(false)} onPublish={publishWizardDraft} />
 
+      <AIDiscoverProperties onPublished={fetchProperties} />
+
+
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-muted-foreground">{properties.length} properties</p>
         <button onClick={() => setEditing({ listing_type: "buy", property_type: "apartment", city: "Mumbai", status: "active" })}
