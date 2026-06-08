@@ -92,13 +92,17 @@ export function AdminAIOptimizer() {
   }
 
   async function act(action: "approve" | "reject" | "apply", ids: string[]) {
-    if (!ids.length) return;
+    if (!ids.length) { setError("No proposals available for this action."); return; }
     setBusy(true); setError(null);
     const { data, error } = await supabase.functions.invoke("content-optimizer", {
       body: { action, proposal_ids: ids },
     });
     setBusy(false);
     if (error || data?.error) { setError(error?.message ?? data?.error); return; }
+    const errs = Array.isArray(data?.errors) ? data.errors : [];
+    if (errs.length) {
+      setError(`${action === "apply" ? "Published" : "Updated"} ${data?.published ?? data?.updated ?? 0}. ${errs.length} failed: ${errs.slice(0,3).map((e: any) => e.error ?? JSON.stringify(e)).join("; ")}`);
+    }
     setSelected(new Set());
     await fetchAll();
   }
