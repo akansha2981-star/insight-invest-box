@@ -183,6 +183,9 @@ function impactBarValue(impact?: string) {
   if (v.includes("neg")) return 28;
   if (v.includes("mix")) return 50;
   return 50;
+}
+
+
 
 
 
