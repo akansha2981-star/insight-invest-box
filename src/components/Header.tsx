@@ -68,7 +68,7 @@ export function Header() {
       {/* Top row: Logo + Search + Actions */}
       <div className="max-w-[1440px] mx-auto px-4 py-2.5 flex items-center gap-4">
         <Link to="/" className="flex items-center gap-2 shrink-0 group">
-          <img src={logoImg} alt="InvestingIQ" className="h-8 w-auto group-hover:scale-105 transition-transform" />
+          <img src={logoImg} alt="InvestingIQ" className="h-11 md:h-14 w-auto -my-1 group-hover:scale-105 transition-transform" />
           <div className="hidden sm:block">
             <div className="font-black text-[19px] text-foreground tracking-tight leading-none">Investing IQ</div>
             <div className="text-[8px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-0.5">Financial Intelligence</div>
