@@ -115,6 +115,28 @@ const App = () => (
           <Route path="/tools/tax" element={<TaxCalculatorPage />} />
           <Route path="/tools/screener" element={<StockScreenerPage />} />
           <Route path="/tools/portfolio" element={<PortfolioTesterPage />} />
+          {/* MF tool calculators */}
+          <Route path="/tools" element={<ToolsHubPage />} />
+          <Route path="/tools/step-up-sip" element={<StepUpSIPPage />} />
+          <Route path="/tools/goal-sip" element={<GoalSIPPage />} />
+          <Route path="/tools/retirement-sip" element={<RetirementSIPPage />} />
+          <Route path="/tools/child-education-sip" element={<ChildEducationSIPPage />} />
+          <Route path="/tools/marriage-sip" element={<MarriageSIPPage />} />
+          <Route path="/tools/inflation-sip" element={<InflationSIPPage />} />
+          <Route path="/tools/fire-calculator" element={<FIRECalculatorPage />} />
+          <Route path="/tools/lumpsum-calculator" element={<LumpsumCalculatorPage />} />
+          <Route path="/tools/swp-calculator" element={<SWPCalculatorPage />} />
+          <Route path="/tools/portfolio-analyzer" element={<PortfolioAnalyzerPage />} />
+          {/* SEO landing pages */}
+          <Route path="/best-mutual-funds-2026" element={<BestMutualFunds2026 />} />
+          <Route path="/best-sip-funds" element={<BestSIPFunds />} />
+          <Route path="/best-elss-funds" element={<BestELSSFunds />} />
+          <Route path="/best-small-cap-funds" element={<BestSmallCapFunds />} />
+          <Route path="/best-index-funds" element={<BestIndexFunds />} />
+          <Route path="/best-etfs-india" element={<BestETFsIndia />} />
+          <Route path="/gold-etf-vs-physical-gold" element={<GoldETFvsPhysical />} />
+          <Route path="/etf-vs-mutual-fund" element={<ETFvsMutualFund />} />
+          <Route path="/sip-vs-lumpsum" element={<SIPvsLumpsum />} />
           <Route path="/currency-converter" element={<CurrencyConverterPage />} />
           <Route path="/currency-converter/:pair" element={<CurrencyConverterPage />} />
           <Route path="/about" element={<AboutPage />} />
