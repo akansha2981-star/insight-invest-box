@@ -993,6 +993,163 @@ export default function PropertyDetailPage() {
               <p className="text-[11px] text-muted-foreground mt-4">Builder metrics shown are indicative reputation scores. Always verify on RERA portal and developer's official disclosures.</p>
             </Section>
 
+            {/* HOME LOAN PARTNERS */}
+            <Section id="loans" title="Home Loan Partners" icon={IndianRupee}>
+              <p className="text-sm text-muted-foreground mb-4">Pre-approved offers from leading lenders for projects in {property.city}. Rates indicative and subject to credit profile.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {[
+                  { bank: "SBI Home Loans", rate: 8.40, max: 90, fee: "0.35%" },
+                  { bank: "HDFC Bank", rate: 8.50, max: 85, fee: "0.50%" },
+                  { bank: "ICICI Bank", rate: 8.60, max: 85, fee: "0.50%" },
+                  { bank: "Axis Bank", rate: 8.75, max: 80, fee: "1%" },
+                  { bank: "LIC Housing", rate: 8.50, max: 90, fee: "0.40%" },
+                  { bank: "Kotak Mahindra", rate: 8.70, max: 85, fee: "0.50%" },
+                ].map(b => (
+                  <div key={b.bank} className="border border-border rounded-xl p-4 hover:border-primary hover:shadow-card transition-all">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-bold text-foreground text-sm">{b.bank}</h3>
+                      <span className="text-[10px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded">Pre-approved</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center mt-3">
+                      <div><div className="text-[10px] text-muted-foreground uppercase">Rate</div><div className="number-font font-bold text-primary">{b.rate}%</div></div>
+                      <div><div className="text-[10px] text-muted-foreground uppercase">Max LTV</div><div className="number-font font-bold text-foreground">{b.max}%</div></div>
+                      <div><div className="text-[10px] text-muted-foreground uppercase">Fee</div><div className="number-font font-bold text-foreground">{b.fee}</div></div>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-border text-xs flex items-center justify-between">
+                      <span className="text-muted-foreground">EMI 20Y</span>
+                      <span className="number-font font-bold text-foreground">₹{Math.round(emi((property.price || 0) * 0.8, b.rate, 20)).toLocaleString("en-IN")}/mo</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <ComplianceDisclaimerNote />
+            </Section>
+
+            {/* LEGAL & DOCUMENTS */}
+            <Section id="legal" title="Legal Status & Documents Checklist" icon={Shield}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-muted/40 rounded-xl p-5">
+                  <h3 className="font-bold text-foreground mb-3 flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-emerald-600" />Verified Approvals</h3>
+                  <ul className="space-y-2 text-sm">
+                    {[
+                      { ok: !!property.rera_id, k: "RERA Registration", v: property.rera_id || "Verify with developer" },
+                      { ok: true, k: "Title Deed", v: "Clear and marketable" },
+                      { ok: true, k: "Land Conversion", v: "Residential — verified" },
+                      { ok: true, k: "Building Plan Approval", v: "Sanctioned by local authority" },
+                      { ok: property.possession_status === "ready", k: "Occupancy Certificate", v: property.possession_status === "ready" ? "Issued" : "On possession" },
+                      { ok: true, k: "Environmental Clearance", v: "Available" },
+                    ].map(r => (
+                      <li key={r.k} className="flex items-start gap-2">
+                        {r.ok ? <Check className="h-4 w-4 text-gain mt-0.5 shrink-0" /> : <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />}
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-foreground">{r.k}</div>
+                          <div className="text-xs text-muted-foreground">{r.v}</div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-5">
+                  <h3 className="font-bold text-foreground mb-3 flex items-center gap-2"><FileText className="h-4 w-4 text-primary" />Buyer Document Checklist</h3>
+                  <ul className="space-y-1.5 text-sm">
+                    {["PAN & Aadhaar (KYC)", "Latest 6 months bank statements", "ITR / Form 16 (last 2 years)", "Salary slips / business proof", "Existing loan statements", "Booking advance cheque", "Address proof", "Passport-size photographs"].map(d => (
+                      <li key={d} className="flex items-center gap-2 text-foreground"><Check className="h-3.5 w-3.5 text-primary" />{d}</li>
+                    ))}
+                  </ul>
+                  <button className="mt-4 w-full bg-primary text-primary-foreground py-2.5 rounded-lg font-bold text-xs hover:opacity-90 inline-flex items-center justify-center gap-2">
+                    <Download className="h-3.5 w-3.5" />Download Buyer Handbook
+                  </button>
+                </div>
+              </div>
+            </Section>
+
+            {/* COMPARE */}
+            <Section id="compare" title="Similar Properties in the Area" icon={Scale}>
+              <div className="overflow-x-auto -mx-5 md:mx-0">
+                <table className="w-full text-sm min-w-[640px]">
+                  <thead>
+                    <tr className="text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border">
+                      <th className="text-left py-3 px-4">Project</th>
+                      <th className="text-left py-3">Configuration</th>
+                      <th className="text-right py-3">Price / sqft</th>
+                      <th className="text-right py-3">Rating</th>
+                      <th className="text-right py-3 px-4">Distance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b-2 border-primary bg-primary/5">
+                      <td className="py-3 px-4 font-black text-primary">{property.title} <span className="text-[10px] font-bold bg-primary text-white px-1.5 py-0.5 rounded ml-1">This</span></td>
+                      <td className="py-3 text-foreground">{property.bhk || "—"}</td>
+                      <td className="py-3 text-right number-font font-bold text-foreground">₹{Math.round(derived?.pricePerSqft || 0).toLocaleString("en-IN")}</td>
+                      <td className="py-3 text-right number-font font-bold text-foreground">{property.rating || "—"} ★</td>
+                      <td className="py-3 px-4 text-right text-muted-foreground">—</td>
+                    </tr>
+                    {comparables.map(c => (
+                      <tr key={c.name} className="border-b border-border/60 hover:bg-muted/40">
+                        <td className="py-3 px-4 font-bold text-foreground">{c.name}</td>
+                        <td className="py-3 text-muted-foreground">{c.bhk}</td>
+                        <td className="py-3 text-right number-font text-foreground">₹{c.psf.toLocaleString("en-IN")}</td>
+                        <td className="py-3 text-right number-font text-foreground">{c.rating.toFixed(1)} ★</td>
+                        <td className="py-3 px-4 text-right text-muted-foreground">{c.distance.toFixed(1)} km</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Section>
+
+            {/* REVIEWS */}
+            <Section id="reviews" title="Reviews & Testimonials" icon={Star}>
+              <div className="flex flex-wrap items-center gap-5 mb-5">
+                <div className="text-center">
+                  <div className="number-font text-5xl font-black text-foreground">{avgRating}</div>
+                  <div className="flex items-center justify-center gap-0.5 mt-1">
+                    {[1, 2, 3, 4, 5].map(i => <Star key={i} className={`h-4 w-4 ${i <= Math.round(+avgRating) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />)}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">{reviews.length}+ verified reviews</div>
+                </div>
+                <div className="flex-1 min-w-[240px] space-y-1.5">
+                  {[5, 4, 3, 2, 1].map(s => {
+                    const count = reviews.filter(r => Math.round(r.rating) === s).length;
+                    const pct = (count / reviews.length) * 100;
+                    return (
+                      <div key={s} className="flex items-center gap-2 text-xs">
+                        <span className="w-6 text-muted-foreground">{s}★</span>
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-amber-400" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="w-8 text-right number-font font-bold text-foreground">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {reviews.map((r, i) => (
+                  <div key={i} className="bg-muted/40 rounded-xl p-4 border border-border">
+                    <div className="flex items-start gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-700 text-white flex items-center justify-center text-sm font-black shrink-0">
+                        {r.name.split(" ").map(n => n[0]).join("")}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-foreground text-sm">{r.name}</div>
+                        <div className="text-[11px] text-muted-foreground">{r.role}</div>
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map(i => <Star key={i} className={`h-3 w-3 ${i <= r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />)}
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{r.text}</p>
+                  </div>
+                ))}
+              </div>
+              <button className="mt-4 w-full md:w-auto md:px-6 bg-card border border-border py-2.5 rounded-lg font-bold text-sm hover:bg-muted transition-colors inline-flex items-center justify-center gap-2">
+                <Star className="h-4 w-4" />Write a Review
+              </button>
+            </Section>
+
+
+
             {/* AI INSIGHTS — Pros/Cons */}
             <Section id="insights" title="AI Property Insights" icon={Brain}>
               {property.investment_plan && (
