@@ -36,6 +36,31 @@ import CurrencyConverterPage from "./pages/CurrencyConverterPage";
 import NotFound from "./pages/NotFound";
 import UserLogin from "./pages/UserLogin";
 import { FloatingAIButton } from "./components/FloatingAIButton";
+import MFScreenerPage from "./pages/MFScreenerPage";
+import MFDetailPage from "./pages/MFDetailPage";
+import MFComparePage from "./pages/MFComparePage";
+import MFOverlapPage from "./pages/MFOverlapPage";
+import MFFundHousePage from "./pages/MFFundHousePage";
+import MFNewsPage from "./pages/MFNewsPage";
+import ETFPage from "./pages/ETFPage";
+import ETFScreenerPage from "./pages/ETFScreenerPage";
+import ETFDetailPage from "./pages/ETFDetailPage";
+import ETFComparePage from "./pages/ETFComparePage";
+import ToolsHubPage from "./pages/ToolsHubPage";
+import StepUpSIPPage from "./pages/tools/StepUpSIPPage";
+import GoalSIPPage from "./pages/tools/GoalSIPPage";
+import RetirementSIPPage from "./pages/tools/RetirementSIPPage";
+import ChildEducationSIPPage from "./pages/tools/ChildEducationSIPPage";
+import MarriageSIPPage from "./pages/tools/MarriageSIPPage";
+import InflationSIPPage from "./pages/tools/InflationSIPPage";
+import FIRECalculatorPage from "./pages/tools/FIRECalculatorPage";
+import LumpsumCalculatorPage from "./pages/tools/LumpsumCalculatorPage";
+import SWPCalculatorPage from "./pages/tools/SWPCalculatorPage";
+import PortfolioAnalyzerPage from "./pages/tools/PortfolioAnalyzerPage";
+import {
+  BestMutualFunds2026, BestSIPFunds, BestELSSFunds, BestSmallCapFunds, BestIndexFunds,
+  BestETFsIndia, GoldETFvsPhysical, ETFvsMutualFund, SIPvsLumpsum,
+} from "./pages/seo/MFLandingPages";
 import { useParams, Navigate as RRNavigate } from "react-router-dom";
 
 const NewsToBlogRedirect = () => {
