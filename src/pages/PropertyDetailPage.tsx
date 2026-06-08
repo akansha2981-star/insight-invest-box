@@ -581,6 +581,35 @@ export default function PropertyDetailPage() {
               )}
             </Section>
 
+            {/* SPECIFICATIONS */}
+            <Section id="specifications" title="Specifications & Finishes" icon={Layers}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { cat: "Structure", items: [["Construction", "RCC frame, earthquake-resistant Zone IV"], ["External Walls", "AAC block / cement plaster"], ["Lift Lobby", "Vitrified tile cladding"]] },
+                  { cat: "Flooring", items: [["Living / Dining", "800x800 mm double-charge vitrified"], ["Bedrooms", "Laminated wooden / vitrified"], ["Bath / Utility", "Anti-skid ceramic"]] },
+                  { cat: "Kitchen", items: [["Counter", "Granite / quartz platform"], ["Dado", "Designer ceramic tiles, 2 ft above counter"], ["Provision", "Modular hob, chimney, RO point"]] },
+                  { cat: "Bathrooms", items: [["Sanitary", "Kohler / Jaquar or equivalent"], ["CP Fittings", "Premium chrome plated"], ["Geyser & Exhaust", "Provision in all bathrooms"]] },
+                  { cat: "Doors & Windows", items: [["Main Door", "Engineered hardwood with premium hardware"], ["Internal", "Flush doors with laminate"], ["Windows", "UPVC double-glazed sliding"]] },
+                  { cat: "Electrical", items: [["Wiring", "FR copper concealed wiring"], ["Switches", "Modular — Legrand / Schneider"], ["Backup", "100% power backup common, partial in flats"]] },
+                ].map(g => (
+                  <div key={g.cat} className="bg-muted/40 rounded-xl p-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-primary mb-3">{g.cat}</h3>
+                    <dl className="space-y-1.5 text-sm">
+                      {g.items.map(([k, v]) => (
+                        <div key={k} className="flex gap-2">
+                          <dt className="text-muted-foreground w-28 shrink-0">{k}</dt>
+                          <dd className="text-foreground font-medium flex-1">{v}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-3">Indicative specification list. Final fittings & finishes are governed by the developer's project brochure and buyer agreement.</p>
+            </Section>
+
+
+
             {/* PRICING & PAYMENT */}
             <Section id="pricing" title="Pricing & All-in Cost" icon={Wallet}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
