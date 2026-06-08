@@ -575,6 +575,7 @@ export default function NewsDetailPage() {
                               <Layers className="h-3.5 w-3.5" />
                             </div>
                             <span className="font-bold text-foreground text-sm truncate">{s.sector}</span>
+                            <ImpactTrendIcon impact={s.impact} className="h-4 w-4 flex-shrink-0" />
                           </div>
                           <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${impactPillClass(s.impact)}`}>
                             {s.impact ?? "Neutral"}
