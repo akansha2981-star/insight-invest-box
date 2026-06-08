@@ -16,6 +16,7 @@ import { AdminSitemapManager } from "@/components/AdminSitemapManager";
 import { AdminSmartRefresh } from "@/components/AdminSmartRefresh";
 import { AdminForexMonitor } from "@/components/AdminForexMonitor";
 import { AdminAIOptimizer } from "@/components/AdminAIOptimizer";
+import { AdminNewsEngine } from "@/components/AdminNewsEngine";
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
