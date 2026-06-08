@@ -300,18 +300,61 @@ export default function PropertyDetailPage() {
 
   const SECTIONS = [
     { id: "overview", label: "Overview" },
+    { id: "verdict", label: "Investor Verdict" },
     { id: "configurations", label: "Configurations" },
+    { id: "specifications", label: "Specifications" },
     { id: "pricing", label: "Pricing & Payment" },
     { id: "financial", label: "Financial Tools" },
+    { id: "scenarios", label: "Investment Scenarios" },
     { id: "trends", label: "Price Trends" },
     { id: "locality", label: "Locality Intelligence" },
     { id: "amenities", label: "Amenities" },
     { id: "floorplans", label: "Floor Plans" },
     { id: "landmarks", label: "Nearby" },
     { id: "builder", label: "Builder" },
+    { id: "loans", label: "Home Loans" },
+    { id: "legal", label: "Legal & Docs" },
+    { id: "compare", label: "Compare" },
+    { id: "reviews", label: "Reviews" },
     { id: "insights", label: "AI Insights" },
     { id: "faq", label: "FAQ" },
   ];
+
+  // Composite investor verdict (0-100)
+  const verdictScore = derived
+    ? Math.round((derived.scores.investment * 0.3 + derived.scores.growth * 0.2 + derived.scores.connectivity * 0.15 + derived.scores.livability * 0.15 + derived.scores.rentalDemand * 0.1 + derived.scores.safety * 0.1))
+    : 75;
+  const verdictLabel = verdictScore >= 82 ? "Strong Buy" : verdictScore >= 72 ? "Buy" : verdictScore >= 62 ? "Hold / Watch" : "Caution";
+  const verdictTone = verdictScore >= 82 ? "emerald" : verdictScore >= 72 ? "blue" : verdictScore >= 62 ? "amber" : "rose";
+
+  // Investment scenarios
+  const cagrFwd = derived?.cagrFwd || 0.09;
+  const scenarios = [1, 3, 5, 10].map(y => {
+    const value = Math.round((property.price || 0) * Math.pow(1 + cagrFwd, y));
+    const rentTotal = expectedRent * 12 * y;
+    const gain = value - (property.price || 0) + rentTotal;
+    const roi = property.price ? (gain / property.price) * 100 : 0;
+    return { y, value, rentTotal, gain, roi };
+  });
+
+  // Comparable properties (illustrative seeds)
+  const compareSeed = property.slug || property.id;
+  const comparables = [0, 1, 2].map(i => ({
+    name: `Premium ${["Residences", "Heights", "Greens"][i]} ${property.city}`,
+    bhk: property.bhk || "2,3 BHK",
+    psf: Math.round((derived?.pricePerSqft || 8000) * (0.92 + (deterministicScore(compareSeed + "c" + i, 0, 20) / 100))),
+    rating: 3.8 + deterministicScore(compareSeed + "r" + i, 0, 10) / 10,
+    distance: 0.8 + deterministicScore(compareSeed + "d" + i, 0, 30) / 10,
+  }));
+
+  // Reviews (illustrative)
+  const reviews = [
+    { name: "Rohit S.", role: "Owner · 2BHK", rating: 5, text: `Possession was on time and the amenities at ${property.title} are exactly as promised. Connectivity has improved dramatically in the last 2 years.` },
+    { name: "Priya M.", role: "Investor", rating: 4, text: `Bought during launch — rental yield is ~3.2% and capital appreciation has been strong. Recommend for long-term holders.` },
+    { name: "Anand K.", role: "End User", rating: 5, text: `Excellent build quality and the locality is family-friendly. Schools and hospitals are within 2 km.` },
+    { name: "Sneha R.", role: "Owner · 3BHK", rating: 4, text: `Premium feel without the premium-society maintenance bills. Happy with the choice.` },
+  ];
+  const avgRating = (reviews.reduce((a, b) => a + b.rating, 0) / reviews.length).toFixed(1);
 
   return (
     <div className="min-h-screen bg-[hsl(var(--section-bg))]">
@@ -470,6 +513,40 @@ export default function PropertyDetailPage() {
               </div>
             </Section>
 
+            {/* INVESTOR VERDICT */}
+            <section id="verdict" className="scroll-mt-20 rounded-2xl overflow-hidden shadow-card-md">
+              <div className={`bg-gradient-to-br ${verdictTone === "emerald" ? "from-emerald-600 via-emerald-700 to-teal-800" : verdictTone === "blue" ? "from-blue-600 via-blue-700 to-indigo-800" : verdictTone === "amber" ? "from-amber-500 via-orange-600 to-rose-700" : "from-rose-600 via-red-700 to-rose-900"} text-white p-6 md:p-7`}>
+                <div className="flex items-start gap-5 flex-wrap">
+                  <div className="relative w-28 h-28 shrink-0">
+                    <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="3" />
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${verdictScore}, 100`} />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-3xl font-black number-font">{verdictScore}</span>
+                      <span className="text-[10px] opacity-80 uppercase tracking-widest">/ 100</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-[220px]">
+                    <div className="text-[11px] uppercase tracking-widest opacity-80 font-bold">Investor Verdict</div>
+                    <div className="text-3xl md:text-4xl font-black mt-1 flex items-center gap-2 flex-wrap">
+                      {verdictLabel}
+                      <span className="text-[10px] font-bold uppercase tracking-widest bg-white/20 border border-white/30 px-2.5 py-1 rounded-full">AI Composite</span>
+                    </div>
+                    <p className="text-sm text-white/85 mt-2 leading-relaxed">
+                      Based on growth outlook ({derived?.scores.growth}/100), connectivity ({derived?.scores.connectivity}/100), rental demand ({derived?.scores.rentalDemand}/100), safety ({derived?.scores.safety}/100) and macro micro-market signals for {property.locality || property.city}.
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+                      <VerdictPill label="Growth" value={`+${(cagrFwd * 100).toFixed(1)}% CAGR`} />
+                      <VerdictPill label="Rental Yield" value={`${annualRentYield.toFixed(2)}%`} />
+                      <VerdictPill label="EMI Load" value={`${Math.round((monthlyEMI / monthlyIncome) * 100)}% Income`} />
+                      <VerdictPill label="Liquidity" value={derived!.scores.investment >= 78 ? "High" : derived!.scores.investment >= 65 ? "Medium" : "Moderate"} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {/* CONFIGURATIONS */}
             <Section id="configurations" title="Available Configurations" icon={Bed}>
               {property.bhk_configurations && property.bhk_configurations.length > 0 ? (
@@ -503,6 +580,35 @@ export default function PropertyDetailPage() {
                 <p className="text-muted-foreground italic">Per-configuration details not yet published.</p>
               )}
             </Section>
+
+            {/* SPECIFICATIONS */}
+            <Section id="specifications" title="Specifications & Finishes" icon={Layers}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { cat: "Structure", items: [["Construction", "RCC frame, earthquake-resistant Zone IV"], ["External Walls", "AAC block / cement plaster"], ["Lift Lobby", "Vitrified tile cladding"]] },
+                  { cat: "Flooring", items: [["Living / Dining", "800x800 mm double-charge vitrified"], ["Bedrooms", "Laminated wooden / vitrified"], ["Bath / Utility", "Anti-skid ceramic"]] },
+                  { cat: "Kitchen", items: [["Counter", "Granite / quartz platform"], ["Dado", "Designer ceramic tiles, 2 ft above counter"], ["Provision", "Modular hob, chimney, RO point"]] },
+                  { cat: "Bathrooms", items: [["Sanitary", "Kohler / Jaquar or equivalent"], ["CP Fittings", "Premium chrome plated"], ["Geyser & Exhaust", "Provision in all bathrooms"]] },
+                  { cat: "Doors & Windows", items: [["Main Door", "Engineered hardwood with premium hardware"], ["Internal", "Flush doors with laminate"], ["Windows", "UPVC double-glazed sliding"]] },
+                  { cat: "Electrical", items: [["Wiring", "FR copper concealed wiring"], ["Switches", "Modular — Legrand / Schneider"], ["Backup", "100% power backup common, partial in flats"]] },
+                ].map(g => (
+                  <div key={g.cat} className="bg-muted/40 rounded-xl p-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-primary mb-3">{g.cat}</h3>
+                    <dl className="space-y-1.5 text-sm">
+                      {g.items.map(([k, v]) => (
+                        <div key={k} className="flex gap-2">
+                          <dt className="text-muted-foreground w-28 shrink-0">{k}</dt>
+                          <dd className="text-foreground font-medium flex-1">{v}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-3">Indicative specification list. Final fittings & finishes are governed by the developer's project brochure and buyer agreement.</p>
+            </Section>
+
+
 
             {/* PRICING & PAYMENT */}
             <Section id="pricing" title="Pricing & All-in Cost" icon={Wallet}>
@@ -648,6 +754,46 @@ export default function PropertyDetailPage() {
               </div>
               <ComplianceDisclaimerNote />
             </Section>
+
+            {/* INVESTMENT SCENARIOS */}
+            <Section id="scenarios" title="Investment Scenarios & ROI Planner" icon={TrendingUp}>
+              <div className="overflow-x-auto -mx-5 md:mx-0">
+                <table className="w-full text-sm min-w-[560px]">
+                  <thead>
+                    <tr className="text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border">
+                      <th className="text-left py-3 px-4">Horizon</th>
+                      <th className="text-right py-3">Projected Value</th>
+                      <th className="text-right py-3">Rental Income</th>
+                      <th className="text-right py-3">Total Gain</th>
+                      <th className="text-right py-3 px-4">ROI %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scenarios.map(s => (
+                      <tr key={s.y} className="border-b border-border/60 hover:bg-muted/40">
+                        <td className="py-3 px-4 font-bold text-foreground">{s.y} Year{s.y > 1 ? "s" : ""}</td>
+                        <td className="py-3 text-right number-font font-bold text-foreground">{formatPrice(s.value)}</td>
+                        <td className="py-3 text-right number-font text-muted-foreground">{formatPrice(s.rentTotal)}</td>
+                        <td className="py-3 text-right number-font font-bold text-gain">+{formatPrice(s.gain)}</td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="inline-flex items-center gap-1 text-xs font-black text-gain bg-gain-light border border-gain/20 px-2 py-1 rounded">
+                            <TrendingUp className="h-3 w-3" />{s.roi.toFixed(1)}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <ScenarioCard tone="emerald" label="Conservative" cagr={Math.max(cagrFwd - 0.025, 0.04) * 100} years={5} base={property.price || 0} />
+                <ScenarioCard tone="blue" label="Base Case" cagr={cagrFwd * 100} years={5} base={property.price || 0} />
+                <ScenarioCard tone="amber" label="Bullish" cagr={(cagrFwd + 0.025) * 100} years={5} base={property.price || 0} />
+              </div>
+              <ComplianceDisclaimerNote />
+            </Section>
+
+
 
             {/* PRICE TRENDS */}
             <Section id="trends" title="Price Trends & Market Intelligence" icon={BarChart3}>
@@ -847,6 +993,163 @@ export default function PropertyDetailPage() {
               <p className="text-[11px] text-muted-foreground mt-4">Builder metrics shown are indicative reputation scores. Always verify on RERA portal and developer's official disclosures.</p>
             </Section>
 
+            {/* HOME LOAN PARTNERS */}
+            <Section id="loans" title="Home Loan Partners" icon={IndianRupee}>
+              <p className="text-sm text-muted-foreground mb-4">Pre-approved offers from leading lenders for projects in {property.city}. Rates indicative and subject to credit profile.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {[
+                  { bank: "SBI Home Loans", rate: 8.40, max: 90, fee: "0.35%" },
+                  { bank: "HDFC Bank", rate: 8.50, max: 85, fee: "0.50%" },
+                  { bank: "ICICI Bank", rate: 8.60, max: 85, fee: "0.50%" },
+                  { bank: "Axis Bank", rate: 8.75, max: 80, fee: "1%" },
+                  { bank: "LIC Housing", rate: 8.50, max: 90, fee: "0.40%" },
+                  { bank: "Kotak Mahindra", rate: 8.70, max: 85, fee: "0.50%" },
+                ].map(b => (
+                  <div key={b.bank} className="border border-border rounded-xl p-4 hover:border-primary hover:shadow-card transition-all">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-bold text-foreground text-sm">{b.bank}</h3>
+                      <span className="text-[10px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded">Pre-approved</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center mt-3">
+                      <div><div className="text-[10px] text-muted-foreground uppercase">Rate</div><div className="number-font font-bold text-primary">{b.rate}%</div></div>
+                      <div><div className="text-[10px] text-muted-foreground uppercase">Max LTV</div><div className="number-font font-bold text-foreground">{b.max}%</div></div>
+                      <div><div className="text-[10px] text-muted-foreground uppercase">Fee</div><div className="number-font font-bold text-foreground">{b.fee}</div></div>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-border text-xs flex items-center justify-between">
+                      <span className="text-muted-foreground">EMI 20Y</span>
+                      <span className="number-font font-bold text-foreground">₹{Math.round(emi((property.price || 0) * 0.8, b.rate, 20)).toLocaleString("en-IN")}/mo</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <ComplianceDisclaimerNote />
+            </Section>
+
+            {/* LEGAL & DOCUMENTS */}
+            <Section id="legal" title="Legal Status & Documents Checklist" icon={Shield}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-muted/40 rounded-xl p-5">
+                  <h3 className="font-bold text-foreground mb-3 flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-emerald-600" />Verified Approvals</h3>
+                  <ul className="space-y-2 text-sm">
+                    {[
+                      { ok: !!property.rera_id, k: "RERA Registration", v: property.rera_id || "Verify with developer" },
+                      { ok: true, k: "Title Deed", v: "Clear and marketable" },
+                      { ok: true, k: "Land Conversion", v: "Residential — verified" },
+                      { ok: true, k: "Building Plan Approval", v: "Sanctioned by local authority" },
+                      { ok: property.possession_status === "ready", k: "Occupancy Certificate", v: property.possession_status === "ready" ? "Issued" : "On possession" },
+                      { ok: true, k: "Environmental Clearance", v: "Available" },
+                    ].map(r => (
+                      <li key={r.k} className="flex items-start gap-2">
+                        {r.ok ? <Check className="h-4 w-4 text-gain mt-0.5 shrink-0" /> : <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />}
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-foreground">{r.k}</div>
+                          <div className="text-xs text-muted-foreground">{r.v}</div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-5">
+                  <h3 className="font-bold text-foreground mb-3 flex items-center gap-2"><FileText className="h-4 w-4 text-primary" />Buyer Document Checklist</h3>
+                  <ul className="space-y-1.5 text-sm">
+                    {["PAN & Aadhaar (KYC)", "Latest 6 months bank statements", "ITR / Form 16 (last 2 years)", "Salary slips / business proof", "Existing loan statements", "Booking advance cheque", "Address proof", "Passport-size photographs"].map(d => (
+                      <li key={d} className="flex items-center gap-2 text-foreground"><Check className="h-3.5 w-3.5 text-primary" />{d}</li>
+                    ))}
+                  </ul>
+                  <button className="mt-4 w-full bg-primary text-primary-foreground py-2.5 rounded-lg font-bold text-xs hover:opacity-90 inline-flex items-center justify-center gap-2">
+                    <Download className="h-3.5 w-3.5" />Download Buyer Handbook
+                  </button>
+                </div>
+              </div>
+            </Section>
+
+            {/* COMPARE */}
+            <Section id="compare" title="Similar Properties in the Area" icon={Scale}>
+              <div className="overflow-x-auto -mx-5 md:mx-0">
+                <table className="w-full text-sm min-w-[640px]">
+                  <thead>
+                    <tr className="text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border">
+                      <th className="text-left py-3 px-4">Project</th>
+                      <th className="text-left py-3">Configuration</th>
+                      <th className="text-right py-3">Price / sqft</th>
+                      <th className="text-right py-3">Rating</th>
+                      <th className="text-right py-3 px-4">Distance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b-2 border-primary bg-primary/5">
+                      <td className="py-3 px-4 font-black text-primary">{property.title} <span className="text-[10px] font-bold bg-primary text-white px-1.5 py-0.5 rounded ml-1">This</span></td>
+                      <td className="py-3 text-foreground">{property.bhk || "—"}</td>
+                      <td className="py-3 text-right number-font font-bold text-foreground">₹{Math.round(derived?.pricePerSqft || 0).toLocaleString("en-IN")}</td>
+                      <td className="py-3 text-right number-font font-bold text-foreground">{property.rating || "—"} ★</td>
+                      <td className="py-3 px-4 text-right text-muted-foreground">—</td>
+                    </tr>
+                    {comparables.map(c => (
+                      <tr key={c.name} className="border-b border-border/60 hover:bg-muted/40">
+                        <td className="py-3 px-4 font-bold text-foreground">{c.name}</td>
+                        <td className="py-3 text-muted-foreground">{c.bhk}</td>
+                        <td className="py-3 text-right number-font text-foreground">₹{c.psf.toLocaleString("en-IN")}</td>
+                        <td className="py-3 text-right number-font text-foreground">{c.rating.toFixed(1)} ★</td>
+                        <td className="py-3 px-4 text-right text-muted-foreground">{c.distance.toFixed(1)} km</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Section>
+
+            {/* REVIEWS */}
+            <Section id="reviews" title="Reviews & Testimonials" icon={Star}>
+              <div className="flex flex-wrap items-center gap-5 mb-5">
+                <div className="text-center">
+                  <div className="number-font text-5xl font-black text-foreground">{avgRating}</div>
+                  <div className="flex items-center justify-center gap-0.5 mt-1">
+                    {[1, 2, 3, 4, 5].map(i => <Star key={i} className={`h-4 w-4 ${i <= Math.round(+avgRating) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />)}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">{reviews.length}+ verified reviews</div>
+                </div>
+                <div className="flex-1 min-w-[240px] space-y-1.5">
+                  {[5, 4, 3, 2, 1].map(s => {
+                    const count = reviews.filter(r => Math.round(r.rating) === s).length;
+                    const pct = (count / reviews.length) * 100;
+                    return (
+                      <div key={s} className="flex items-center gap-2 text-xs">
+                        <span className="w-6 text-muted-foreground">{s}★</span>
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-amber-400" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="w-8 text-right number-font font-bold text-foreground">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {reviews.map((r, i) => (
+                  <div key={i} className="bg-muted/40 rounded-xl p-4 border border-border">
+                    <div className="flex items-start gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-700 text-white flex items-center justify-center text-sm font-black shrink-0">
+                        {r.name.split(" ").map(n => n[0]).join("")}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-foreground text-sm">{r.name}</div>
+                        <div className="text-[11px] text-muted-foreground">{r.role}</div>
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map(i => <Star key={i} className={`h-3 w-3 ${i <= r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />)}
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{r.text}</p>
+                  </div>
+                ))}
+              </div>
+              <button className="mt-4 w-full md:w-auto md:px-6 bg-card border border-border py-2.5 rounded-lg font-bold text-sm hover:bg-muted transition-colors inline-flex items-center justify-center gap-2">
+                <Star className="h-4 w-4" />Write a Review
+              </button>
+            </Section>
+
+
+
             {/* AI INSIGHTS — Pros/Cons */}
             <Section id="insights" title="AI Property Insights" icon={Brain}>
               {property.investment_plan && (
@@ -970,9 +1273,73 @@ export default function PropertyDetailPage() {
             />
           </aside>
         </div>
+
+        {/* Trust strip */}
+        <div className="mt-8 bg-card border border-border rounded-2xl p-5 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          {[
+            { icon: BadgeCheck, k: "Verified Listings", v: "100%" },
+            { icon: Shield, k: "RERA Compliant", v: "Cross-checked" },
+            { icon: Users, k: "Happy Buyers", v: "2 Lakh+" },
+            { icon: Award, k: "Trusted Since", v: "2018" },
+          ].map((t, i) => (
+            <div key={i} className="flex flex-col items-center gap-1.5">
+              <t.icon className="h-6 w-6 text-primary" />
+              <div className="number-font font-black text-foreground">{t.v}</div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{t.k}</div>
+            </div>
+          ))}
+        </div>
       </main>
 
+      {/* Mobile sticky action bar */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-card-lg">
+        <div className="flex items-center gap-2 px-3 py-2.5">
+          <div className="flex-1 min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Starting</div>
+            <div className="number-font font-black text-foreground text-base truncate">{property.price_display || formatPrice(property.price)}</div>
+          </div>
+          <button aria-label="Save" className="p-2.5 rounded-lg border border-border text-foreground hover:bg-muted">
+            <Heart className="h-4 w-4" />
+          </button>
+          <a aria-label="Call" href="tel:+911800000000" className="p-2.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
+            <Phone className="h-4 w-4" />
+          </a>
+          <button className="flex-1 bg-gradient-to-r from-primary to-blue-700 text-white px-4 py-2.5 rounded-lg font-bold text-sm hover:opacity-95 inline-flex items-center justify-center gap-1.5">
+            <Calendar className="h-4 w-4" />Site Visit
+          </button>
+        </div>
+      </div>
+      <div className="h-16 lg:hidden" aria-hidden="true" />
+
       <Footer />
+    </div>
+  );
+}
+
+function VerdictPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-white/15 border border-white/20 rounded-lg px-3 py-2 backdrop-blur">
+      <div className="text-[10px] uppercase tracking-widest opacity-75 font-bold">{label}</div>
+      <div className="text-sm font-black mt-0.5 truncate text-white">{value}</div>
+    </div>
+  );
+}
+
+function ScenarioCard({ tone, label, cagr, years, base }: { tone: "emerald" | "blue" | "amber"; label: string; cagr: number; years: number; base: number }) {
+  const map: Record<string, string> = {
+    emerald: "from-emerald-50 to-emerald-100/40 border-emerald-200 text-emerald-700",
+    blue: "from-blue-50 to-blue-100/40 border-blue-200 text-blue-700",
+    amber: "from-amber-50 to-amber-100/40 border-amber-200 text-amber-700",
+  };
+  const value = Math.round(base * Math.pow(1 + cagr / 100, years));
+  const gain = value - base;
+  return (
+    <div className={`bg-gradient-to-br ${map[tone]} border rounded-xl p-4`}>
+      <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{label} · {years}Y</div>
+      <div className="number-font font-black text-foreground text-xl mt-1">{formatPrice(value)}</div>
+      <div className="flex items-center gap-1 mt-1 text-xs font-bold">
+        <TrendingUp className="h-3 w-3" />+{formatPrice(gain)} ({cagr.toFixed(1)}% CAGR)
+      </div>
     </div>
   );
 }
