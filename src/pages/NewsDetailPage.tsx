@@ -198,6 +198,43 @@ function impactBarColor(impact?: string) {
   return "from-slate-300 to-slate-500";
 }
 
+function ImpactTrendIcon({ impact, className = "h-4 w-4" }: { impact?: string; className?: string }) {
+  const v = (impact ?? "").toLowerCase();
+  if (v.includes("pos")) return <TrendingUp className={`${className} text-emerald-600`} />;
+  if (v.includes("neg")) return <TrendingDown className={`${className} text-red-600`} />;
+  if (v.includes("mix")) return <Activity className={`${className} text-amber-600`} />;
+  return <Minus className={`${className} text-slate-500`} />;
+}
+
+/**
+ * Strip legacy insight sections out of the article body to prevent
+ * duplication — they are rendered as dedicated premium cards below.
+ */
+function stripDuplicatedInsightSections(html: string): string {
+  if (!html) return html;
+  let out = html;
+  out = out.replace(/<section[^>]*class=["'][^"']*news-insight[^"']*["'][^>]*>[\s\S]*?<\/section>/gi, "");
+  out = out.replace(/<div[^>]*class=["'][^"']*news-faqs[^"']*["'][^>]*>[\s\S]*?<\/div>/gi, "");
+  const headings = [
+    "what is this news about", "why this news matters",
+    "potential impact on the stock market", "impact on investors",
+    "impact on the indian economy",
+    "pros & positive outcomes", "pros and positive outcomes",
+    "risks & concerns", "risks and concerns",
+    "companies & sectors affected", "companies and sectors affected",
+    "market sentiment", "expert ai analysis",
+    "key facts & numbers", "key facts and numbers",
+    "frequently asked questions", "educational context",
+    "related topics", "key takeaways",
+  ];
+  for (const h of headings) {
+    const esc = h.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(`<h2[^>]*>\\s*${esc}\\s*<\\/h2>[\\s\\S]*?(?=<h2|$)`, "gi");
+    out = out.replace(re, "");
+  }
+  return out.trim();
+}
+
 
 export default function NewsDetailPage() {
   const { slug } = useParams<{ slug: string }>();
