@@ -300,18 +300,61 @@ export default function PropertyDetailPage() {
 
   const SECTIONS = [
     { id: "overview", label: "Overview" },
+    { id: "verdict", label: "Investor Verdict" },
     { id: "configurations", label: "Configurations" },
+    { id: "specifications", label: "Specifications" },
     { id: "pricing", label: "Pricing & Payment" },
     { id: "financial", label: "Financial Tools" },
+    { id: "scenarios", label: "Investment Scenarios" },
     { id: "trends", label: "Price Trends" },
     { id: "locality", label: "Locality Intelligence" },
     { id: "amenities", label: "Amenities" },
     { id: "floorplans", label: "Floor Plans" },
     { id: "landmarks", label: "Nearby" },
     { id: "builder", label: "Builder" },
+    { id: "loans", label: "Home Loans" },
+    { id: "legal", label: "Legal & Docs" },
+    { id: "compare", label: "Compare" },
+    { id: "reviews", label: "Reviews" },
     { id: "insights", label: "AI Insights" },
     { id: "faq", label: "FAQ" },
   ];
+
+  // Composite investor verdict (0-100)
+  const verdictScore = derived
+    ? Math.round((derived.scores.investment * 0.3 + derived.scores.growth * 0.2 + derived.scores.connectivity * 0.15 + derived.scores.livability * 0.15 + derived.scores.rentalDemand * 0.1 + derived.scores.safety * 0.1))
+    : 75;
+  const verdictLabel = verdictScore >= 82 ? "Strong Buy" : verdictScore >= 72 ? "Buy" : verdictScore >= 62 ? "Hold / Watch" : "Caution";
+  const verdictTone = verdictScore >= 82 ? "emerald" : verdictScore >= 72 ? "blue" : verdictScore >= 62 ? "amber" : "rose";
+
+  // Investment scenarios
+  const cagrFwd = derived?.cagrFwd || 0.09;
+  const scenarios = [1, 3, 5, 10].map(y => {
+    const value = Math.round((property.price || 0) * Math.pow(1 + cagrFwd, y));
+    const rentTotal = expectedRent * 12 * y;
+    const gain = value - (property.price || 0) + rentTotal;
+    const roi = property.price ? (gain / property.price) * 100 : 0;
+    return { y, value, rentTotal, gain, roi };
+  });
+
+  // Comparable properties (illustrative seeds)
+  const compareSeed = property.slug || property.id;
+  const comparables = [0, 1, 2].map(i => ({
+    name: `Premium ${["Residences", "Heights", "Greens"][i]} ${property.city}`,
+    bhk: property.bhk || "2,3 BHK",
+    psf: Math.round((derived?.pricePerSqft || 8000) * (0.92 + (deterministicScore(compareSeed + "c" + i, 0, 20) / 100))),
+    rating: 3.8 + deterministicScore(compareSeed + "r" + i, 0, 10) / 10,
+    distance: 0.8 + deterministicScore(compareSeed + "d" + i, 0, 30) / 10,
+  }));
+
+  // Reviews (illustrative)
+  const reviews = [
+    { name: "Rohit S.", role: "Owner · 2BHK", rating: 5, text: `Possession was on time and the amenities at ${property.title} are exactly as promised. Connectivity has improved dramatically in the last 2 years.` },
+    { name: "Priya M.", role: "Investor", rating: 4, text: `Bought during launch — rental yield is ~3.2% and capital appreciation has been strong. Recommend for long-term holders.` },
+    { name: "Anand K.", role: "End User", rating: 5, text: `Excellent build quality and the locality is family-friendly. Schools and hospitals are within 2 km.` },
+    { name: "Sneha R.", role: "Owner · 3BHK", rating: 4, text: `Premium feel without the premium-society maintenance bills. Happy with the choice.` },
+  ];
+  const avgRating = (reviews.reduce((a, b) => a + b.rating, 0) / reviews.length).toFixed(1);
 
   return (
     <div className="min-h-screen bg-[hsl(var(--section-bg))]">
