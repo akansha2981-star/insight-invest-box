@@ -248,6 +248,134 @@ export type Database = {
         }
         Relationships: []
       }
+      optimizer_proposals: {
+        Row: {
+          category: string
+          confidence: number
+          created_at: string
+          field: string
+          id: string
+          keywords: string[] | null
+          new_value: Json | null
+          old_value: Json | null
+          priority: string
+          published_at: string | null
+          reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          run_id: string | null
+          status: string
+          target_id: string | null
+          target_label: string | null
+          target_type: string
+          target_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          confidence?: number
+          created_at?: string
+          field: string
+          id?: string
+          keywords?: string[] | null
+          new_value?: Json | null
+          old_value?: Json | null
+          priority?: string
+          published_at?: string | null
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string | null
+          status?: string
+          target_id?: string | null
+          target_label?: string | null
+          target_type: string
+          target_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          confidence?: number
+          created_at?: string
+          field?: string
+          id?: string
+          keywords?: string[] | null
+          new_value?: Json | null
+          old_value?: Json | null
+          priority?: string
+          published_at?: string | null
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string | null
+          status?: string
+          target_id?: string | null
+          target_label?: string | null
+          target_type?: string
+          target_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "optimizer_proposals_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "optimizer_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      optimizer_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error: string | null
+          id: string
+          keywords_found: number
+          pages_scanned: number
+          proposals_created: number
+          seo_findings: number
+          started_at: string
+          status: string
+          summary: Json
+          trigger_type: string
+          triggered_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          keywords_found?: number
+          pages_scanned?: number
+          proposals_created?: number
+          seo_findings?: number
+          started_at?: string
+          status?: string
+          summary?: Json
+          trigger_type?: string
+          triggered_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          keywords_found?: number
+          pages_scanned?: number
+          proposals_created?: number
+          seo_findings?: number
+          started_at?: string
+          status?: string
+          summary?: Json
+          trigger_type?: string
+          triggered_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       page_sections: {
         Row: {
           content: string
@@ -626,6 +754,50 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_audit_findings: {
+        Row: {
+          check_key: string
+          check_label: string
+          created_at: string
+          details: string | null
+          id: string
+          page_url: string
+          run_id: string | null
+          severity: string
+          status: string
+        }
+        Insert: {
+          check_key: string
+          check_label: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          page_url: string
+          run_id?: string | null
+          severity?: string
+          status?: string
+        }
+        Update: {
+          check_key?: string
+          check_label?: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          page_url?: string
+          run_id?: string | null
+          severity?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seo_audit_findings_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "optimizer_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_config: {
         Row: {
           id: string
@@ -793,6 +965,50 @@ export type Database = {
           views_count?: number | null
         }
         Relationships: []
+      }
+      trending_keywords: {
+        Row: {
+          discovered_at: string
+          id: string
+          keyword: string
+          mapped_reason: string | null
+          mapped_target_id: string | null
+          mapped_target_type: string | null
+          run_id: string | null
+          source: string
+          volume_score: number
+        }
+        Insert: {
+          discovered_at?: string
+          id?: string
+          keyword: string
+          mapped_reason?: string | null
+          mapped_target_id?: string | null
+          mapped_target_type?: string | null
+          run_id?: string | null
+          source?: string
+          volume_score?: number
+        }
+        Update: {
+          discovered_at?: string
+          id?: string
+          keyword?: string
+          mapped_reason?: string | null
+          mapped_target_id?: string | null
+          mapped_target_type?: string | null
+          run_id?: string | null
+          source?: string
+          volume_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trending_keywords_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "optimizer_runs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
