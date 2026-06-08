@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
             slug,
             content: finalHtml,
             excerpt: d.summary,
-            cover_image_url: d.featured_image_url,
+            cover_image_url: null,
             tags: d.tags ?? [],
             category: d.category ?? "Markets",
             status: "published",
@@ -161,6 +161,17 @@ Deno.serve(async (req) => {
             author_name: "InvestingIQ AI Desk",
             meta_title: d.meta_title,
             meta_description: d.meta_description,
+            meta_keywords: d.meta_keywords ?? [],
+            insights: d.insights ?? {},
+            schema_jsonld: d.schema_jsonld ?? {},
+            internal_links: d.internal_links ?? [],
+            related_searches: d.related_searches ?? [],
+            trending_questions: d.trending_questions ?? [],
+            seo_keywords: {
+              primary: (d.meta_keywords ?? [])[0] ?? null,
+              all: d.meta_keywords ?? [],
+              tags: d.tags ?? [],
+            },
           }).select("id").single();
           if (insErr) throw insErr;
           await admin.from("news_drafts").update({
