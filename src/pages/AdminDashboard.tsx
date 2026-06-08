@@ -27,7 +27,7 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio' | 'sitemap' | 'smart-refresh' | 'forex' | 'ai-optimizer' | 'news-engine';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio' | 'sitemap' | 'smart-refresh' | 'forex' | 'ai-optimizer' | 'news-engine' | 'mutual-funds';
 
 const NAV_ITEMS = [
   { id: 'dashboard',        label: 'Dashboard',          icon: BarChart2 },
