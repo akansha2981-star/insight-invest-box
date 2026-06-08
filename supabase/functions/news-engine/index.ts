@@ -13,9 +13,10 @@ const CATEGORIES = [
 ];
 
 const INSIGHT_KEYS = [
-  "what_is", "why_matters", "market_impact", "investor_impact", "economy_impact",
-  "pros", "risks", "companies_affected", "sentiment", "expert_analysis",
-  "key_facts", "faqs", "related_topics", "educational_context",
+  "what_is", "why_matters", "market_impact", "sector_impact", "investor_impact",
+  "economy_impact", "pros", "risks", "companies_affected", "sentiment",
+  "expert_analysis", "key_takeaways", "key_facts", "faqs", "related_topics",
+  "educational_context",
 ];
 
 async function llmJson(system: string, user: string, model = "google/gemini-2.5-flash"): Promise<any | null> {
@@ -152,7 +153,7 @@ Deno.serve(async (req) => {
             slug,
             content: finalHtml,
             excerpt: d.summary,
-            cover_image_url: d.featured_image_url,
+            cover_image_url: null,
             tags: d.tags ?? [],
             category: d.category ?? "Markets",
             status: "published",
@@ -160,6 +161,17 @@ Deno.serve(async (req) => {
             author_name: "InvestingIQ AI Desk",
             meta_title: d.meta_title,
             meta_description: d.meta_description,
+            meta_keywords: d.meta_keywords ?? [],
+            insights: d.insights ?? {},
+            schema_jsonld: d.schema_jsonld ?? {},
+            internal_links: d.internal_links ?? [],
+            related_searches: d.related_searches ?? [],
+            trending_questions: d.trending_questions ?? [],
+            seo_keywords: {
+              primary: (d.meta_keywords ?? [])[0] ?? null,
+              all: d.meta_keywords ?? [],
+              tags: d.tags ?? [],
+            },
           }).select("id").single();
           if (insErr) throw insErr;
           await admin.from("news_drafts").update({
@@ -190,7 +202,9 @@ Deno.serve(async (req) => {
         trending: !!fresh.trending, read_time_min: fresh.read_time_min ?? 4,
         insights: fresh.insights ?? {}, schema_jsonld: fresh.schema_jsonld ?? {},
         social_meta: fresh.social_meta ?? {}, internal_links: fresh.internal_links ?? [],
-        featured_image_prompt: fresh.featured_image_prompt,
+        related_searches: fresh.related_searches ?? [],
+        trending_questions: fresh.trending_questions ?? [],
+        featured_image_prompt: null,
         seo_score, status: "pending",
       }).eq("id", id);
       if (error) return json({ error: error.message }, 500);
@@ -244,10 +258,13 @@ Deno.serve(async (req) => {
               read_time_min: article.read_time_min ?? 4,
               meta_title: article.meta_title, meta_description: article.meta_description,
               meta_keywords: article.meta_keywords ?? [],
-              featured_image_prompt: article.featured_image_prompt,
+              featured_image_prompt: null,
               insights: article.insights ?? {}, schema_jsonld: article.schema_jsonld ?? {},
               social_meta: article.social_meta ?? {},
-              internal_links: article.internal_links ?? [], seo_score,
+              internal_links: article.internal_links ?? [],
+              related_searches: article.related_searches ?? [],
+              trending_questions: article.trending_questions ?? [],
+              seo_score,
             };
             // Insert immediately so admin sees progress in Pending tab.
             const { error: insErr } = await admin.from("news_drafts").insert(draft);
@@ -291,31 +308,63 @@ Deno.serve(async (req) => {
 
 async function generateArticle(topic: string, category?: string): Promise<any | null> {
   return await llmJson(
-    `You are a senior Indian financial journalist for InvestingIQ. Write ORIGINAL, factual, non-plagiarised news content for Indian retail investors. Output STRICT JSON ONLY with this shape:
+    `You are a senior Indian financial journalist AND an experienced SEO strategist for InvestingIQ.
+Before writing, perform DEEP keyword research mentally: identify the primary search intent, high-volume head terms, long-tail variants, question-based queries ("how", "what", "why", "when"), "people also ask" queries, related/LSI terms, and emerging trending phrases on Indian finance Twitter/Google Trends.
+Then write an ORIGINAL, factual, non-plagiarised news article that naturally weaves those keywords through the headline, intro, H2/H3 subheads, body, FAQs, and meta tags — without keyword stuffing. Optimize the article to rank for MULTIPLE related queries at once.
+
+Output STRICT JSON ONLY with this shape (no markdown, no commentary):
 {
-  "headline": string (50-90 chars, factual, no clickbait),
-  "summary": string (2 sentences, 100-180 chars),
-  "content": string (HTML body using <h2>,<h3>,<p>,<ul>,<li>; 500-900 words; no <html>/<body> tags),
+  "headline": string (50-90 chars, factual, contains primary keyword, no clickbait),
+  "summary": string (2 sentences, 100-180 chars, contains primary keyword),
+  "content": string (HTML body using <h2>,<h3>,<p>,<ul>,<li>; 600-1000 words; subheads MUST use long-tail/question keywords; no <html>/<body>/<img> tags; no image references),
   "category": string,
-  "tags": string[] (3-7 lowercase tags),
+  "tags": string[] (4-8 lowercase tags),
   "trending": boolean,
   "read_time_min": number,
-  "meta_title": string (50-65 chars, includes primary keyword),
-  "meta_description": string (140-160 chars),
-  "meta_keywords": string[] (5-10),
-  "featured_image_prompt": string (visual description, no people likeness),
-  "insights": {
-    "what_is": string, "why_matters": string, "market_impact": string, "investor_impact": string,
-    "economy_impact": string, "pros": string[], "risks": string[], "companies_affected": string[],
-    "sentiment": "Bullish"|"Bearish"|"Neutral", "expert_analysis": string,
-    "key_facts": string[], "faqs": [{"q":string,"a":string}], "related_topics": string[], "educational_context": string
+  "meta_title": string (50-65 chars, primary keyword near the start),
+  "meta_description": string (140-160 chars, includes primary + 1 secondary keyword, has a soft CTA),
+  "meta_keywords": string[] (8-15: mix of short-tail, long-tail, question-based, and trending),
+  "seo_keywords": {
+    "primary": string,
+    "secondary": string[] (3-6),
+    "long_tail": string[] (5-10 multi-word phrases),
+    "short_tail": string[] (3-6 one-or-two-word head terms),
+    "question_based": string[] (5-8 'how/what/why/when' queries),
+    "trending": string[] (3-6 currently-trending phrases),
+    "lsi": string[] (5-10 semantically related terms),
+    "search_intent": "informational"|"navigational"|"transactional"|"commercial"
   },
-  "schema_jsonld": object (a valid NewsArticle schema.org object),
-  "social_meta": {"og_title":string,"og_description":string,"twitter_title":string,"twitter_description":string},
-  "internal_links": [{"anchor":string,"slug_to":string}]
+  "related_searches": string[] (8-12 "people also search for" style queries),
+  "trending_questions": string[] (6-10 "people also ask" questions phrased naturally),
+  "insights": {
+    "what_is": string (80-160 words plain-English explainer),
+    "why_matters": string (why this matters to Indian retail investors, 80-160 words),
+    "market_impact": string (impact on Sensex/Nifty/broader indices, 80-160 words),
+    "sector_impact": [{"sector": string, "impact": "Positive"|"Negative"|"Mixed"|"Neutral", "note": string}] (3-6 sectors),
+    "investor_impact": string (what individual investors should think about, 80-160 words),
+    "economy_impact": string (impact on Indian economy / GDP / inflation, 80-160 words),
+    "pros": string[] (4-6 advantages / opportunities),
+    "risks": string[] (4-6 risks / concerns),
+    "companies_affected": [{"name": string, "ticker": string, "impact": "Positive"|"Negative"|"Mixed"|"Neutral", "note": string}] (3-8 Indian listed companies where relevant),
+    "sentiment": "Bullish"|"Bearish"|"Neutral",
+    "expert_analysis": string (160-280 word AI analyst take, balanced),
+    "key_takeaways": string[] (4-6 crisp one-liners),
+    "key_facts": string[] (4-8 specific data points / numbers / dates),
+    "faqs": [{"q": string, "a": string}] (6-10 FAQs answering trending_questions where possible),
+    "related_topics": string[] (5-8 related finance topics),
+    "educational_context": string (120-220 words for beginners)
+  },
+  "schema_jsonld": object (valid schema.org NewsArticle with headline, datePublished, author, publisher, articleSection, keywords),
+  "social_meta": {"og_title": string, "og_description": string, "twitter_title": string, "twitter_description": string},
+  "internal_links": [{"anchor": string, "slug_to": string, "rationale": string}] (4-8 suggested internal links to slugs under /news, /stock-review, /mutual-funds, /tools, /financial-calculators)
 }
-Rules: write neutral, accurate, no investment advice, no fabricated statistics, include a brief disclaimer line at the end of content.`,
-    `Topic: ${topic}\nSuggested category: ${category ?? "Stock Market"}\nWrite the complete article JSON now.`
+
+Hard rules:
+- DO NOT include any image, picture, photo, infographic, or "featured_image_prompt" field.
+- DO NOT fabricate statistics, prices, or quotes. If a number isn't certain, phrase it as "reportedly" or omit it.
+- NO investment advice. Neutral, balanced tone.
+- End the "content" field with a one-line disclaimer: "Disclaimer: This article is for informational purposes only and is not investment advice."`,
+    `Topic: ${topic}\nSuggested category: ${category ?? "Stock Market"}\nWrite the complete SEO-optimized article JSON now.`
   );
 }
 

@@ -47,14 +47,20 @@ export type Database = {
           created_at: string
           excerpt: string | null
           id: string
+          insights: Json | null
+          internal_links: Json | null
           meta_description: string | null
           meta_title: string | null
           published_at: string | null
+          related_searches: string[] | null
+          schema_jsonld: Json | null
+          seo_keywords: Json | null
           sequence_number: number | null
           slug: string
           status: string | null
           tags: string[] | null
           title: string
+          trending_questions: string[] | null
           updated_at: string
           views_count: number | null
         }
@@ -66,14 +72,20 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           id?: string
+          insights?: Json | null
+          internal_links?: Json | null
           meta_description?: string | null
           meta_title?: string | null
           published_at?: string | null
+          related_searches?: string[] | null
+          schema_jsonld?: Json | null
+          seo_keywords?: Json | null
           sequence_number?: number | null
           slug: string
           status?: string | null
           tags?: string[] | null
           title: string
+          trending_questions?: string[] | null
           updated_at?: string
           views_count?: number | null
         }
@@ -85,14 +97,20 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           id?: string
+          insights?: Json | null
+          internal_links?: Json | null
           meta_description?: string | null
           meta_title?: string | null
           published_at?: string | null
+          related_searches?: string[] | null
+          schema_jsonld?: Json | null
+          seo_keywords?: Json | null
           sequence_number?: number | null
           slug?: string
           status?: string | null
           tags?: string[] | null
           title?: string
+          trending_questions?: string[] | null
           updated_at?: string
           views_count?: number | null
         }
@@ -657,6 +675,7 @@ export type Database = {
           meta_title: string | null
           published_at: string | null
           read_time_min: number
+          related_searches: string[] | null
           reviewed_at: string | null
           reviewed_by: string | null
           run_id: string | null
@@ -670,6 +689,7 @@ export type Database = {
           tags: string[]
           topic: string
           trending: boolean
+          trending_questions: string[] | null
           updated_at: string
         }
         Insert: {
@@ -688,6 +708,7 @@ export type Database = {
           meta_title?: string | null
           published_at?: string | null
           read_time_min?: number
+          related_searches?: string[] | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           run_id?: string | null
@@ -701,6 +722,7 @@ export type Database = {
           tags?: string[]
           topic: string
           trending?: boolean
+          trending_questions?: string[] | null
           updated_at?: string
         }
         Update: {
@@ -719,6 +741,7 @@ export type Database = {
           meta_title?: string | null
           published_at?: string | null
           read_time_min?: number
+          related_searches?: string[] | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           run_id?: string | null
@@ -732,6 +755,7 @@ export type Database = {
           tags?: string[]
           topic?: string
           trending?: boolean
+          trending_questions?: string[] | null
           updated_at?: string
         }
         Relationships: [
