@@ -99,11 +99,12 @@ export default function CurrencyConverterPage() {
     })();
   }, [from, to, range]);
 
-  // 30-day history for all major currencies — powers gainers/losers + strength ranking
+  // 30-day history for ALL currencies — powers gainers/losers + strength ranking
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.functions.invoke("forex-rates", { body: { action: "history", days: 30 } });
-      setAllHistory(data?.history ?? []);
+      const startDate = new Date(Date.now() - 30 * 86400_000).toISOString().slice(0, 10);
+      const { data } = await supabase.from("forex_history").select("date,code,rate_usd").gte("date", startDate).order("date", { ascending: true });
+      setAllHistory((data ?? []) as HistoryRow[]);
     })();
   }, []);
 
