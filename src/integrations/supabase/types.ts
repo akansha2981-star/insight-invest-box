@@ -227,6 +227,419 @@ export type Database = {
         }
         Relationships: []
       }
+      mf_etfs: {
+        Row: {
+          ai_pros: Json | null
+          ai_risks: Json | null
+          ai_summary: string | null
+          asset_class: string
+          aum_cr: number | null
+          avg_volume: number | null
+          benchmark: string | null
+          country_allocation: Json | null
+          created_at: string
+          expense_ratio: number | null
+          holdings: Json | null
+          id: string
+          is_trending: boolean | null
+          issuer: string | null
+          ltp: number | null
+          meta_description: string | null
+          meta_title: string | null
+          name: string
+          nav: number | null
+          premium_discount: number | null
+          return_1m: number | null
+          return_1y: number | null
+          return_3m: number | null
+          return_3y: number | null
+          return_5y: number | null
+          return_6m: number | null
+          sector_allocation: Json | null
+          slug: string
+          sub_class: string | null
+          symbol: string
+          tracking_error: number | null
+          updated_at: string
+          views: number | null
+        }
+        Insert: {
+          ai_pros?: Json | null
+          ai_risks?: Json | null
+          ai_summary?: string | null
+          asset_class: string
+          aum_cr?: number | null
+          avg_volume?: number | null
+          benchmark?: string | null
+          country_allocation?: Json | null
+          created_at?: string
+          expense_ratio?: number | null
+          holdings?: Json | null
+          id?: string
+          is_trending?: boolean | null
+          issuer?: string | null
+          ltp?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name: string
+          nav?: number | null
+          premium_discount?: number | null
+          return_1m?: number | null
+          return_1y?: number | null
+          return_3m?: number | null
+          return_3y?: number | null
+          return_5y?: number | null
+          return_6m?: number | null
+          sector_allocation?: Json | null
+          slug: string
+          sub_class?: string | null
+          symbol: string
+          tracking_error?: number | null
+          updated_at?: string
+          views?: number | null
+        }
+        Update: {
+          ai_pros?: Json | null
+          ai_risks?: Json | null
+          ai_summary?: string | null
+          asset_class?: string
+          aum_cr?: number | null
+          avg_volume?: number | null
+          benchmark?: string | null
+          country_allocation?: Json | null
+          created_at?: string
+          expense_ratio?: number | null
+          holdings?: Json | null
+          id?: string
+          is_trending?: boolean | null
+          issuer?: string | null
+          ltp?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name?: string
+          nav?: number | null
+          premium_discount?: number | null
+          return_1m?: number | null
+          return_1y?: number | null
+          return_3m?: number | null
+          return_3y?: number | null
+          return_5y?: number | null
+          return_6m?: number | null
+          sector_allocation?: Json | null
+          slug?: string
+          sub_class?: string | null
+          symbol?: string
+          tracking_error?: number | null
+          updated_at?: string
+          views?: number | null
+        }
+        Relationships: []
+      }
+      mf_fund_houses: {
+        Row: {
+          ceo: string | null
+          created_at: string
+          description: string | null
+          founded_year: number | null
+          fund_count: number | null
+          id: string
+          logo_url: string | null
+          name: string
+          slug: string
+          total_aum_cr: number | null
+          updated_at: string
+        }
+        Insert: {
+          ceo?: string | null
+          created_at?: string
+          description?: string | null
+          founded_year?: number | null
+          fund_count?: number | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          slug: string
+          total_aum_cr?: number | null
+          updated_at?: string
+        }
+        Update: {
+          ceo?: string | null
+          created_at?: string
+          description?: string | null
+          founded_year?: number | null
+          fund_count?: number | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          slug?: string
+          total_aum_cr?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mf_funds: {
+        Row: {
+          ai_pros: Json | null
+          ai_risks: Json | null
+          ai_summary: string | null
+          ai_verdict: string | null
+          alpha: number | null
+          aum_cr: number | null
+          beta: number | null
+          cash_pct: number | null
+          category: string
+          created_at: string
+          debt_pct: number | null
+          equity_pct: number | null
+          exit_load: string | null
+          expense_ratio: number | null
+          foreign_pct: number | null
+          fund_house: string
+          fund_house_slug: string | null
+          fund_manager: string | null
+          holdings: Json | null
+          id: string
+          is_elss: boolean | null
+          is_nfo: boolean | null
+          is_trending: boolean | null
+          launch_date: string | null
+          meta_description: string | null
+          meta_title: string | null
+          min_lumpsum: number | null
+          min_sip: number | null
+          nav: number | null
+          nav_date: string | null
+          option_type: string | null
+          plan_type: string | null
+          rating: number | null
+          return_10y: number | null
+          return_1m: number | null
+          return_1y: number | null
+          return_3m: number | null
+          return_3y: number | null
+          return_5y: number | null
+          return_6m: number | null
+          risk_level: string | null
+          scheme_code: string | null
+          scheme_name: string
+          scheme_type: string | null
+          sector_allocation: Json | null
+          sharpe: number | null
+          slug: string
+          sortino: number | null
+          std_dev: number | null
+          sub_category: string | null
+          updated_at: string
+          views: number | null
+        }
+        Insert: {
+          ai_pros?: Json | null
+          ai_risks?: Json | null
+          ai_summary?: string | null
+          ai_verdict?: string | null
+          alpha?: number | null
+          aum_cr?: number | null
+          beta?: number | null
+          cash_pct?: number | null
+          category: string
+          created_at?: string
+          debt_pct?: number | null
+          equity_pct?: number | null
+          exit_load?: string | null
+          expense_ratio?: number | null
+          foreign_pct?: number | null
+          fund_house: string
+          fund_house_slug?: string | null
+          fund_manager?: string | null
+          holdings?: Json | null
+          id?: string
+          is_elss?: boolean | null
+          is_nfo?: boolean | null
+          is_trending?: boolean | null
+          launch_date?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          min_lumpsum?: number | null
+          min_sip?: number | null
+          nav?: number | null
+          nav_date?: string | null
+          option_type?: string | null
+          plan_type?: string | null
+          rating?: number | null
+          return_10y?: number | null
+          return_1m?: number | null
+          return_1y?: number | null
+          return_3m?: number | null
+          return_3y?: number | null
+          return_5y?: number | null
+          return_6m?: number | null
+          risk_level?: string | null
+          scheme_code?: string | null
+          scheme_name: string
+          scheme_type?: string | null
+          sector_allocation?: Json | null
+          sharpe?: number | null
+          slug: string
+          sortino?: number | null
+          std_dev?: number | null
+          sub_category?: string | null
+          updated_at?: string
+          views?: number | null
+        }
+        Update: {
+          ai_pros?: Json | null
+          ai_risks?: Json | null
+          ai_summary?: string | null
+          ai_verdict?: string | null
+          alpha?: number | null
+          aum_cr?: number | null
+          beta?: number | null
+          cash_pct?: number | null
+          category?: string
+          created_at?: string
+          debt_pct?: number | null
+          equity_pct?: number | null
+          exit_load?: string | null
+          expense_ratio?: number | null
+          foreign_pct?: number | null
+          fund_house?: string
+          fund_house_slug?: string | null
+          fund_manager?: string | null
+          holdings?: Json | null
+          id?: string
+          is_elss?: boolean | null
+          is_nfo?: boolean | null
+          is_trending?: boolean | null
+          launch_date?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          min_lumpsum?: number | null
+          min_sip?: number | null
+          nav?: number | null
+          nav_date?: string | null
+          option_type?: string | null
+          plan_type?: string | null
+          rating?: number | null
+          return_10y?: number | null
+          return_1m?: number | null
+          return_1y?: number | null
+          return_3m?: number | null
+          return_3y?: number | null
+          return_5y?: number | null
+          return_6m?: number | null
+          risk_level?: string | null
+          scheme_code?: string | null
+          scheme_name?: string
+          scheme_type?: string | null
+          sector_allocation?: Json | null
+          sharpe?: number | null
+          slug?: string
+          sortino?: number | null
+          std_dev?: number | null
+          sub_category?: string | null
+          updated_at?: string
+          views?: number | null
+        }
+        Relationships: []
+      }
+      mf_industry_stats: {
+        Row: {
+          id: string
+          net_inflows_cr: number | null
+          top_gaining_categories: Json | null
+          top_losing_categories: Json | null
+          total_etf_aum_cr: number | null
+          total_mf_aum_cr: number | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          net_inflows_cr?: number | null
+          top_gaining_categories?: Json | null
+          top_losing_categories?: Json | null
+          total_etf_aum_cr?: number | null
+          total_mf_aum_cr?: number | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          net_inflows_cr?: number | null
+          top_gaining_categories?: Json | null
+          top_losing_categories?: Json | null
+          total_etf_aum_cr?: number | null
+          total_mf_aum_cr?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mf_nav_history: {
+        Row: {
+          created_at: string
+          date: string
+          fund_id: string | null
+          id: string
+          nav: number
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          fund_id?: string | null
+          id?: string
+          nav: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          fund_id?: string | null
+          id?: string
+          nav?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mf_nav_history_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "mf_funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mf_news: {
+        Row: {
+          category: string | null
+          content: string | null
+          created_at: string
+          id: string
+          published_at: string
+          slug: string
+          source: string | null
+          summary: string | null
+          title: string
+        }
+        Insert: {
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          published_at?: string
+          slug: string
+          source?: string | null
+          summary?: string | null
+          title: string
+        }
+        Update: {
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          published_at?: string
+          slug?: string
+          source?: string | null
+          summary?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       news_drafts: {
         Row: {
           blog_post_id: string | null
