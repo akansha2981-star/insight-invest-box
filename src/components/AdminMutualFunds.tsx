@@ -110,6 +110,69 @@ export default function AdminMutualFunds() {
         </div>
       </div>
 
+      {/* AI Discovery */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-cyan-950 text-white rounded-xl p-5 border border-cyan-800/40">
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles className="h-5 w-5 text-cyan-400" />
+          <h3 className="text-lg font-black">Discover New Funds with AI</h3>
+        </div>
+        <p className="text-xs text-slate-300 mb-4">AI suggests popular SEBI-registered funds not already in your database. Review, approve, and import — analysis runs automatically.</p>
+
+        <div className="grid sm:grid-cols-4 gap-2 mb-3">
+          <div>
+            <label className="text-[10px] uppercase text-slate-400">Count</label>
+            <input type="number" min={1} max={30} value={discoverCount} onChange={e => setDiscoverCount(Math.min(30, Math.max(1, Number(e.target.value) || 1)))} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-sm" />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase text-slate-400">Category (optional)</label>
+            <select value={discoverCategory} onChange={e => setDiscoverCategory(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-sm">
+              <option value="">Any</option>
+              <option>Equity</option><option>Debt</option><option>Hybrid</option><option>ELSS</option><option>Index</option>
+            </select>
+          </div>
+          <div className="sm:col-span-2">
+            <label className="text-[10px] uppercase text-slate-400">Theme / strategy (optional)</label>
+            <input value={discoverTheme} onChange={e => setDiscoverTheme(e.target.value)} placeholder="e.g. small cap, dividend yield, flexicap" className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-sm" />
+          </div>
+        </div>
+
+        <button onClick={discover} disabled={discovering || importing} className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold text-sm px-4 py-2 rounded inline-flex items-center gap-2 disabled:opacity-50">
+          {discovering ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Discover with AI
+        </button>
+
+        {candidates.length > 0 && (
+          <div className="mt-5 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-semibold">{selected.size} of {candidates.length} selected</div>
+              <div className="flex gap-2">
+                <button onClick={() => setSelected(new Set(candidates.map((_, i) => i)))} className="text-xs text-cyan-300 hover:text-cyan-200">Select all</button>
+                <button onClick={() => setSelected(new Set())} className="text-xs text-slate-400 hover:text-slate-200">Clear</button>
+              </div>
+            </div>
+            <div className="max-h-80 overflow-y-auto space-y-1.5 pr-1">
+              {candidates.map((c, i) => (
+                <label key={i} className={`flex items-start gap-3 p-2.5 rounded border cursor-pointer transition ${selected.has(i) ? "bg-cyan-950/60 border-cyan-700" : "bg-slate-800/40 border-slate-700 hover:border-slate-600"}`}>
+                  <input type="checkbox" checked={selected.has(i)} onChange={() => toggle(i)} className="mt-1 accent-cyan-500" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm">{c.scheme_name}</div>
+                    <div className="text-[11px] text-slate-400">{c.fund_house} · {c.category}{c.sub_category ? ` / ${c.sub_category}` : ""} · {c.risk_level} {c.scheme_code ? `· AMFI ${c.scheme_code}` : ""}</div>
+                    {c.rationale && <div className="text-xs text-slate-300 mt-1">{c.rationale}</div>}
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button onClick={approveImport} disabled={importing || !selected.size} className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm px-4 py-2 rounded inline-flex items-center gap-2 disabled:opacity-50">
+                {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Approve & Import ({selected.size})
+              </button>
+              <button onClick={() => { setCandidates([]); setSelected(new Set()); }} disabled={importing} className="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded inline-flex items-center gap-1">
+                <X className="h-4 w-4" /> Discard
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="bg-card border border-border rounded-xl overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-xs uppercase"><tr><th className="text-left p-3">Fund</th><th className="text-right p-3">NAV</th><th className="text-right p-3">1Y</th><th className="text-right p-3">AI Status</th><th className="text-right p-3">Actions</th></tr></thead>
