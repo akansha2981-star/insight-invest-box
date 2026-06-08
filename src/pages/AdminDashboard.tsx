@@ -13,6 +13,7 @@ import { AdminAuthAnalytics } from "@/components/AdminAuthAnalytics";
 import { AdminRegisteredUsers } from "@/components/AdminRegisteredUsers";
 import { AdminAIContentStudio } from "@/components/AdminAIContentStudio";
 import { AdminSitemapManager } from "@/components/AdminSitemapManager";
+import { AdminSmartRefresh } from "@/components/AdminSmartRefresh";
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
