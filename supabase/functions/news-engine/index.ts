@@ -220,7 +220,7 @@ Hard rules: do not fabricate prices/quotes; if uncertain say "reportedly" or omi
             author_name: "InvestingIQ AI Desk",
             meta_title: d.meta_title,
             meta_description: d.meta_description,
-            meta_keywords: d.meta_keywords ?? [],
+            
             insights: d.insights ?? {},
             schema_jsonld: d.schema_jsonld ?? {},
             internal_links: d.internal_links ?? [],
