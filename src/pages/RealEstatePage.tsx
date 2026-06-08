@@ -284,9 +284,88 @@ export default function RealEstatePage() {
     selectedBHK.length > 0 ? "x" : "", possession, selectedAmenities.length > 0 ? "x" : ""
   ].filter(Boolean).length;
 
+  // ── SEO: structured data
+  const pageUrl = "https://www.investingiq.in/real-estate";
+  const faqList = [
+    { q: "Is now a good time to buy property in India in 2026?", a: "Tier-1 markets like Hyderabad, Pune and Bengaluru are seeing 12–18% YoY price growth driven by IT, infrastructure and metro expansion. Buyers with a 5–7 year horizon and pre-approved home loans typically outperform renters in these micro-markets." },
+    { q: "Which Indian city offers the best real estate ROI?", a: "Hyderabad (Gachibowli, Kokapet) and Pune (Hinjewadi, Balewadi) lead 2026 ROI charts with 15–18% YoY appreciation, followed by Bengaluru East and Noida Expressway corridor." },
+    { q: "How much home loan can I get on a ₹1 lakh monthly salary?", a: "Most banks lend 60x monthly net income, so a ₹1L salary typically qualifies for ₹55–65L loan at 8.5% for 20 years (EMI ≈ ₹48–56K). Use our EMI calculator for a precise estimate." },
+    { q: "What are the hidden costs when buying a flat in India?", a: "Stamp duty (5–7%), registration (1%), GST on under-construction (5%), legal fees (~0.5%), parking, society charges and brokerage. Budget 10–12% over the sticker price." },
+    { q: "Is RERA registration mandatory for all projects?", a: "Yes, every residential or commercial project larger than 500 sqm or 8 units must register with the state RERA authority. Never book in an unregistered project — you lose the statutory delay-compensation protection." },
+    { q: "Should I buy ready-to-move or under-construction property?", a: "Ready-to-move avoids delay risk and GST but costs 10–20% more. Under-construction offers staged payments and higher appreciation potential — choose only RERA-approved projects from Tier-1 builders." },
+  ];
+
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "RealEstateAgent",
+      name: "InvestingIQ Real Estate",
+      url: pageUrl,
+      areaServed: CITIES.map(c => ({ "@type": "City", name: c })),
+      description: "India's data-first real estate intelligence platform. Search 50,000+ verified properties across Mumbai, Bengaluru, Gurugram, Pune, Noida and 100+ cities with AI-powered price trends, EMI calculators and locality insights.",
+      knowsAbout: ["Property Buying", "Home Loans", "Rental Properties", "Real Estate Investment", "RERA Compliance", "Interior Design"],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      url: pageUrl,
+      potentialAction: {
+        "@type": "SearchAction",
+        target: `${pageUrl}?q={search_term_string}`,
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://www.investingiq.in/" },
+        { "@type": "ListItem", position: 2, name: "Real Estate", item: pageUrl },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqList.map(f => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      itemListElement: properties.slice(0, 10).map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `https://www.investingiq.in/real-estate/${p.slug}`,
+        name: p.title,
+      })),
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-[hsl(var(--section-bg))]">
+      <Helmet>
+        <title>Real Estate India 2026 | Buy, Rent & Invest in Verified Properties | InvestingIQ</title>
+        <meta name="description" content="Search 50,000+ verified properties across Mumbai, Bengaluru, Gurugram, Pune & 100+ Indian cities. AI-powered price trends, EMI calculator, RERA-verified projects, expert insights." />
+        <meta name="keywords" content="real estate india, buy property mumbai, flats in bengaluru, gurugram apartments, pune real estate, noida property, RERA verified projects, home loan EMI calculator, property price trends india 2026" />
+        <link rel="canonical" href={pageUrl} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Real Estate India 2026 | Buy, Rent & Invest in Verified Properties" />
+        <meta property="og:description" content="50,000+ verified listings, AI price trends, RERA-verified projects across India." />
+        <meta property="og:url" content={pageUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Real Estate India 2026 | InvestingIQ" />
+        <meta name="twitter:description" content="Buy, rent & invest in verified properties with AI-powered insights." />
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+        {jsonLd.map((schema, i) => (
+          <script key={i} type="application/ld+json">{JSON.stringify(schema)}</script>
+        ))}
+      </Helmet>
       <Header />
+
+
 
       {/* ═══════════════════════════════════
           HERO — Dark, inspired by Square Yards
