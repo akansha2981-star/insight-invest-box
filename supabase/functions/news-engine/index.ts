@@ -13,9 +13,10 @@ const CATEGORIES = [
 ];
 
 const INSIGHT_KEYS = [
-  "what_is", "why_matters", "market_impact", "investor_impact", "economy_impact",
-  "pros", "risks", "companies_affected", "sentiment", "expert_analysis",
-  "key_facts", "faqs", "related_topics", "educational_context",
+  "what_is", "why_matters", "market_impact", "sector_impact", "investor_impact",
+  "economy_impact", "pros", "risks", "companies_affected", "sentiment",
+  "expert_analysis", "key_takeaways", "key_facts", "faqs", "related_topics",
+  "educational_context",
 ];
 
 async function llmJson(system: string, user: string, model = "google/gemini-2.5-flash"): Promise<any | null> {
