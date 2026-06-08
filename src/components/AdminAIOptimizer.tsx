@@ -258,9 +258,13 @@ export function AdminAIOptimizer() {
                 className="flex items-center gap-1 text-xs font-semibold border border-border rounded-lg px-3 py-1.5 hover:bg-green-50 hover:text-gain disabled:opacity-40">
                 <CheckCircle className="h-3.5 w-3.5" /> Approve ({selected.size})
               </button>
-              <button disabled={busy} onClick={() => act("approve", pending.filter(p => p.confidence >= 0.85).map(p => p.id))}
+              <button disabled={busy || !pending.length} onClick={() => act("approve", pending.filter(p => p.confidence >= 0.85).map(p => p.id))}
                 className="flex items-center gap-1 text-xs font-semibold border border-border rounded-lg px-3 py-1.5 hover:bg-muted disabled:opacity-40">
-                Approve all high-confidence
+                Approve high-confidence
+              </button>
+              <button disabled={busy || !pending.length} onClick={() => act("approve", pending.map(p => p.id))}
+                className="flex items-center gap-1 text-xs font-semibold bg-gain text-white rounded-lg px-3 py-1.5 hover:bg-gain/90 disabled:opacity-40">
+                <CheckCircle className="h-3.5 w-3.5" /> Approve All ({pending.length})
               </button>
               <button disabled={!approved.length || busy} onClick={() => act("apply", approved.map(p => p.id))}
                 className="flex items-center gap-1 text-xs font-semibold bg-primary text-white rounded-lg px-3 py-1.5 hover:bg-primary/90 disabled:opacity-40">
