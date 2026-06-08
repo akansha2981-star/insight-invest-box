@@ -97,7 +97,66 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body.action ?? "generate";
 
-    // ───────────── AUTH ─────────────
+    // ───────────── ENRICH (public): backfill insights for a published post ─────────────
+    if (action === "enrich") {
+      const slug: string = body.slug;
+      if (!slug) return json({ error: "slug required" }, 400);
+      const { data: post } = await admin
+        .from("blog_posts")
+        .select("id,title,excerpt,category,content,insights")
+        .eq("slug", slug)
+        .eq("status", "published")
+        .maybeSingle();
+      if (!post) return json({ error: "Post not found" }, 404);
+
+      const existing = (post.insights ?? {}) as Record<string, unknown>;
+      const hasRich = INSIGHT_KEYS.some(k => {
+        const v = existing[k];
+        if (Array.isArray(v)) return v.length > 0;
+        if (typeof v === "string") return v.trim().length > 20;
+        return !!v;
+      });
+      if (hasRich) return json({ ok: true, insights: existing, cached: true });
+
+      const plain = String(post.content ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 8000);
+      const generated = await llmJson(
+        `You are a senior Indian financial analyst for InvestingIQ. Read the news article and produce ONLY the analytical "insights" JSON object that helps Indian retail investors understand it. Be factual, balanced, and specific to the Indian market context. Output STRICT JSON only with this exact shape (no markdown, no extra fields):
+{
+  "what_is": string (80-160 words),
+  "why_matters": string (80-160 words),
+  "market_impact": string (impact on Sensex/Nifty/broader indices, 80-160 words),
+  "sector_impact": [{"sector": string, "impact": "Positive"|"Negative"|"Mixed"|"Neutral", "note": string}] (3-6),
+  "investor_impact": string (80-160 words),
+  "economy_impact": string (80-160 words),
+  "pros": string[] (4-6),
+  "risks": string[] (4-6),
+  "companies_affected": [{"name": string, "ticker": string, "impact": "Positive"|"Negative"|"Mixed"|"Neutral", "note": string}] (3-8 Indian listed companies where relevant),
+  "sentiment": "Bullish"|"Bearish"|"Neutral",
+  "expert_analysis": string (160-280 words),
+  "key_takeaways": string[] (4-6),
+  "key_facts": string[] (4-8 specific data points / numbers / dates),
+  "faqs": [{"q": string, "a": string}] (6-10),
+  "related_topics": string[] (5-8),
+  "educational_context": string (120-220 words for beginners)
+}
+Hard rules: do not fabricate prices/quotes; if uncertain say "reportedly" or omit; no investment advice; neutral tone.`,
+        `Article title: ${post.title}\nCategory: ${post.category ?? "Markets"}\nExcerpt: ${post.excerpt ?? ""}\n\nArticle body (plain text):\n${plain}\n\nProduce the insights JSON now.`
+      );
+
+      if (!generated || typeof generated !== "object") {
+        return json({ error: "AI generation failed" }, 502);
+      }
+
+      const { error: upErr } = await admin
+        .from("blog_posts")
+        .update({ insights: generated })
+        .eq("id", post.id);
+      if (upErr) return json({ error: upErr.message }, 500);
+
+      return json({ ok: true, insights: generated, cached: false });
+    }
+
+    // ───────────── AUTH (admin actions only) ─────────────
     const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.replace("Bearer ", "");
     const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
