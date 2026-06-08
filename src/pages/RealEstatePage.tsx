@@ -10,11 +10,13 @@ import {
   Phone, IndianRupee, ChevronDown, Bed, Maximize,
   Heart, BadgePercent, Sparkles, BarChart3, ChevronLeft,
   Landmark, Key, Grid3X3, Store, Users, Award, Clock, Eye,
-  Layers, Warehouse, TreePine, CircleDollarSign, Briefcase
+  Layers, Warehouse, TreePine, CircleDollarSign, Briefcase,
+  Quote, CheckCircle2, HelpCircle, Download, Newspaper, LineChart as LineChartIcon, PieChart as PieChartIcon, ShieldCheck, Calculator
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  BarChart, Bar, CartesianGrid
+  BarChart, Bar, CartesianGrid, LineChart, Line, Legend,
+  PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from "recharts";
 
 /* ── Types ── */
