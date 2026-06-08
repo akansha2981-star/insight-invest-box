@@ -203,7 +203,7 @@ Deno.serve(async (req) => {
     const { data: reviews } = await admin.from("stock_reviews").select("*").eq("status", "published").limit(40);
     for (const r of reviews ?? []) {
       pagesScanned++;
-      const url = `${BASE_URL}/stock-review/${r.symbol?.toLowerCase()}`;
+      const url = `${BASE_URL}/stocks/review/${r.symbol?.toLowerCase()}`;
       if (!r.key_metrics || Object.keys(r.key_metrics ?? {}).length === 0) {
         proposals.push({
           run_id: runId, target_type: "stock_review", target_id: r.id, target_url: url,
