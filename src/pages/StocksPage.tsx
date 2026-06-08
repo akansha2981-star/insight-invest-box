@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { StockTicker } from "@/components/StockTicker";
 import { GainersLosers } from "@/components/GainersLosers";
 import { Footer } from "@/components/Footer";
+import { ComplianceDisclaimer } from "@/components/ComplianceDisclaimer";
 import { PageSectionsBanner } from "@/components/PageSectionsBanner";
 import type { StockData } from "@/data/mockStocks";
 import { STOCK_CATALOG_BY_SYMBOL } from "@/data/stockCatalog";
@@ -632,6 +633,7 @@ export default function StocksPage() {
           </div>
         </section>
 
+      <ComplianceDisclaimer variant="card" className="mt-8" />
       </main>
       <Footer />
     </div>

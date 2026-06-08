@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { StockTicker } from "@/components/StockTicker";
 import { Footer } from "@/components/Footer";
+import { ComplianceDisclaimer } from "@/components/ComplianceDisclaimer";
 import { supabase } from "@/integrations/supabase/client";
 import { AIStreamingPanel } from "@/components/AIStreamingPanel";
 import { AIInsightTeaser } from "@/components/AIInsightTeaser";
@@ -405,6 +406,7 @@ export default function StockReviewDetailPage() {
             </Link>
           </div>
         </div>
+      <ComplianceDisclaimer variant="card" className="mt-8" />
       </main>
       <Footer />
     </div>

@@ -4,6 +4,7 @@ import { StockTicker } from "@/components/StockTicker";
 import { MarketIndices } from "@/components/MarketIndices";
 import { GainersLosers } from "@/components/GainersLosers";
 import { Footer } from "@/components/Footer";
+import { ComplianceDisclaimer } from "@/components/ComplianceDisclaimer";
 import { PageSectionsBanner } from "@/components/PageSectionsBanner";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -227,6 +228,7 @@ export default function MarketsPage() {
           <GainersLosers />
         </section>
 
+      <ComplianceDisclaimer variant="card" className="mt-8" />
       </main>
       <Footer />
     </div>
