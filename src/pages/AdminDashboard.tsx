@@ -394,6 +394,7 @@ export default function AdminDashboard() {
         {view === 'smart-refresh' && <AdminSmartRefresh />}
         {view === 'forex' && <AdminForexMonitor />}
         {view === 'ai-optimizer' && <AdminAIOptimizer />}
+        {view === 'news-engine' && <AdminNewsEngine />}
         {view === 'registered-users' && <AdminRegisteredUsers />}
 
       </main>
