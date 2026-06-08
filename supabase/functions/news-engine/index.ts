@@ -258,10 +258,13 @@ Deno.serve(async (req) => {
               read_time_min: article.read_time_min ?? 4,
               meta_title: article.meta_title, meta_description: article.meta_description,
               meta_keywords: article.meta_keywords ?? [],
-              featured_image_prompt: article.featured_image_prompt,
+              featured_image_prompt: null,
               insights: article.insights ?? {}, schema_jsonld: article.schema_jsonld ?? {},
               social_meta: article.social_meta ?? {},
-              internal_links: article.internal_links ?? [], seo_score,
+              internal_links: article.internal_links ?? [],
+              related_searches: article.related_searches ?? [],
+              trending_questions: article.trending_questions ?? [],
+              seo_score,
             };
             // Insert immediately so admin sees progress in Pending tab.
             const { error: insErr } = await admin.from("news_drafts").insert(draft);
