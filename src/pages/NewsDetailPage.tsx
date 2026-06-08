@@ -721,9 +721,17 @@ export default function NewsDetailPage() {
                       return (
                         <div key={i} className="px-4 py-3 hover:bg-slate-50 transition-colors">
                           <div className="grid grid-cols-[1fr_auto_auto] gap-3 items-center">
-                            <div className="min-w-0">
-                              <div className="font-bold text-foreground text-sm truncate">{co.name}</div>
-                              {co.ticker && <div className="text-[11px] text-slate-500 number-font tracking-wider">{co.ticker}</div>}
+                            <div className="min-w-0 flex items-center gap-2">
+                              <div className="h-8 w-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0 text-[10px] font-black number-font">
+                                {(co.name ?? "?").slice(0, 2).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-bold text-foreground text-sm truncate flex items-center gap-1.5">
+                                  {co.name}
+                                  <ImpactTrendIcon impact={co.impact} className="h-3.5 w-3.5 flex-shrink-0" />
+                                </div>
+                                {co.ticker && <div className="text-[11px] text-slate-500 number-font tracking-wider">{co.ticker}</div>}
+                              </div>
                             </div>
                             <div className="w-20 sm:w-28 h-1.5 rounded-full bg-slate-200 overflow-hidden">
                               <div className={`h-full bg-gradient-to-r ${impactBarColor(co.impact)}`} style={{ width: `${val}%` }} />
