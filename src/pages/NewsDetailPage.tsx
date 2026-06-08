@@ -361,6 +361,16 @@ export default function NewsDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-8">
           {/* Left column — section cards */}
           <div className="space-y-5 sm:space-y-6">
+            {/* Article body */}
+            {post.content && (
+              <article className="bg-white border border-border rounded-2xl p-5 sm:p-8 shadow-sm">
+                <div
+                  className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-xl prose-p:leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: post.content }}
+                />
+              </article>
+            )}
+
             {/* 1. KEY TAKEAWAYS — gradient numbered tiles */}
             {Array.isArray(ins?.key_takeaways) && ins!.key_takeaways!.length > 0 && (
               <PremiumShell
