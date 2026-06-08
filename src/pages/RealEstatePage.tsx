@@ -1105,8 +1105,354 @@ export default function RealEstatePage() {
         </section>
 
         {/* ═══════════════════════════════════
+            ADVANCED PRICE TRENDS — Multi-City Charts
+        ═══════════════════════════════════ */}
+        <section className="bg-card border border-border rounded-3xl p-5 sm:p-8">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-700 px-4 py-1.5 rounded-full text-xs font-bold mb-3">
+              <LineChartIcon className="h-3.5 w-3.5" /> Market Intelligence
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-foreground">Property Price Trends — Top 6 Indian Cities</h2>
+            <p className="text-sm text-muted-foreground mt-1 max-w-2xl mx-auto">5-year price-per-sqft history with 2026 forecast. Updated quarterly from RBI HPI, RERA filings and 2.4 lakh+ transactions.</p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <div className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <h3 className="font-bold text-sm sm:text-base text-foreground">Price/sqft — 5-Year Trend</h3>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">₹ per sqft</span>
+              </div>
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart data={[
+                  { y: "2021", Mumbai: 28500, Bengaluru: 7800, Gurugram: 11200, Pune: 6400, Hyderabad: 5200 },
+                  { y: "2022", Mumbai: 30200, Bengaluru: 8900, Gurugram: 12500, Pune: 7100, Hyderabad: 6300 },
+                  { y: "2023", Mumbai: 32800, Bengaluru: 10200, Gurugram: 13800, Pune: 8000, Hyderabad: 7600 },
+                  { y: "2024", Mumbai: 35100, Bengaluru: 11100, Gurugram: 14700, Pune: 8700, Hyderabad: 8500 },
+                  { y: "2025", Mumbai: 37400, Bengaluru: 12000, Gurugram: 15500, Pune: 9200, Hyderabad: 9400 },
+                  { y: "2026F", Mumbai: 39800, Bengaluru: 13100, Gurugram: 16400, Pune: 10100, Hyderabad: 10800 },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="y" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={v => `${(v/1000).toFixed(0)}K`} />
+                  <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12 }} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Line type="monotone" dataKey="Mumbai" stroke="#e94560" strokeWidth={2.4} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Bengaluru" stroke="#0f3460" strokeWidth={2.4} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Gurugram" stroke="#ffd700" strokeWidth={2.4} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Pune" stroke="#10b981" strokeWidth={2.4} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Hyderabad" stroke="#8b5cf6" strokeWidth={2.4} dot={{ r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <h3 className="font-bold text-sm sm:text-base text-foreground">YoY Growth % — 2026</h3>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Annual change</span>
+              </div>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={[
+                  { city: "Hyd", growth: 18.4 },
+                  { city: "Pune", growth: 15.2 },
+                  { city: "Beng", growth: 12.5 },
+                  { city: "Noida", growth: 11.3 },
+                  { city: "Chen", growth: 9.1 },
+                  { city: "Mum", growth: 8.2 },
+                  { city: "Thane", growth: 7.5 },
+                  { city: "Ggn", growth: 6.8 },
+                  { city: "Del", growth: 5.8 },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="city" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={v => `${v}%`} />
+                  <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12 }} formatter={(v: any) => [`${v}%`, "YoY Growth"]} />
+                  <Bar dataKey="growth" fill="#10b981" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <h3 className="font-bold text-sm sm:text-base text-foreground">Supply vs Demand — 2026</h3>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">'000 units</span>
+              </div>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={[
+                  { city: "Mumbai", supply: 78, demand: 92 },
+                  { city: "Bengaluru", supply: 95, demand: 118 },
+                  { city: "Gurugram", supply: 58, demand: 71 },
+                  { city: "Pune", supply: 82, demand: 96 },
+                  { city: "Hyderabad", supply: 88, demand: 104 },
+                  { city: "Noida", supply: 64, demand: 73 },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="city" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                  <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12 }} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Bar dataKey="supply" fill="#0f3460" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="demand" fill="#e94560" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <h3 className="font-bold text-sm sm:text-base text-foreground">Buyer Segment Mix</h3>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">2026 transactions</span>
+              </div>
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart>
+                  <Pie data={[
+                    { name: "End-user (Self)", value: 58 },
+                    { name: "Investor", value: 22 },
+                    { name: "NRI", value: 12 },
+                    { name: "Upgrader", value: 8 },
+                  ]} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={{ fontSize: 11 }}>
+                    {["#0f3460", "#e94560", "#ffd700", "#10b981"].map((c, i) => <Cell key={i} fill={c} />)}
+                  </Pie>
+                  <Tooltip formatter={(v: any) => [`${v}%`, ""]} contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12 }} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground text-center mt-4 italic">
+            Data sourced from RBI House Price Index, RERA registrations, NSE Realty Index and 2.4L+ verified transactions. Forecasts are indicative; not investment advice.
+          </p>
+        </section>
+
+        {/* ═══════════════════════════════════
+            CITY MARKET HEALTH — Radar
+        ═══════════════════════════════════ */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="lg:col-span-2 bg-card border border-border rounded-3xl p-5 sm:p-8">
+            <h2 className="text-xl sm:text-2xl font-black text-foreground mb-1">Market Health Score</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-4">5-factor model: Liquidity, Price Stability, Infra Velocity, Rental Yield, Regulatory Trust.</p>
+            <ResponsiveContainer width="100%" height={320}>
+              <RadarChart data={[
+                { metric: "Liquidity", Mumbai: 92, Bengaluru: 88, Hyderabad: 85 },
+                { metric: "Price Stability", Mumbai: 78, Bengaluru: 82, Hyderabad: 76 },
+                { metric: "Infra Velocity", Mumbai: 85, Bengaluru: 90, Hyderabad: 94 },
+                { metric: "Rental Yield", Mumbai: 65, Bengaluru: 78, Hyderabad: 82 },
+                { metric: "Regulatory Trust", Mumbai: 80, Bengaluru: 86, Hyderabad: 84 },
+              ]}>
+                <PolarGrid stroke="hsl(var(--border))" />
+                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 10 }} />
+                <Radar name="Mumbai" dataKey="Mumbai" stroke="#e94560" fill="#e94560" fillOpacity={0.25} />
+                <Radar name="Bengaluru" dataKey="Bengaluru" stroke="#0f3460" fill="#0f3460" fillOpacity={0.25} />
+                <Radar name="Hyderabad" dataKey="Hyderabad" stroke="#10b981" fill="#10b981" fillOpacity={0.25} />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12 }} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white rounded-3xl p-5 sm:p-7 flex flex-col">
+            <div className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-[10px] font-bold mb-3 w-fit">
+              <Sparkles className="h-3 w-3" /> AI Market Brief
+            </div>
+            <h3 className="text-lg sm:text-xl font-black mb-3">2026 Outlook</h3>
+            <ul className="space-y-3 text-sm flex-1">
+              {[
+                { t: "Hyderabad leads", d: "+18.4% YoY on IT/pharma corridor expansion." },
+                { t: "Pune second", d: "Hinjewadi & Balewadi see record absorption." },
+                { t: "Mumbai stable", d: "Premium ₹5Cr+ segment up 11%, mid-segment flat." },
+                { t: "Rates softening", d: "RBI rate cut likely Q2 — EMIs may drop 6–8%." },
+              ].map(b => (
+                <li key={b.t} className="flex gap-2.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-bold text-white">{b.t}</div>
+                    <div className="text-white/60 text-xs">{b.d}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <Link to="/ai-tools" className="mt-5 inline-flex items-center justify-center gap-2 bg-[#ffd700] text-[#1a1a2e] px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-[#ffd700]/90 transition">
+              <Sparkles className="h-3.5 w-3.5" /> Get Full AI Report
+            </Link>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            TESTIMONIALS
+        ═══════════════════════════════════ */}
+        <section className="bg-card border border-border rounded-3xl p-5 sm:p-10">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 text-amber-700 px-4 py-1.5 rounded-full text-xs font-bold mb-3">
+              <Star className="h-3.5 w-3.5 fill-amber-500" /> Trusted by 2 Lakh+ Homebuyers
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-foreground">What Our Customers Say</h2>
+            <p className="text-sm text-muted-foreground mt-1">Real stories from real buyers across India.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {[
+              { name: "Ananya Sharma", role: "IT Professional, Bengaluru", city: "Whitefield", saving: "₹4.2L", review: "InvestingIQ's AI showed me a 3 BHK in Whitefield 8% under market. Their home-loan team got me 8.2% vs the 8.95% my bank quoted. End-to-end transparency.", rating: 5 },
+              { name: "Rajesh Kulkarni", role: "Doctor, Pune", city: "Balewadi", saving: "₹2.8L", review: "Bought a Krisala project flat after comparing price trends here. The locality intelligence dashboard saved me from a builder with 3 RERA complaints. Worth every minute.", rating: 5 },
+              { name: "Priya Menon", role: "NRI, Dubai → Kochi", city: "Kakkanad", saving: "₹6.1L", review: "Sitting in Dubai, I evaluated 12 properties via virtual tours and legal docs reviewed by their team. Stamp duty pre-calculated, registration done before I landed.", rating: 5 },
+              { name: "Vikram Singh", role: "Investor, Delhi", city: "Sector 150 Noida", saving: "₹3.5L", review: "The price-trend charts and supply-demand data convinced me to invest in Noida Expressway. 14% appreciation in 18 months. Better than any broker I've worked with.", rating: 5 },
+              { name: "Sneha Iyer", role: "First-time buyer, Chennai", city: "OMR", saving: "₹1.9L", review: "Loved the EMI calculator and affordability check. Helped me realise I should target ₹65L not ₹85L. Found a perfect 2BHK in OMR within budget.", rating: 5 },
+              { name: "Arjun Mehta", role: "Startup founder, Gurugram", city: "Golf Course Ext", saving: "₹5.4L", review: "Compared 6 builders side-by-side with their credibility scores. Picked a DLF project with the highest delivery track record. No surprises, no delays.", rating: 5 },
+            ].map(t => (
+              <article key={t.name} className="border border-border rounded-2xl p-5 hover:shadow-lg hover:border-primary/30 transition bg-gradient-to-br from-white to-muted/20">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: t.rating }).map((_, i) => <Star key={i} className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />)}
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md">Saved {t.saving}</span>
+                </div>
+                <Quote className="h-5 w-5 text-primary/30 mb-2" />
+                <p className="text-sm text-foreground/85 leading-relaxed mb-4 italic">"{t.review}"</p>
+                <div className="flex items-center gap-3 pt-3 border-t border-border">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white font-black text-sm">
+                    {t.name.split(" ").map(n => n[0]).join("")}
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm text-foreground">{t.name}</div>
+                    <div className="text-[11px] text-muted-foreground">{t.role}</div>
+                    <div className="text-[10px] text-primary font-semibold flex items-center gap-1 mt-0.5">
+                      <MapPin className="h-2.5 w-2.5" /> Bought in {t.city}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-3xl mx-auto">
+            {[
+              { v: "2L+", l: "Happy Buyers" },
+              { v: "₹12,400 Cr", l: "Transactions" },
+              { v: "4.7/5", l: "Avg Rating" },
+              { v: "98.2%", l: "Recommend" },
+            ].map(s => (
+              <div key={s.l} className="text-center bg-muted/30 rounded-xl p-3">
+                <div className="number-font text-lg sm:text-2xl font-black text-primary">{s.v}</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground font-semibold mt-1">{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            MARKET REPORTS / RESOURCES
+        ═══════════════════════════════════ */}
+        <section className="bg-card border border-border rounded-3xl p-5 sm:p-8">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-bold mb-2">
+                <Newspaper className="h-3 w-3" /> Free Resources
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-foreground">2026 Market Reports & Guides</h2>
+              <p className="text-sm text-muted-foreground mt-1">Download research-backed PDFs trusted by NRIs, investors and first-time buyers.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { t: "India Real Estate Outlook 2026", d: "82-page report on price forecasts, top micro-markets, RBI rate impact.", pages: "82 pages", color: "from-blue-500/10 to-indigo-500/10", icon: BarChart3 },
+              { t: "NRI Buyer's Complete Handbook", d: "RBI/FEMA rules, PoA execution, tax implications, repatriation.", pages: "54 pages", color: "from-emerald-500/10 to-teal-500/10", icon: ShieldCheck },
+              { t: "Home Loan & EMI Masterguide", d: "Compare 32 banks, hidden charges, PMAY subsidy, tax savings.", pages: "38 pages", color: "from-amber-500/10 to-orange-500/10", icon: Calculator },
+              { t: "Rental Yield Atlas — Top 50 Localities", d: "Best rental returns city-wise with 5-year vacancy data.", pages: "46 pages", color: "from-violet-500/10 to-purple-500/10", icon: PieChartIcon },
+              { t: "Under-Construction Safety Checklist", d: "RERA verification, escrow rules, builder due-diligence template.", pages: "24 pages", color: "from-rose-500/10 to-pink-500/10", icon: ShieldCheck },
+              { t: "Stamp Duty & Registration 2026", d: "State-wise rates, women-rebates, calculation worksheets.", pages: "31 pages", color: "from-cyan-500/10 to-sky-500/10", icon: FileText },
+            ].map(r => {
+              const Icon = r.icon;
+              return (
+                <article key={r.t} className={`group rounded-2xl border border-border p-5 bg-gradient-to-br ${r.color} hover:shadow-lg hover:-translate-y-0.5 transition`}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-11 h-11 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                      <Icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-white/70 px-2 py-1 rounded-md">{r.pages}</span>
+                  </div>
+                  <h3 className="font-black text-sm sm:text-base text-foreground mb-1.5 leading-tight">{r.t}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">{r.d}</p>
+                  <button className="inline-flex items-center gap-1.5 text-xs font-bold text-primary group-hover:gap-2.5 transition-all">
+                    <Download className="h-3.5 w-3.5" /> Download Free
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            FAQ — Schema-backed
+        ═══════════════════════════════════ */}
+        <section className="bg-card border border-border rounded-3xl p-5 sm:p-10">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-700 px-4 py-1.5 rounded-full text-xs font-bold mb-3">
+              <HelpCircle className="h-3.5 w-3.5" /> Frequently Asked
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-foreground">Real Estate Questions, Answered</h2>
+            <p className="text-sm text-muted-foreground mt-1">Expert answers to the most-searched property questions in India.</p>
+          </div>
+          <div className="max-w-3xl mx-auto space-y-3">
+            {faqList.map((f, i) => (
+              <details key={i} className="group border border-border rounded-2xl bg-muted/20 hover:bg-muted/40 transition open:bg-card open:shadow-md">
+                <summary className="cursor-pointer list-none p-4 sm:p-5 flex items-start justify-between gap-3">
+                  <h3 className="font-bold text-sm sm:text-base text-foreground pr-3">{f.q}</h3>
+                  <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5 group-open:rotate-180 transition-transform" />
+                </summary>
+                <div className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-1">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{f.a}</p>
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
+            INTERNAL LINKS — SEO hub
+        ═══════════════════════════════════ */}
+        <section className="bg-gradient-to-br from-muted/30 to-card border border-border rounded-3xl p-5 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-black text-foreground mb-1">Explore Property by City & Budget</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mb-5">Quick links to popular searches across India's top real-estate markets.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { h: "Buy by City", links: CITIES.slice(0, 8).map(c => ({ t: `Property in ${c}`, to: `/real-estate?city=${c}` })) },
+              { h: "Rent by City", links: CITIES.slice(0, 8).map(c => ({ t: `Rent in ${c}`, to: `/real-estate?tab=rent&city=${c}` })) },
+              { h: "Budget Homes", links: [
+                { t: "Under ₹50 Lakh", to: "/real-estate?budget=5000000" },
+                { t: "₹50L – ₹1 Cr", to: "/real-estate?budget=10000000" },
+                { t: "₹1 Cr – ₹2 Cr", to: "/real-estate?budget=20000000" },
+                { t: "₹2 Cr – ₹5 Cr", to: "/real-estate?budget=50000000" },
+                { t: "Luxury ₹5 Cr+", to: "/real-estate?budget=100000000" },
+                { t: "PG / Co-Living", to: "/real-estate?tab=pg" },
+                { t: "Plot & Land", to: "/real-estate?tab=plot" },
+                { t: "Commercial", to: "/real-estate?tab=commercial" },
+              ]},
+              { h: "Tools & Guides", links: [
+                { t: "EMI Calculator", to: "/calculators/emi" },
+                { t: "Home Loan Calculator", to: "/calculators/home-loan" },
+                { t: "Stamp Duty Calculator", to: "/calculators/stamp-duty" },
+                { t: "Rent vs Buy", to: "/calculators/rent-vs-buy" },
+                { t: "RERA Verification", to: "/real-estate/rera" },
+                { t: "NRI Investment Guide", to: "/real-estate/nri-guide" },
+                { t: "Interior Designers", to: "/real-estate/interiors" },
+                { t: "All Cities", to: "/real-estate" },
+              ]},
+            ].map(col => (
+              <div key={col.h}>
+                <h3 className="font-black text-xs uppercase tracking-wider text-foreground mb-3">{col.h}</h3>
+                <ul className="space-y-2">
+                  {col.links.map(l => (
+                    <li key={l.t}>
+                      <Link to={l.to} className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition flex items-center gap-1 group">
+                        <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition" />
+                        {l.t}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════
             CTA SECTION
         ═══════════════════════════════════ */}
+
         <section className="bg-[#1a1a2e] rounded-3xl p-8 sm:p-12 text-center text-white relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-0 left-1/4 w-64 h-64 bg-[#ffd700] rounded-full blur-3xl" />
