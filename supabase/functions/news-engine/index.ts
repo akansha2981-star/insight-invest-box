@@ -202,7 +202,9 @@ Deno.serve(async (req) => {
         trending: !!fresh.trending, read_time_min: fresh.read_time_min ?? 4,
         insights: fresh.insights ?? {}, schema_jsonld: fresh.schema_jsonld ?? {},
         social_meta: fresh.social_meta ?? {}, internal_links: fresh.internal_links ?? [],
-        featured_image_prompt: fresh.featured_image_prompt,
+        related_searches: fresh.related_searches ?? [],
+        trending_questions: fresh.trending_questions ?? [],
+        featured_image_prompt: null,
         seo_score, status: "pending",
       }).eq("id", id);
       if (error) return json({ error: error.message }, 500);
