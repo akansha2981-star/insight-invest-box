@@ -755,6 +755,46 @@ export default function PropertyDetailPage() {
               <ComplianceDisclaimerNote />
             </Section>
 
+            {/* INVESTMENT SCENARIOS */}
+            <Section id="scenarios" title="Investment Scenarios & ROI Planner" icon={TrendingUp}>
+              <div className="overflow-x-auto -mx-5 md:mx-0">
+                <table className="w-full text-sm min-w-[560px]">
+                  <thead>
+                    <tr className="text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border">
+                      <th className="text-left py-3 px-4">Horizon</th>
+                      <th className="text-right py-3">Projected Value</th>
+                      <th className="text-right py-3">Rental Income</th>
+                      <th className="text-right py-3">Total Gain</th>
+                      <th className="text-right py-3 px-4">ROI %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scenarios.map(s => (
+                      <tr key={s.y} className="border-b border-border/60 hover:bg-muted/40">
+                        <td className="py-3 px-4 font-bold text-foreground">{s.y} Year{s.y > 1 ? "s" : ""}</td>
+                        <td className="py-3 text-right number-font font-bold text-foreground">{formatPrice(s.value)}</td>
+                        <td className="py-3 text-right number-font text-muted-foreground">{formatPrice(s.rentTotal)}</td>
+                        <td className="py-3 text-right number-font font-bold text-gain">+{formatPrice(s.gain)}</td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="inline-flex items-center gap-1 text-xs font-black text-gain bg-gain-light border border-gain/20 px-2 py-1 rounded">
+                            <TrendingUp className="h-3 w-3" />{s.roi.toFixed(1)}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <ScenarioCard tone="emerald" label="Conservative" cagr={Math.max(cagrFwd - 0.025, 0.04) * 100} years={5} base={property.price || 0} />
+                <ScenarioCard tone="blue" label="Base Case" cagr={cagrFwd * 100} years={5} base={property.price || 0} />
+                <ScenarioCard tone="amber" label="Bullish" cagr={(cagrFwd + 0.025) * 100} years={5} base={property.price || 0} />
+              </div>
+              <ComplianceDisclaimerNote />
+            </Section>
+
+
+
             {/* PRICE TRENDS */}
             <Section id="trends" title="Price Trends & Market Intelligence" icon={BarChart3}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
