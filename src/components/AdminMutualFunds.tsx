@@ -36,6 +36,55 @@ export default function AdminMutualFunds() {
     }
   };
 
+  const discover = async () => {
+    setDiscovering(true);
+    setCandidates([]);
+    setSelected(new Set());
+    try {
+      const { data, error } = await supabase.functions.invoke("mf-engine", {
+        body: { action: "discover-funds", count: discoverCount, category: discoverCategory || undefined, theme: discoverTheme || undefined },
+      });
+      if (error) throw error;
+      const list = data?.result?.candidates ?? [];
+      setCandidates(list);
+      setSelected(new Set(list.map((_: any, i: number) => i)));
+      log(`Discovered ${list.length} fund candidates`);
+      toast.success(`AI suggested ${list.length} funds — review & approve`);
+    } catch (e: any) {
+      toast.error(`Discover failed: ${e.message}`);
+    } finally {
+      setDiscovering(false);
+    }
+  };
+
+  const approveImport = async () => {
+    const picked = candidates.filter((_, i) => selected.has(i));
+    if (!picked.length) { toast.error("Select at least one fund"); return; }
+    setImporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("mf-engine", {
+        body: { action: "import-funds", candidates: picked },
+      });
+      if (error) throw error;
+      const r = data?.result;
+      toast.success(`Imported ${r.imported}, failed ${r.failed}`);
+      log(`Import: ${r.imported} ok, ${r.failed} failed`);
+      setCandidates([]);
+      setSelected(new Set());
+      await load();
+    } catch (e: any) {
+      toast.error(`Import failed: ${e.message}`);
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const toggle = (i: number) => {
+    const s = new Set(selected);
+    s.has(i) ? s.delete(i) : s.add(i);
+    setSelected(s);
+  };
+
   return (
     <div className="space-y-6">
       <div>
