@@ -31,6 +31,7 @@ import ContactPage from "./pages/ContactPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import SitemapPage from "./pages/SitemapPage";
+import CurrencyConverterPage from "./pages/CurrencyConverterPage";
 import NotFound from "./pages/NotFound";
 import UserLogin from "./pages/UserLogin";
 import { FloatingAIButton } from "./components/FloatingAIButton";
@@ -76,6 +77,8 @@ const App = () => (
           <Route path="/tools/tax" element={<TaxCalculatorPage />} />
           <Route path="/tools/screener" element={<StockScreenerPage />} />
           <Route path="/tools/portfolio" element={<PortfolioTesterPage />} />
+          <Route path="/currency-converter" element={<CurrencyConverterPage />} />
+          <Route path="/currency-converter/:pair" element={<CurrencyConverterPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/careers" element={<CareersPage />} />
           <Route path="/contact" element={<ContactPage />} />

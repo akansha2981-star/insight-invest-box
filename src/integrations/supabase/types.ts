@@ -98,6 +98,90 @@ export type Database = {
         }
         Relationships: []
       }
+      forex_history: {
+        Row: {
+          code: string
+          created_at: string
+          date: string
+          id: number
+          rate_usd: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          date: string
+          id?: number
+          rate_usd: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          date?: string
+          id?: number
+          rate_usd?: number
+        }
+        Relationships: []
+      }
+      forex_logs: {
+        Row: {
+          completed_at: string | null
+          error: string | null
+          history_rows: number
+          id: string
+          rates_updated: number
+          source: string | null
+          started_at: string
+          status: string
+          trigger_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          error?: string | null
+          history_rows?: number
+          id?: string
+          rates_updated?: number
+          source?: string | null
+          started_at?: string
+          status?: string
+          trigger_type?: string
+        }
+        Update: {
+          completed_at?: string | null
+          error?: string | null
+          history_rows?: number
+          id?: string
+          rates_updated?: number
+          source?: string | null
+          started_at?: string
+          status?: string
+          trigger_type?: string
+        }
+        Relationships: []
+      }
+      forex_rates: {
+        Row: {
+          code: string
+          name: string | null
+          rate_usd: number
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          name?: string | null
+          rate_usd: number
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          name?: string | null
+          rate_usd?: number
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       home_banners: {
         Row: {
           banner_type: string
