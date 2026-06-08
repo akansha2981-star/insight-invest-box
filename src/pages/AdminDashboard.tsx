@@ -385,6 +385,7 @@ export default function AdminDashboard() {
         {view === 'auth-analytics' && <AdminAuthAnalytics />}
         {view === 'ai-studio' && <AdminAIContentStudio />}
         {view === 'sitemap' && <AdminSitemapManager />}
+        {view === 'smart-refresh' && <AdminSmartRefresh />}
         {view === 'registered-users' && <AdminRegisteredUsers />}
 
       </main>
