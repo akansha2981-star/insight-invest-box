@@ -901,6 +901,8 @@ export type Database = {
           investment_thesis: string | null
           is_featured: boolean | null
           key_metrics: Json | null
+          meta_description: string | null
+          meta_title: string | null
           price_history: Json | null
           published_at: string | null
           rating: string | null
@@ -926,6 +928,8 @@ export type Database = {
           investment_thesis?: string | null
           is_featured?: boolean | null
           key_metrics?: Json | null
+          meta_description?: string | null
+          meta_title?: string | null
           price_history?: Json | null
           published_at?: string | null
           rating?: string | null
@@ -951,6 +955,8 @@ export type Database = {
           investment_thesis?: string | null
           is_featured?: boolean | null
           key_metrics?: Json | null
+          meta_description?: string | null
+          meta_title?: string | null
           price_history?: Json | null
           published_at?: string | null
           rating?: string | null
