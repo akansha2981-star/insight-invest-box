@@ -491,6 +491,57 @@ export type Database = {
         }
         Relationships: []
       }
+      refresh_logs: {
+        Row: {
+          actions: Json
+          completed_at: string | null
+          id: string
+          items_archived: number
+          items_created: number
+          items_updated: number
+          pages_refreshed: number
+          rolled_back_at: string | null
+          snapshot: Json
+          started_at: string
+          status: string
+          summary: Json
+          trigger_type: string
+          triggered_by: string | null
+        }
+        Insert: {
+          actions?: Json
+          completed_at?: string | null
+          id?: string
+          items_archived?: number
+          items_created?: number
+          items_updated?: number
+          pages_refreshed?: number
+          rolled_back_at?: string | null
+          snapshot?: Json
+          started_at?: string
+          status?: string
+          summary?: Json
+          trigger_type?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          actions?: Json
+          completed_at?: string | null
+          id?: string
+          items_archived?: number
+          items_created?: number
+          items_updated?: number
+          pages_refreshed?: number
+          rolled_back_at?: string | null
+          snapshot?: Json
+          started_at?: string
+          status?: string
+          summary?: Json
+          trigger_type?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       site_config: {
         Row: {
           id: string
