@@ -9,7 +9,7 @@ import {
   ArrowLeft, Clock, User, Share2, Tag, Newspaper, Info, Target, LineChart,
   Layers, Globe, ThumbsUp, AlertTriangle, Building2, Activity, Brain, ListChecks,
   HelpCircle, BookOpen, Hash, Search, Sparkles, ExternalLink, Quote, Lightbulb,
-  Radio, TrendingUp, TrendingDown, Minus, Gauge, ShieldAlert, BarChart3,
+  Radio, TrendingUp, TrendingDown, Minus, Gauge,
 } from "lucide-react";
 
 import { ComplianceDisclaimer } from "@/components/ComplianceDisclaimer";
