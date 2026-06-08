@@ -1,5 +1,6 @@
 import { TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ComplianceDisclaimer } from "@/components/ComplianceDisclaimer";
 
 export function Footer() {
   return (
