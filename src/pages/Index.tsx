@@ -38,12 +38,12 @@ interface BlogPost {
 
 /* ── Static data ─────────────────────────────────────────────────── */
 const MARKET_STATS = [
-  { label: "Advances", value: "—", color: "text-muted-foreground", icon: ArrowUp },
-  { label: "Declines", value: "—", color: "text-muted-foreground", icon: ArrowDown },
-  { label: "Unchanged", value: "—", color: "text-muted-foreground", icon: Activity },
-  { label: "52W Highs", value: "—", color: "text-muted-foreground", icon: TrendingUp },
-  { label: "52W Lows", value: "—", color: "text-muted-foreground", icon: TrendingDown },
-  { label: "Volume", value: "—", color: "text-muted-foreground", icon: BarChart3 },
+  { label: "Advances", value: "1,284", color: "text-gain", icon: ArrowUp },
+  { label: "Declines", value: "962", color: "text-loss", icon: ArrowDown },
+  { label: "Unchanged", value: "148", color: "text-muted-foreground", icon: Activity },
+  { label: "52W Highs", value: "112", color: "text-gain", icon: TrendingUp },
+  { label: "52W Lows", value: "34", color: "text-loss", icon: TrendingDown },
+  { label: "Volume", value: "₹78,420 Cr", color: "text-foreground", icon: BarChart3 },
 ];
 
 const COMMODITIES = [
