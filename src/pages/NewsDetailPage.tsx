@@ -624,6 +624,39 @@ export default function NewsDetailPage() {
               </PremiumShell>
             )}
 
+            {/* INVESTOR IMPACT */}
+            {ins?.investor_impact && (
+              <PremiumShell
+                eyebrow="Portfolio lens"
+                title="Impact on Investors"
+                icon={Gauge}
+                iconBg="bg-gradient-to-br from-slate-700 to-slate-900 text-white"
+                gradient="bg-gradient-to-br from-slate-200 to-slate-400"
+                borderAccent="border-slate-200"
+              >
+                <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50/70 to-white p-5">
+                  <div className="grid sm:grid-cols-[auto_1fr] gap-5 items-start">
+                    <div className="hidden sm:flex flex-col items-center gap-1.5 pr-5 border-r border-slate-200">
+                      <Gauge className="h-9 w-9 text-slate-700" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Retail</span>
+                    </div>
+                    <div className="text-[15px] leading-[1.8] text-foreground/85">{ins.investor_impact}</div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                    {[
+                      { label: "Short term", tone: "amber" },
+                      { label: "Medium term", tone: "sky" },
+                      { label: "Long term", tone: "emerald" },
+                    ].map(t => (
+                      <div key={t.label} className={`rounded-lg border px-2 py-1.5 bg-${t.tone}-50/60 border-${t.tone}-200 text-[10px] font-bold uppercase tracking-wider text-${t.tone}-700`}>
+                        {t.label}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PremiumShell>
+            )}
+
             {/* 7 + 8. PROS & RISKS */}
             <div className="grid md:grid-cols-2 gap-5 sm:gap-6">
               {Array.isArray(ins?.pros) && ins!.pros!.length > 0 && (
