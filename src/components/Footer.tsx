@@ -16,9 +16,7 @@ export function Footer() {
             <p className="text-xs leading-relaxed text-white/50 mb-4">
               India's trusted financial intelligence platform. Real-time data, expert analysis, and comprehensive market coverage.
             </p>
-            <p className="text-[10px] text-white/30 leading-relaxed">
-              Disclaimer: Information provided is for educational purposes only and does not constitute financial advice.
-            </p>
+            <ComplianceDisclaimer variant="footer" />
           </div>
 
           {[
