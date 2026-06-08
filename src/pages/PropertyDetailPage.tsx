@@ -513,6 +513,40 @@ export default function PropertyDetailPage() {
               </div>
             </Section>
 
+            {/* INVESTOR VERDICT */}
+            <section id="verdict" className="scroll-mt-20 rounded-2xl overflow-hidden shadow-card-md">
+              <div className={`bg-gradient-to-br ${verdictTone === "emerald" ? "from-emerald-600 via-emerald-700 to-teal-800" : verdictTone === "blue" ? "from-blue-600 via-blue-700 to-indigo-800" : verdictTone === "amber" ? "from-amber-500 via-orange-600 to-rose-700" : "from-rose-600 via-red-700 to-rose-900"} text-white p-6 md:p-7`}>
+                <div className="flex items-start gap-5 flex-wrap">
+                  <div className="relative w-28 h-28 shrink-0">
+                    <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="3" />
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${verdictScore}, 100`} />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-3xl font-black number-font">{verdictScore}</span>
+                      <span className="text-[10px] opacity-80 uppercase tracking-widest">/ 100</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-[220px]">
+                    <div className="text-[11px] uppercase tracking-widest opacity-80 font-bold">Investor Verdict</div>
+                    <div className="text-3xl md:text-4xl font-black mt-1 flex items-center gap-2 flex-wrap">
+                      {verdictLabel}
+                      <span className="text-[10px] font-bold uppercase tracking-widest bg-white/20 border border-white/30 px-2.5 py-1 rounded-full">AI Composite</span>
+                    </div>
+                    <p className="text-sm text-white/85 mt-2 leading-relaxed">
+                      Based on growth outlook ({derived?.scores.growth}/100), connectivity ({derived?.scores.connectivity}/100), rental demand ({derived?.scores.rentalDemand}/100), safety ({derived?.scores.safety}/100) and macro micro-market signals for {property.locality || property.city}.
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+                      <VerdictPill label="Growth" value={`+${(cagrFwd * 100).toFixed(1)}% CAGR`} />
+                      <VerdictPill label="Rental Yield" value={`${annualRentYield.toFixed(2)}%`} />
+                      <VerdictPill label="EMI Load" value={`${Math.round((monthlyEMI / monthlyIncome) * 100)}% Income`} />
+                      <VerdictPill label="Liquidity" value={derived!.scores.investment >= 78 ? "High" : derived!.scores.investment >= 65 ? "Medium" : "Moderate"} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {/* CONFIGURATIONS */}
             <Section id="configurations" title="Available Configurations" icon={Bed}>
               {property.bhk_configurations && property.bhk_configurations.length > 0 ? (
