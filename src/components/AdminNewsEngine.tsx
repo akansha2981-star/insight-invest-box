@@ -169,13 +169,27 @@ export function AdminNewsEngine() {
         <div className="flex flex-wrap items-end gap-4">
           <div>
             <label className="text-xs font-bold uppercase text-muted-foreground block mb-1">Articles to generate</label>
-            <div className="flex gap-1">
+            <div className="flex gap-1 items-center">
               {COUNT_OPTIONS.map(n => (
                 <button key={n} onClick={() => setCount(n)}
                   className={`px-3 py-2 text-sm font-semibold rounded-lg border ${count === n ? "bg-primary text-white border-primary" : "bg-white border-border hover:bg-muted"}`}>
                   {n}
                 </button>
               ))}
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={count}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  if (!isNaN(v)) setCount(Math.max(1, Math.min(100, v)));
+                }}
+                className="w-20 px-3 py-2 text-sm font-semibold rounded-lg border border-border bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary ml-1"
+                placeholder="Custom"
+                aria-label="Custom article count"
+              />
+              <span className="text-[11px] text-muted-foreground ml-1">(max 100)</span>
             </div>
           </div>
           <div className="flex-1 min-w-[260px]">
