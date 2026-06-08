@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Database, Sparkles, Newspaper, RefreshCw, Loader2 } from "lucide-react";
+import { Database, Sparkles, Newspaper, RefreshCw, Loader2, Search, CheckCircle2, X, Download } from "lucide-react";
 
 export default function AdminMutualFunds() {
   const [funds, setFunds] = useState<any[]>([]);
