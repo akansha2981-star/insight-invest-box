@@ -295,8 +295,8 @@ export default function RealEstatePage() {
         </div>
 
         <div className="relative max-w-[1440px] mx-auto px-4 pt-12 pb-8 md:pt-20 md:pb-12">
-          {/* Hero text */}
-          <div className="mb-10 max-w-2xl">
+          {/* Hero text — centered */}
+          <div className="mb-10 max-w-3xl mx-auto text-center">
             <h1 className="text-3xl md:text-5xl lg:text-[56px] font-black text-white leading-tight mb-4">
               India's Largest<br />
               <span className="text-white">Real Estate Platform</span>
@@ -309,8 +309,8 @@ export default function RealEstatePage() {
             </p>
           </div>
 
-          {/* ─── Search Box ─── */}
-          <div className="max-w-5xl">
+          {/* ─── Search Box — full width, centered ─── */}
+          <div className="max-w-6xl mx-auto">
             {/* Tabs */}
             <div className="flex gap-0 border-b border-white/10">
               {SEARCH_TABS.map(tab => (
