@@ -32,6 +32,7 @@ type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | '
 const NAV_ITEMS = [
   { id: 'dashboard',        label: 'Dashboard',          icon: BarChart2 },
   { id: 'news-engine',      label: 'News Engine',        icon: Newspaper },
+  { id: 'mutual-funds',     label: 'Mutual Funds & ETFs', icon: LineChart },
   { id: 'ai-optimizer',     label: 'AI Optimizer',       icon: Sparkles },
   { id: 'smart-refresh',    label: 'Smart Refresh',      icon: Zap },
   { id: 'forex',            label: 'Forex Monitor',      icon: Globe },
