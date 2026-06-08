@@ -402,6 +402,25 @@ export default function NewsDetailPage() {
               </article>
             )}
 
+            {/* AI enrichment loading banner */}
+            {enriching && !insightsAreRich(ins) && (
+              <div className="bg-gradient-to-r from-violet-50 via-sky-50 to-emerald-50 border border-violet-200 rounded-2xl p-5 sm:p-6 shadow-sm flex items-center gap-4">
+                <div className="relative h-11 w-11 rounded-xl bg-gradient-to-br from-violet-500 to-sky-500 text-white flex items-center justify-center shadow-md flex-shrink-0">
+                  <Sparkles className="h-5 w-5 animate-pulse" />
+                  <span className="absolute -inset-1 rounded-xl bg-violet-400/30 blur animate-pulse" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-foreground">Generating advanced AI analysis…</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Building 12 deep-dive insight blocks: market impact, sectors, companies, sentiment, expert take, FAQs and more.</div>
+                </div>
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="h-2 w-2 rounded-full bg-sky-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+              </div>
+            )}
+
             {/* 1. KEY TAKEAWAYS — gradient numbered tiles */}
             {Array.isArray(ins?.key_takeaways) && ins!.key_takeaways!.length > 0 && (
               <PremiumShell
