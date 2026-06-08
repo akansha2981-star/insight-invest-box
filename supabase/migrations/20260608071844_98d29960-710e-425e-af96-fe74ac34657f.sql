@@ -1,0 +1,1 @@
+UPDATE public.optimizer_proposals SET target_url = REPLACE(target_url, '/stock-review/', '/stocks/review/') WHERE target_url LIKE '%/stock-review/%';
