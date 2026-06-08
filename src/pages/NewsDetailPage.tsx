@@ -430,15 +430,24 @@ export default function NewsDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-8">
           {/* Left column — section cards */}
           <div className="space-y-5 sm:space-y-6">
-            {/* Article body */}
-            {post.content && (
-              <article className="bg-white border border-border rounded-2xl p-5 sm:p-8 shadow-sm">
-                <div
-                  className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-xl prose-p:leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: post.content }}
-                />
-              </article>
-            )}
+            {/* Article body — raw news story only (insight sections are rendered as dedicated cards below) */}
+            {(() => {
+              const cleaned = stripDuplicatedInsightSections(post.content || "");
+              if (!cleaned) return null;
+              return (
+                <article className="relative bg-white border border-border rounded-2xl p-5 sm:p-8 shadow-sm overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-sky-500 to-emerald-500" />
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-4">
+                    <Newspaper className="h-3.5 w-3.5 text-primary" /> The Story
+                  </div>
+                  <div
+                    className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-xl prose-p:leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: cleaned }}
+                  />
+                </article>
+              );
+            })()}
+
 
             {/* AI enrichment loading banner */}
             {enriching && !insightsAreRich(ins) && (
