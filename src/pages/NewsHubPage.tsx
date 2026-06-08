@@ -5,12 +5,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { StockTicker } from "@/components/StockTicker";
-import { Clock, TrendingUp, Newspaper, Search, Sparkles } from "lucide-react";
+import { Clock, Search, Sparkles, TrendingUp, Radio, Filter } from "lucide-react";
 
 interface NewsItem {
-  id: string; title: string; slug: string; excerpt: string | null;
-  cover_image_url: string | null; category: string | null; tags: string[] | null;
-  published_at: string | null; author_name: string | null;
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  category: string | null;
+  tags: string[] | null;
+  published_at: string | null;
+  author_name: string | null;
 }
 
 const CATEGORY_FILTERS = [
@@ -19,10 +24,11 @@ const CATEGORY_FILTERS = [
   "Global Markets", "Business News",
 ];
 
-function readTime(text: string | null): number {
-  if (!text) return 3;
-  const words = text.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
-  return Math.max(2, Math.round(words / 220));
+const LIVE_THRESHOLD_MS = 60 * 60 * 1000; // 1 hour
+
+function isLive(iso: string | null, now: number) {
+  if (!iso) return false;
+  return now - new Date(iso).getTime() < LIVE_THRESHOLD_MS;
 }
 
 function formatTime(iso: string | null): string {
@@ -30,13 +36,26 @@ function formatTime(iso: string | null): string {
   return new Date(iso).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
-function formatDateHeading(iso: string): string {
-  const d = new Date(iso);
+function formatDateHeading(key: string): string {
+  if (key === "Unknown") return "Earlier";
+  const d = new Date(key);
   const today = new Date();
   const yest = new Date(today.getTime() - 86400000);
   if (d.toDateString() === today.toDateString()) return "Today";
   if (d.toDateString() === yest.toDateString()) return "Yesterday";
-  return d.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  return d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
+}
+
+function relativeTime(iso: string | null, now: number): string {
+  if (!iso) return "";
+  const diff = now - new Date(iso).getTime();
+  const m = Math.round(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.round(h / 24);
+  return `${d}d ago`;
 }
 
 export default function NewsHubPage() {
@@ -44,31 +63,46 @@ export default function NewsHubPage() {
   const [loading, setLoading] = useState(true);
   const [activeCat, setActiveCat] = useState("All");
   const [query, setQuery] = useState("");
+  const [now, setNow] = useState(Date.now());
+
+  async function fetchNews() {
+    const { data } = await supabase
+      .from("blog_posts")
+      .select("id,title,slug,excerpt,category,tags,published_at,author_name")
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .limit(200);
+    setItems((data as NewsItem[]) ?? []);
+    setLoading(false);
+  }
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("blog_posts")
-        .select("id,title,slug,excerpt,cover_image_url,category,tags,published_at,author_name,content")
-        .eq("status", "published")
-        .order("published_at", { ascending: false })
-        .limit(200);
-      setItems((data as any) ?? []);
-      setLoading(false);
-    })();
+    fetchNews();
+    const tick = setInterval(() => setNow(Date.now()), 30_000); // keep LIVE badges fresh
+    const poll = setInterval(fetchNews, 90_000); // auto-pull new news
+    return () => { clearInterval(tick); clearInterval(poll); };
   }, []);
 
   const filtered = useMemo(() => {
     let list = items;
-    if (activeCat !== "All") list = list.filter(i => (i.category ?? "").toLowerCase().includes(activeCat.toLowerCase()) || activeCat.toLowerCase().includes((i.category ?? "").toLowerCase()));
+    if (activeCat !== "All") {
+      list = list.filter(i => {
+        const c = (i.category ?? "").toLowerCase();
+        const a = activeCat.toLowerCase();
+        return c.includes(a) || a.includes(c);
+      });
+    }
     if (query) {
       const q = query.toLowerCase();
-      list = list.filter(i => i.title.toLowerCase().includes(q) || (i.excerpt ?? "").toLowerCase().includes(q) || (i.tags ?? []).some(t => t.toLowerCase().includes(q)));
+      list = list.filter(i =>
+        i.title.toLowerCase().includes(q) ||
+        (i.excerpt ?? "").toLowerCase().includes(q) ||
+        (i.tags ?? []).some(t => t.toLowerCase().includes(q))
+      );
     }
     return list;
   }, [items, activeCat, query]);
 
-  // Group by date
   const grouped = useMemo(() => {
     const map = new Map<string, NewsItem[]>();
     for (const it of filtered) {
@@ -79,16 +113,16 @@ export default function NewsHubPage() {
     return Array.from(map.entries());
   }, [filtered]);
 
-  const headlineStory = filtered[0];
+  const liveCount = filtered.filter(i => isLive(i.published_at, now)).length;
 
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>News Hub | InvestingIQ — AI-curated Indian finance news</title>
-        <meta name="description" content="Live timeline of Indian stock market, mutual fund, IPO, economy, banking and crypto news with AI-powered analysis and insights." />
+        <title>News Hub | InvestingIQ — Live Indian finance news timeline</title>
+        <meta name="description" content="Real-time timeline of Indian stock market, mutual fund, IPO, economy, banking and crypto news with deep AI analysis. LIVE updates every minute." />
         <link rel="canonical" href="https://www.investingiq.in/news-hub" />
         <meta property="og:title" content="News Hub | InvestingIQ" />
-        <meta property="og:description" content="AI-curated Indian finance news with deep market insights." />
+        <meta property="og:description" content="Live AI-curated Indian finance news with deep market insights." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.investingiq.in/news-hub" />
       </Helmet>
@@ -97,33 +131,56 @@ export default function NewsHubPage() {
 
       {/* Hero */}
       <section className="bg-gradient-to-br from-primary/10 via-background to-purple-50/40 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-10 lg:py-14">
+        <div className="max-w-7xl mx-auto px-4 py-8 lg:py-12">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary mb-3">
-            <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span></span>
-            <Sparkles className="h-3.5 w-3.5" /> AI-Curated Live News
+            <Radio className="h-3.5 w-3.5 animate-pulse" />
+            <span>Live News Timeline</span>
+            <Sparkles className="h-3.5 w-3.5 ml-1" />
+            <span className="text-muted-foreground font-medium normal-case tracking-normal">AI-curated</span>
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight">News Hub</h1>
-          <p className="text-base text-muted-foreground mt-2 max-w-2xl">
-            Real-time Indian finance news, analysed by AI. Every article comes with market impact,
-            investor implications, sentiment, FAQs and educational context.
+          <p className="text-sm sm:text-base text-muted-foreground mt-2 max-w-2xl">
+            A real-time chronological feed of Indian finance news. Every story includes AI-powered market impact,
+            investor implications, sector breakdowns, FAQs, and SEO-rich analysis.
           </p>
-          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+          <div className="mt-5 flex flex-col sm:flex-row gap-3 sm:items-center">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search news, tags, companies…"
-                className="w-full pl-9 pr-3 py-2.5 text-sm bg-white border border-border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Search news, tags, companies…"
+                className="w-full pl-9 pr-3 py-2.5 text-sm bg-white border border-border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
             </div>
+            {liveCount > 0 && (
+              <div className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-red-50 text-red-700 border border-red-200 text-xs font-semibold w-fit">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
+                </span>
+                {liveCount} LIVE {liveCount === 1 ? "story" : "stories"}
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Category chips */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-3 overflow-x-auto">
-          <div className="flex gap-2 min-w-max">
+      {/* Category chips — sticky */}
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+          <Filter className="h-4 w-4 text-muted-foreground hidden sm:block flex-shrink-0" />
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
             {CATEGORY_FILTERS.map(c => (
-              <button key={c} onClick={() => setActiveCat(c)}
-                className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border whitespace-nowrap transition-colors ${activeCat === c ? "bg-primary text-white border-primary" : "bg-white text-muted-foreground border-border hover:bg-muted"}`}>
+              <button
+                key={c}
+                onClick={() => setActiveCat(c)}
+                className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border whitespace-nowrap transition-colors flex-shrink-0 ${
+                  activeCat === c
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-muted-foreground border-border hover:bg-muted"
+                }`}
+              >
                 {c}
               </button>
             ))}
@@ -131,83 +188,110 @@ export default function NewsHubPage() {
         </div>
       </div>
 
-      {/* Featured / Headline */}
-      {headlineStory && !query && activeCat === "All" && (
-        <section className="max-w-7xl mx-auto px-4 pt-8">
-          <Link to={`/news/${headlineStory.slug}`} className="group block bg-white border border-border rounded-2xl overflow-hidden shadow-card hover:shadow-lg transition-shadow">
-            <div className="grid lg:grid-cols-2 gap-0">
-              <div className="aspect-[16/10] lg:aspect-auto bg-muted relative overflow-hidden">
-                {headlineStory.cover_image_url ? (
-                  <img src={headlineStory.cover_image_url} alt={headlineStory.title} loading="eager" className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.02] transition-transform" />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple-100 flex items-center justify-center">
-                    <Newspaper className="h-16 w-16 text-primary/40" />
-                  </div>
-                )}
-                <span className="absolute top-4 left-4 text-[10px] font-bold uppercase bg-red-600 text-white px-2 py-1 rounded flex items-center gap-1"><TrendingUp className="h-3 w-3" />Top Story</span>
-              </div>
-              <div className="p-6 lg:p-8 flex flex-col justify-center">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                  <span className="bg-primary/10 text-primary px-2 py-0.5 rounded font-bold uppercase text-[10px]">{headlineStory.category ?? "Markets"}</span>
-                  <span>{new Date(headlineStory.published_at ?? "").toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · {formatTime(headlineStory.published_at)}</span>
-                </div>
-                <h2 className="text-2xl lg:text-3xl font-bold text-foreground leading-tight group-hover:text-primary transition-colors">{headlineStory.title}</h2>
-                {headlineStory.excerpt && <p className="text-base text-muted-foreground mt-3 line-clamp-3">{headlineStory.excerpt}</p>}
-                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-4">
-                  <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {readTime((headlineStory as any).content ?? headlineStory.excerpt)} min read</span>
-                  {headlineStory.author_name && <span>· {headlineStory.author_name}</span>}
-                </div>
-              </div>
-            </div>
-          </Link>
-        </section>
-      )}
-
       {/* Timeline */}
-      <section className="max-w-7xl mx-auto px-4 py-10">
+      <section className="max-w-7xl mx-auto px-4 py-8 sm:py-10">
         {loading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[1,2,3,4,5,6].map(i => <div key={i} className="bg-card border border-border rounded-xl h-72 animate-pulse" />)}
+          <div className="space-y-4 max-w-3xl mx-auto">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="bg-card border border-border rounded-xl h-28 animate-pulse" />
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">
-            <Newspaper className="h-12 w-12 mx-auto mb-3 opacity-30" />
+            <Radio className="h-12 w-12 mx-auto mb-3 opacity-30" />
             <p>No news matches your filter.</p>
           </div>
         ) : (
           <div className="space-y-12">
-            {grouped.map(([date, group]) => (
-              <div key={date}>
-                <div className="flex items-center gap-3 mb-5 sticky top-[64px] z-10 bg-background/95 backdrop-blur py-2">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">{formatDateHeading(date)}</h3>
+            {grouped.map(([dateKey, group]) => (
+              <div key={dateKey} className="relative">
+                {/* Date heading */}
+                <div className="sticky top-[60px] z-20 bg-background/95 backdrop-blur py-2 mb-4 flex items-center gap-3">
+                  <div className="h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-primary/15" />
+                  <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider text-foreground">
+                    {formatDateHeading(dateKey)}
+                  </h2>
                   <div className="flex-1 h-px bg-border" />
-                  <span className="text-xs text-muted-foreground">{group.length} {group.length === 1 ? "article" : "articles"}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {group.length} {group.length === 1 ? "story" : "stories"}
+                  </span>
                 </div>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {group.map(it => (
-                    <Link key={it.id} to={`/news/${it.slug}`} className="group bg-white border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5">
-                      <div className="aspect-[16/9] bg-muted relative overflow-hidden">
-                        {it.cover_image_url ? (
-                          <img src={it.cover_image_url} alt={it.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform" />
-                        ) : (
-                          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-purple-100/50 flex items-center justify-center">
-                            <Newspaper className="h-10 w-10 text-primary/40" />
-                          </div>
-                        )}
-                        <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-white/95 text-primary px-2 py-0.5 rounded">{it.category ?? "News"}</span>
-                        <span className="absolute top-2 right-2 text-[10px] font-semibold bg-black/70 text-white px-2 py-0.5 rounded flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{formatTime(it.published_at)}</span>
-                      </div>
-                      <div className="p-4">
-                        <h4 className="font-bold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">{it.title}</h4>
-                        {it.excerpt && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{it.excerpt}</p>}
-                        <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-3">
-                          <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{readTime((it as any).content ?? it.excerpt)} min</span>
-                          {it.tags && it.tags[0] && <span>· #{it.tags[0]}</span>}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+
+                {/* Timeline rail + cards */}
+                <div className="relative pl-6 sm:pl-10 lg:pl-12">
+                  {/* Vertical rail */}
+                  <div className="absolute left-2 sm:left-4 lg:left-5 top-2 bottom-2 w-px bg-gradient-to-b from-primary/40 via-border to-border" />
+
+                  <ol className="space-y-4 sm:space-y-5">
+                    {group.map(it => {
+                      const live = isLive(it.published_at, now);
+                      return (
+                        <li key={it.id} className="relative">
+                          {/* Timeline dot */}
+                          <span
+                            className={`absolute -left-[18px] sm:-left-[26px] lg:-left-[31px] top-5 flex items-center justify-center h-4 w-4 sm:h-5 sm:w-5 rounded-full ring-4 ring-background ${
+                              live ? "bg-red-600" : "bg-primary"
+                            }`}
+                          >
+                            {live && (
+                              <span className="absolute inset-0 rounded-full bg-red-500 opacity-60 animate-ping" />
+                            )}
+                          </span>
+
+                          <Link
+                            to={`/news/${it.slug}`}
+                            className="group block bg-white border border-border hover:border-primary/40 rounded-xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-center gap-2 flex-wrap mb-2">
+                              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded">
+                                {it.category ?? "Markets"}
+                              </span>
+                              {live && (
+                                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider bg-red-600 text-white px-2 py-0.5 rounded flex items-center gap-1">
+                                  <span className="relative flex h-1.5 w-1.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+                                  </span>
+                                  LIVE
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                <span className="number-font">{formatTime(it.published_at)}</span>
+                                <span className="opacity-60">·</span>
+                                <span>{relativeTime(it.published_at, now)}</span>
+                              </span>
+                            </div>
+
+                            <h3 className="text-base sm:text-lg font-bold text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                              {it.title}
+                            </h3>
+
+                            {it.excerpt && (
+                              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{it.excerpt}</p>
+                            )}
+
+                            {it.tags && it.tags.length > 0 && (
+                              <div className="flex items-center gap-1.5 flex-wrap mt-3">
+                                {it.tags.slice(0, 4).map(t => (
+                                  <span key={t} className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                    #{t}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-3 pt-3 border-t border-border/60">
+                              <span className="flex items-center gap-1 group-hover:text-primary transition-colors font-medium">
+                                <TrendingUp className="h-3 w-3" /> Read deep analysis
+                              </span>
+                              {it.author_name && <span className="ml-auto">{it.author_name}</span>}
+                            </div>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ol>
                 </div>
               </div>
             ))}
