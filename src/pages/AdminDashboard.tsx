@@ -388,6 +388,7 @@ export default function AdminDashboard() {
         {view === 'ai-studio' && <AdminAIContentStudio />}
         {view === 'sitemap' && <AdminSitemapManager />}
         {view === 'smart-refresh' && <AdminSmartRefresh />}
+        {view === 'forex' && <AdminForexMonitor />}
         {view === 'registered-users' && <AdminRegisteredUsers />}
 
       </main>
