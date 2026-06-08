@@ -361,126 +361,341 @@ export default function NewsDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-8">
           {/* Left column — section cards */}
           <div className="space-y-5 sm:space-y-6">
+            {/* 1. KEY TAKEAWAYS — gradient numbered tiles */}
             {Array.isArray(ins?.key_takeaways) && ins!.key_takeaways!.length > 0 && (
-              <SectionCard title="Key Takeaways" icon={ListChecks} accent="bg-amber-50 text-amber-700">
-                <div className="grid sm:grid-cols-2 gap-2.5">
+              <PremiumShell
+                eyebrow="At a glance"
+                title="Key Takeaways"
+                icon={ListChecks}
+                iconBg="bg-gradient-to-br from-amber-400 to-orange-500 text-white"
+                gradient="bg-gradient-to-br from-amber-200 via-orange-200 to-rose-200"
+                borderAccent="border-amber-200/70"
+              >
+                <div className="grid sm:grid-cols-2 gap-3">
                   {ins!.key_takeaways!.map((k, i) => (
-                    <div key={i} className="flex gap-2.5 items-start bg-amber-50/50 border border-amber-100 rounded-lg p-3">
-                      <span className="h-6 w-6 rounded-full bg-amber-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
-                      <span className="text-sm">{k}</span>
+                    <div key={i} className="group/item relative flex gap-3 items-start p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50/40 border border-amber-200/60 hover:border-amber-400 hover:shadow-md transition-all">
+                      <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white text-sm font-black flex items-center justify-center flex-shrink-0 shadow-md ring-2 ring-white">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="text-sm leading-relaxed text-foreground/90 pt-0.5">{k}</span>
                     </div>
                   ))}
                 </div>
-              </SectionCard>
+              </PremiumShell>
             )}
 
+            {/* 2. WHAT IS THIS NEWS — editorial drop-cap */}
             {ins?.what_is && (
-              <SectionCard title="What is this News?" icon={Info}>
-                <p>{ins.what_is}</p>
-              </SectionCard>
-            )}
-
-            {ins?.why_matters && (
-              <SectionCard title="Why is this Important for Investors?" icon={Target} accent="bg-blue-50 text-blue-700">
-                <p>{ins.why_matters}</p>
-              </SectionCard>
-            )}
-
-            {ins?.market_impact && (
-              <SectionCard title="Impact on the Stock Market" icon={LineChart} accent="bg-violet-50 text-violet-700">
-                <p>{ins.market_impact}</p>
-              </SectionCard>
-            )}
-
-            {Array.isArray(ins?.sector_impact) && ins!.sector_impact!.length > 0 && (
-              <SectionCard title="Impact on Specific Sectors" icon={Layers} accent="bg-indigo-50 text-indigo-700">
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {ins!.sector_impact!.map((s, i) => (
-                    <div key={i} className="border border-border rounded-xl p-3.5">
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="font-semibold text-foreground text-sm">{s.sector}</span>
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${impactPillClass(s.impact)}`}>
-                          {s.impact ?? "Neutral"}
-                        </span>
-                      </div>
-                      {s.note && <p className="text-xs text-muted-foreground leading-relaxed">{s.note}</p>}
-                    </div>
-                  ))}
+              <PremiumShell
+                eyebrow="The story"
+                title="What Is This News About?"
+                icon={Info}
+                iconBg="bg-gradient-to-br from-sky-400 to-blue-600 text-white"
+                gradient="bg-gradient-to-br from-sky-200 to-blue-200"
+                borderAccent="border-sky-200/70"
+              >
+                <div className="relative rounded-xl bg-gradient-to-br from-sky-50/60 to-white border-l-4 border-sky-500 p-5">
+                  <PremiumProse>{ins.what_is}</PremiumProse>
                 </div>
-              </SectionCard>
+              </PremiumShell>
             )}
 
-            {ins?.economy_impact && (
-              <SectionCard title="Impact on the Indian Economy" icon={Globe} accent="bg-teal-50 text-teal-700">
-                <p>{ins.economy_impact}</p>
-              </SectionCard>
+            {/* 3. WHY THIS NEWS MATTERS */}
+            {ins?.why_matters && (
+              <PremiumShell
+                eyebrow="Investor lens"
+                title="Why This News Matters"
+                icon={Target}
+                iconBg="bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
+                gradient="bg-gradient-to-br from-blue-200 to-indigo-200"
+                borderAccent="border-blue-200/70"
+              >
+                <div className="relative grid md:grid-cols-[auto_1fr] gap-5 items-start">
+                  <div className="hidden md:flex h-24 w-24 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 items-center justify-center relative">
+                    <div className="absolute inset-2 rounded-full border-2 border-dashed border-blue-300 animate-[spin_18s_linear_infinite]" />
+                    <Target className="h-10 w-10 text-blue-600 relative z-10" />
+                  </div>
+                  <div className="text-[15px] leading-[1.8] text-foreground/85 bg-gradient-to-br from-blue-50/50 to-transparent rounded-xl p-4 border border-blue-100">
+                    {ins.why_matters}
+                  </div>
+                </div>
+              </PremiumShell>
             )}
 
-            <div className="grid md:grid-cols-2 gap-5 sm:gap-6">
-              {Array.isArray(ins?.pros) && ins!.pros!.length > 0 && (
-                <SectionCard title="Advantages & Opportunities" icon={ThumbsUp} accent="bg-emerald-50 text-emerald-700">
-                  <Bullets items={ins!.pros} />
-                </SectionCard>
-              )}
-              {Array.isArray(ins?.risks) && ins!.risks!.length > 0 && (
-                <SectionCard title="Risks & Concerns" icon={AlertTriangle} accent="bg-red-50 text-red-700">
-                  <Bullets items={ins!.risks} />
-                </SectionCard>
-              )}
-            </div>
+            {/* 4. POTENTIAL IMPACT ON THE STOCK MARKET — ticker-style */}
+            {ins?.market_impact && (
+              <PremiumShell
+                eyebrow="Market reaction"
+                title="Potential Impact on the Stock Market"
+                icon={LineChart}
+                iconBg="bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white"
+                gradient="bg-gradient-to-br from-violet-200 to-fuchsia-200"
+                borderAccent="border-violet-200/70"
+              >
+                <div className="rounded-xl border border-violet-100 overflow-hidden">
+                  <div className="bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white px-4 py-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-widest">
+                    <span className="flex items-center gap-2"><Activity className="h-3.5 w-3.5 animate-pulse" /> Live Market Read</span>
+                    <span className="opacity-80">NSE · BSE</span>
+                  </div>
+                  <div className="p-5 bg-gradient-to-br from-violet-50/40 to-white text-[15px] leading-[1.8] text-foreground/85">
+                    {ins.market_impact}
+                  </div>
+                  <div className="grid grid-cols-3 border-t border-violet-100 bg-violet-50/30 text-center text-[10px] font-bold uppercase tracking-wider divide-x divide-violet-100">
+                    <div className="p-2"><span className="text-emerald-600 block text-base number-font">▲</span> Bullish cues</div>
+                    <div className="p-2"><span className="text-amber-600 block text-base number-font">●</span> Watch points</div>
+                    <div className="p-2"><span className="text-red-600 block text-base number-font">▼</span> Bearish risks</div>
+                  </div>
+                </div>
+              </PremiumShell>
+            )}
 
-            {Array.isArray(ins?.companies_affected) && ins!.companies_affected!.length > 0 && (
-              <SectionCard title="Companies Potentially Affected" icon={Building2} accent="bg-slate-100 text-slate-700">
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {ins!.companies_affected!.map((c, i) => {
-                    const co = typeof c === "string" ? { name: c } as CompanyImpact : c;
+            {/* 5. SECTOR IMPACT — bars */}
+            {Array.isArray(ins?.sector_impact) && ins!.sector_impact!.length > 0 && (
+              <PremiumShell
+                eyebrow="Sector heatmap"
+                title="Impact on Specific Sectors"
+                icon={Layers}
+                iconBg="bg-gradient-to-br from-indigo-500 to-purple-600 text-white"
+                gradient="bg-gradient-to-br from-indigo-200 to-purple-200"
+                borderAccent="border-indigo-200/70"
+              >
+                <div className="space-y-3">
+                  {ins!.sector_impact!.map((s, i) => {
+                    const val = impactBarValue(s.impact);
                     return (
-                      <div key={i} className="border border-border rounded-xl p-3.5">
-                        <div className="flex items-center justify-between gap-2 mb-1.5">
-                          <div className="min-w-0">
-                            <div className="font-semibold text-foreground text-sm truncate">{co.name}</div>
-                            {co.ticker && <div className="text-[11px] text-muted-foreground number-font">{co.ticker}</div>}
+                      <div key={i} className="rounded-xl border border-indigo-100 p-4 bg-gradient-to-br from-white to-indigo-50/30 hover:shadow-md transition-all">
+                        <div className="flex items-center justify-between gap-2 mb-2.5">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="h-7 w-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0">
+                              <Layers className="h-3.5 w-3.5" />
+                            </div>
+                            <span className="font-bold text-foreground text-sm truncate">{s.sector}</span>
                           </div>
-                          {co.impact && (
-                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${impactPillClass(co.impact)}`}>
-                              {co.impact}
-                            </span>
-                          )}
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${impactPillClass(s.impact)}`}>
+                            {s.impact ?? "Neutral"}
+                          </span>
                         </div>
-                        {co.note && <p className="text-xs text-muted-foreground leading-relaxed">{co.note}</p>}
+                        <div className="h-2 rounded-full bg-slate-100 overflow-hidden mb-2">
+                          <div
+                            className={`h-full bg-gradient-to-r ${impactBarColor(s.impact)} transition-all duration-700`}
+                            style={{ width: `${val}%` }}
+                          />
+                        </div>
+                        {s.note && <p className="text-xs text-muted-foreground leading-relaxed">{s.note}</p>}
                       </div>
                     );
                   })}
                 </div>
-              </SectionCard>
+              </PremiumShell>
             )}
 
-            {(ins?.sentiment || ins?.expert_analysis) && (
-              <SectionCard title="Market Sentiment Analysis" icon={Activity} accent="bg-fuchsia-50 text-fuchsia-700">
-                {ins?.sentiment && (
-                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-bold ${sentimentClass(ins.sentiment)}`}>
-                    {ins.sentiment}
+            {/* 6. IMPACT ON THE INDIAN ECONOMY */}
+            {ins?.economy_impact && (
+              <PremiumShell
+                eyebrow="Macro view"
+                title="Impact on the Indian Economy"
+                icon={Globe}
+                iconBg="bg-gradient-to-br from-teal-500 to-emerald-600 text-white"
+                gradient="bg-gradient-to-br from-teal-200 to-emerald-200"
+                borderAccent="border-teal-200/70"
+              >
+                <div className="rounded-xl bg-gradient-to-br from-teal-50/70 via-white to-emerald-50/40 border border-teal-100 p-5 relative overflow-hidden">
+                  <Globe className="absolute -right-6 -bottom-6 h-32 w-32 text-teal-100" />
+                  <div className="relative text-[15px] leading-[1.8] text-foreground/85 mb-4">{ins.economy_impact}</div>
+                  <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { label: "GDP", val: "Growth lens" },
+                      { label: "INR", val: "Currency" },
+                      { label: "RBI", val: "Policy view" },
+                      { label: "FII", val: "Flows" },
+                    ].map(m => (
+                      <div key={m.label} className="rounded-lg bg-white border border-teal-100 px-3 py-2 text-center">
+                        <div className="text-[10px] uppercase tracking-wider text-teal-700 font-bold">{m.label}</div>
+                        <div className="text-[11px] text-muted-foreground">{m.val}</div>
+                      </div>
+                    ))}
                   </div>
-                )}
-                {ins?.expert_analysis && (
-                  <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl p-4 relative">
-                    <Quote className="h-4 w-4 text-slate-400 absolute top-3 left-3" />
-                    <p className="pl-6 text-sm text-foreground/80 italic leading-relaxed">{ins.expert_analysis}</p>
-                  </div>
-                )}
-              </SectionCard>
+                </div>
+              </PremiumShell>
             )}
 
+            {/* 7 + 8. PROS & RISKS */}
+            <div className="grid md:grid-cols-2 gap-5 sm:gap-6">
+              {Array.isArray(ins?.pros) && ins!.pros!.length > 0 && (
+                <PremiumShell
+                  eyebrow="The upside"
+                  title="Pros & Positive Outcomes"
+                  icon={ThumbsUp}
+                  iconBg="bg-gradient-to-br from-emerald-500 to-green-600 text-white"
+                  gradient="bg-gradient-to-br from-emerald-200 to-green-200"
+                  borderAccent="border-emerald-200/70"
+                >
+                  <ul className="space-y-2.5">
+                    {ins!.pros!.map((p, i) => (
+                      <li key={i} className="flex gap-3 items-start p-3 rounded-lg bg-gradient-to-r from-emerald-50 to-transparent border-l-4 border-emerald-500">
+                        <ThumbsUp className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm leading-relaxed text-foreground/90">{typeof p === "string" ? p : JSON.stringify(p)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </PremiumShell>
+              )}
+              {Array.isArray(ins?.risks) && ins!.risks!.length > 0 && (
+                <PremiumShell
+                  eyebrow="Caution flags"
+                  title="Risks & Concerns"
+                  icon={AlertTriangle}
+                  iconBg="bg-gradient-to-br from-red-500 to-rose-600 text-white"
+                  gradient="bg-gradient-to-br from-red-200 to-rose-200"
+                  borderAccent="border-red-200/70"
+                >
+                  <ul className="space-y-2.5">
+                    {ins!.risks!.map((p, i) => (
+                      <li key={i} className="flex gap-3 items-start p-3 rounded-lg bg-gradient-to-r from-red-50 to-transparent border-l-4 border-red-500">
+                        <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm leading-relaxed text-foreground/90">{typeof p === "string" ? p : JSON.stringify(p)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </PremiumShell>
+              )}
+            </div>
+
+            {/* 9. COMPANIES AFFECTED — terminal style */}
+            {Array.isArray(ins?.companies_affected) && ins!.companies_affected!.length > 0 && (
+              <PremiumShell
+                eyebrow="Watch list"
+                title="Companies & Sectors Affected"
+                icon={Building2}
+                iconBg="bg-gradient-to-br from-slate-700 to-slate-900 text-white"
+                gradient="bg-gradient-to-br from-slate-300 to-slate-500"
+                borderAccent="border-slate-200"
+              >
+                <div className="rounded-xl border border-slate-200 overflow-hidden bg-gradient-to-br from-slate-50 to-white">
+                  <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-2 bg-slate-900 text-slate-200 text-[10px] font-bold uppercase tracking-widest">
+                    <span>Company</span><span>Impact</span><span>Bias</span>
+                  </div>
+                  <div className="divide-y divide-slate-200">
+                    {ins!.companies_affected!.map((c, i) => {
+                      const co = typeof c === "string" ? { name: c } as CompanyImpact : c;
+                      const val = impactBarValue(co.impact);
+                      return (
+                        <div key={i} className="px-4 py-3 hover:bg-slate-50 transition-colors">
+                          <div className="grid grid-cols-[1fr_auto_auto] gap-3 items-center">
+                            <div className="min-w-0">
+                              <div className="font-bold text-foreground text-sm truncate">{co.name}</div>
+                              {co.ticker && <div className="text-[11px] text-slate-500 number-font tracking-wider">{co.ticker}</div>}
+                            </div>
+                            <div className="w-20 sm:w-28 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                              <div className={`h-full bg-gradient-to-r ${impactBarColor(co.impact)}`} style={{ width: `${val}%` }} />
+                            </div>
+                            {co.impact && (
+                              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${impactPillClass(co.impact)}`}>
+                                {co.impact}
+                              </span>
+                            )}
+                          </div>
+                          {co.note && <p className="text-xs text-muted-foreground leading-relaxed mt-1.5">{co.note}</p>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </PremiumShell>
+            )}
+
+            {/* 10. MARKET SENTIMENT — gauge */}
+            {ins?.sentiment && (() => {
+              const score = sentimentScore(ins.sentiment);
+              return (
+                <PremiumShell
+                  eyebrow="Sentiment radar"
+                  title="Market Sentiment"
+                  icon={Activity}
+                  iconBg="bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white"
+                  gradient="bg-gradient-to-br from-fuchsia-200 to-pink-200"
+                  borderAccent="border-fuchsia-200/70"
+                >
+                  <div className="grid sm:grid-cols-[1fr_auto] gap-5 items-center">
+                    <div>
+                      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold ${sentimentClass(ins.sentiment)} mb-3`}>
+                        <Activity className="h-4 w-4" /> {ins.sentiment}
+                      </div>
+                      <div className="relative h-3 rounded-full bg-gradient-to-r from-red-200 via-amber-200 to-emerald-200 overflow-visible">
+                        <div className="absolute -top-1.5 h-6 w-1.5 rounded-full bg-foreground shadow-md transition-all duration-700" style={{ left: `calc(${score}% - 3px)` }} />
+                      </div>
+                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-2">
+                        <span className="text-red-600">Bearish</span>
+                        <span className="text-amber-600">Neutral</span>
+                        <span className="text-emerald-600">Bullish</span>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-5xl font-black number-font bg-gradient-to-br from-fuchsia-600 to-pink-600 bg-clip-text text-transparent">{score}</div>
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Sentiment Score</div>
+                    </div>
+                  </div>
+                </PremiumShell>
+              );
+            })()}
+
+            {/* 11. EXPERT AI ANALYSIS — dark premium card */}
+            {ins?.expert_analysis && (
+              <section className="relative overflow-hidden rounded-2xl border border-purple-500/30 bg-[#0a0f1e] text-white shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 via-fuchsia-600/10 to-cyan-500/10" />
+                <div className="absolute top-0 right-0 h-64 w-64 rounded-full bg-fuchsia-500/20 blur-3xl" />
+                <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-cyan-500/20 blur-3xl" />
+                <div className="relative p-6 sm:p-7">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg ring-1 ring-white/20">
+                      <Brain className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300">AI Intelligence</div>
+                      <h2 className="text-xl font-bold leading-tight">Expert AI Analysis</h2>
+                    </div>
+                    <span className="ml-auto inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                      <Sparkles className="h-3 w-3" /> Powered by Gemini
+                    </span>
+                  </div>
+                  <div className="relative rounded-xl bg-white/5 border border-white/10 p-5 backdrop-blur-sm">
+                    <Quote className="h-6 w-6 text-fuchsia-400/60 absolute top-3 left-3" />
+                    <p className="pl-8 text-[15px] leading-[1.85] text-white/90 italic">{ins.expert_analysis}</p>
+                  </div>
+                  <p className="text-[10px] text-white/50 mt-3 text-right">For information only. Not investment advice.</p>
+                </div>
+              </section>
+            )}
+
+            {/* 12. KEY FACTS & NUMBERS — stat tiles */}
             {Array.isArray(ins?.key_facts) && ins!.key_facts!.length > 0 && (
-              <SectionCard title="Key Facts & Numbers" icon={Hash} accent="bg-cyan-50 text-cyan-700">
-                <Bullets items={ins!.key_facts} />
-              </SectionCard>
-            )}
-
-            {ins?.expert_analysis && !ins?.sentiment && (
-              <SectionCard title="AI Expert Analysis" icon={Brain} accent="bg-purple-50 text-purple-700">
-                <p className="italic">{ins.expert_analysis}</p>
-              </SectionCard>
+              <PremiumShell
+                eyebrow="By the numbers"
+                title="Key Facts & Numbers"
+                icon={Hash}
+                iconBg="bg-gradient-to-br from-cyan-500 to-sky-600 text-white"
+                gradient="bg-gradient-to-br from-cyan-200 to-sky-200"
+                borderAccent="border-cyan-200/70"
+              >
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {ins!.key_facts!.map((f, i) => {
+                    const text = typeof f === "string" ? f : JSON.stringify(f);
+                    const numMatch = text.match(/([₹$]?\s?[\d,]+\.?\d*\s?(?:%|crore|cr|bn|lakh|lakhs|trillion|million|bps)?)/i);
+                    const num = numMatch ? numMatch[0].trim() : null;
+                    return (
+                      <div key={i} className="relative p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-sky-50/40 border border-cyan-200/60 hover:shadow-md transition-all">
+                        <div className="absolute top-2 right-2 h-7 w-7 rounded-lg bg-white border border-cyan-200 text-cyan-700 text-[10px] font-black flex items-center justify-center number-font">
+                          #{String(i + 1).padStart(2, "0")}
+                        </div>
+                        {num && (
+                          <div className="text-2xl font-black number-font bg-gradient-to-br from-cyan-600 to-sky-700 bg-clip-text text-transparent mb-1 pr-10">
+                            {num}
+                          </div>
+                        )}
+                        <p className="text-sm text-foreground/85 leading-relaxed pr-8">{text}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </PremiumShell>
             )}
 
             {Array.isArray(ins?.faqs) && ins!.faqs!.length > 0 && (
@@ -499,11 +714,29 @@ export default function NewsDetailPage() {
               </SectionCard>
             )}
 
+            {/* 13. EDUCATIONAL CONTEXT — notebook style */}
             {ins?.educational_context && (
-              <SectionCard title="Educational Context (for beginners)" icon={BookOpen} accent="bg-green-50 text-green-700">
-                <p>{ins.educational_context}</p>
-              </SectionCard>
+              <PremiumShell
+                eyebrow="Learn the basics"
+                title="Educational Context"
+                icon={BookOpen}
+                iconBg="bg-gradient-to-br from-green-500 to-emerald-600 text-white"
+                gradient="bg-gradient-to-br from-green-200 to-emerald-200"
+                borderAccent="border-green-200/70"
+              >
+                <div
+                  className="relative rounded-xl p-5 border border-green-200 bg-gradient-to-br from-green-50/70 to-white"
+                  style={{ backgroundImage: "repeating-linear-gradient(transparent 0 27px, rgba(16,185,129,0.08) 27px 28px)" }}
+                >
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 to-emerald-600 rounded-l-xl" />
+                  <div className="text-[15px] leading-[28px] text-foreground/85 pl-3">{ins.educational_context}</div>
+                  <div className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-green-700 bg-green-100 px-2.5 py-1 rounded-full">
+                    <Lightbulb className="h-3 w-3" /> Beginner Friendly
+                  </div>
+                </div>
+              </PremiumShell>
             )}
+
 
             {/* DYNAMIC SEO BLOCKS */}
             {Array.isArray(post.trending_questions) && post.trending_questions.length > 0 && (
