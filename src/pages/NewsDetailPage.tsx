@@ -183,13 +183,8 @@ function impactBarValue(impact?: string) {
   if (v.includes("neg")) return 28;
   if (v.includes("mix")) return 50;
   return 50;
-}
-  if (v.includes("pos")) return 72;
-  if (v.includes("very neg") || v.includes("strong neg")) return 10;
-  if (v.includes("neg")) return 28;
-  if (v.includes("mix")) return 50;
-  return 50;
-}
+
+
 
 function impactBarColor(impact?: string) {
   const v = (impact ?? "").toLowerCase();
