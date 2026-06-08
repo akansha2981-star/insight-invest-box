@@ -17,6 +17,7 @@ import { AdminSmartRefresh } from "@/components/AdminSmartRefresh";
 import { AdminForexMonitor } from "@/components/AdminForexMonitor";
 import { AdminAIOptimizer } from "@/components/AdminAIOptimizer";
 import { AdminNewsEngine } from "@/components/AdminNewsEngine";
+import AdminMutualFunds from "@/components/AdminMutualFunds";
 
 interface BlogPost {
   id: string; title: string; slug: string; status: string;
