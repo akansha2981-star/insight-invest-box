@@ -86,11 +86,22 @@ const App = () => (
           {/* Legacy/alias routes to prevent 404s from older internal links */}
           <Route path="/blog" element={<Navigate to="/news" replace />} />
           <Route path="/blog/:slug" element={<NewsToBlogRedirect />} />
-          <Route path="/mutual-funds" element={<Navigate to="/mf" replace />} />
+          {/* Mutual Funds & ETFs ecosystem */}
+          <Route path="/mf" element={<Navigate to="/mutual-funds" replace />} />
+          <Route path="/mutual-funds" element={<MFPage />} />
+          <Route path="/mutual-funds/screener" element={<MFScreenerPage />} />
+          <Route path="/mutual-funds/compare" element={<MFComparePage />} />
+          <Route path="/mutual-funds/overlap" element={<MFOverlapPage />} />
+          <Route path="/mutual-funds/news" element={<MFNewsPage />} />
+          <Route path="/mutual-funds/fund-house/:slug" element={<MFFundHousePage />} />
+          <Route path="/mutual-funds/:slug" element={<MFDetailPage />} />
+          <Route path="/etfs" element={<ETFPage />} />
+          <Route path="/etfs/screener" element={<ETFScreenerPage />} />
+          <Route path="/etfs/compare" element={<ETFComparePage />} />
+          <Route path="/etfs/:slug" element={<ETFDetailPage />} />
           <Route path="/markets" element={<MarketsPage />} />
           <Route path="/stocks" element={<StocksPage />} />
           <Route path="/economy" element={<EconomyPage />} />
-          <Route path="/mf" element={<MFPage />} />
           <Route path="/crypto" element={<CryptoPage />} />
           <Route path="/portfolio" element={<PortfolioPage />} />
           <Route path="/stocks/reviews" element={<StockReviewPage />} />
