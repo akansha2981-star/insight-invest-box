@@ -397,6 +397,7 @@ export default function AdminDashboard() {
         {view === 'forex' && <AdminForexMonitor />}
         {view === 'ai-optimizer' && <AdminAIOptimizer />}
         {view === 'news-engine' && <AdminNewsEngine />}
+        {view === 'mutual-funds' && <AdminMutualFunds />}
         {view === 'registered-users' && <AdminRegisteredUsers />}
 
       </main>
