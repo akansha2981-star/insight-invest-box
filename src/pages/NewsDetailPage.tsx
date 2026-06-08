@@ -172,6 +172,7 @@ export default function NewsDetailPage() {
                 </div>
               </div>
             )}
+            <ComplianceDisclaimer variant="card" className="mt-8" />
           </article>
 
           {/* Sidebar */}
