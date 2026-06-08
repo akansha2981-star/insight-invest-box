@@ -227,6 +227,155 @@ export type Database = {
         }
         Relationships: []
       }
+      news_drafts: {
+        Row: {
+          blog_post_id: string | null
+          category: string
+          content: string | null
+          created_at: string
+          featured_image_prompt: string | null
+          featured_image_url: string | null
+          headline: string
+          id: string
+          insights: Json
+          internal_links: Json
+          meta_description: string | null
+          meta_keywords: string[]
+          meta_title: string | null
+          published_at: string | null
+          read_time_min: number
+          reviewed_at: string | null
+          reviewed_by: string | null
+          run_id: string | null
+          schema_jsonld: Json
+          seo_score: number
+          slug: string
+          social_meta: Json
+          source_summary: Json
+          status: string
+          summary: string | null
+          tags: string[]
+          topic: string
+          trending: boolean
+          updated_at: string
+        }
+        Insert: {
+          blog_post_id?: string | null
+          category?: string
+          content?: string | null
+          created_at?: string
+          featured_image_prompt?: string | null
+          featured_image_url?: string | null
+          headline: string
+          id?: string
+          insights?: Json
+          internal_links?: Json
+          meta_description?: string | null
+          meta_keywords?: string[]
+          meta_title?: string | null
+          published_at?: string | null
+          read_time_min?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string | null
+          schema_jsonld?: Json
+          seo_score?: number
+          slug: string
+          social_meta?: Json
+          source_summary?: Json
+          status?: string
+          summary?: string | null
+          tags?: string[]
+          topic: string
+          trending?: boolean
+          updated_at?: string
+        }
+        Update: {
+          blog_post_id?: string | null
+          category?: string
+          content?: string | null
+          created_at?: string
+          featured_image_prompt?: string | null
+          featured_image_url?: string | null
+          headline?: string
+          id?: string
+          insights?: Json
+          internal_links?: Json
+          meta_description?: string | null
+          meta_keywords?: string[]
+          meta_title?: string | null
+          published_at?: string | null
+          read_time_min?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string | null
+          schema_jsonld?: Json
+          seo_score?: number
+          slug?: string
+          social_meta?: Json
+          source_summary?: Json
+          status?: string
+          summary?: string | null
+          tags?: string[]
+          topic?: string
+          trending?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_drafts_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "news_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_runs: {
+        Row: {
+          completed_at: string | null
+          discovered: number
+          error: string | null
+          failed: number
+          generated: number
+          id: string
+          requested_count: number
+          started_at: string
+          status: string
+          summary: Json
+          trigger_type: string
+          triggered_by: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          discovered?: number
+          error?: string | null
+          failed?: number
+          generated?: number
+          id?: string
+          requested_count?: number
+          started_at?: string
+          status?: string
+          summary?: Json
+          trigger_type?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          discovered?: number
+          error?: string | null
+          failed?: number
+          generated?: number
+          id?: string
+          requested_count?: number
+          started_at?: string
+          status?: string
+          summary?: Json
+          trigger_type?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           email: string

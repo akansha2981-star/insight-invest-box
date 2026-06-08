@@ -1,96 +1,119 @@
 
-# Auto Content Refresh, SEO Intelligence & Website Optimization Engine
+# Smart Financial News Engine
 
-A daily AI engine that scans the whole site (except Blog), detects stale/broken/SEO-weak content, proposes changes into an admin review queue, and publishes only what's approved. Extends — does not replace — the existing Smart Refresh and Forex modules.
+AI-powered news pipeline: admin clicks "Generate News (N)", system researches trending finance topics, generates full SEO-ready articles + deep insight blocks, queues them for human approval, then publishes to a new premium News Hub.
 
 ## Scope
 
-**In scope:** Stock reviews, properties, mutual funds, crypto, markets/economy pages, calculators, currency converter, home banners, page_sections, FAQs, schema, sitemap, robots, internal links, disclaimers.
-**Excluded:** `blog_posts` (manual editorial). Smart Refresh's blog timestamp logic stays as-is; new engine skips blog entirely.
+**In scope:** new admin module, new public News Hub + Detail pages, new edge function, new DB tables. Reuses existing `blog_posts` data model for published storage so the existing News pages keep working, but stages drafts in a new `news_drafts` table so they don't pollute the editorial blog.
+
+**Out of scope:** real-time push notifications, paid news API integration (uses Lovable AI web-grounded search via Gemini; can swap to Firecrawl/NewsAPI later), social auto-posting.
 
 ## Architecture
 
 ```text
-[Cron 02:00 IST] ─► edge: content-optimizer ─► proposals (pending)
-                                            └─► seo_audit_findings
-[Admin UI: AI Review Dashboard] ─► approve / reject / bulk publish
-        │
-        └─► edge: content-optimizer?action=apply ─► live tables + audit log
+[Admin: Generate News(N)] ─► edge: news-engine?action=discover
+                                  │
+                                  ├─► AI: discover N trending finance topics (categorized)
+                                  ├─► AI per topic: full article + 14 insight blocks + SEO bundle
+                                  └─► insert into news_drafts (status=pending)
+                                                │
+[Admin Review Dashboard] ─► approve / edit / reject / regenerate / publish
+                                                │
+                                  edge: news-engine?action=publish
+                                                │
+                                  ├─► insert into blog_posts (status=published, category=News)
+                                  └─► mark draft published, link blog_post_id
 ```
 
-## Database (new tables)
+## Database (new)
 
-1. `optimizer_proposals` — one row per proposed change
-   - `target_type` (stock_review | property | page_section | sitemap | schema | meta | faq | internal_link | disclaimer | data_value)
-   - `target_id`, `target_url`, `field`, `old_value` (jsonb), `new_value` (jsonb)
-   - `category` (content_refresh | seo | data_integrity | trending_keyword | schema | broken_element)
-   - `priority` (low|med|high), `confidence` (0-1), `reason`, `keywords` (text[])
-   - `status` (pending|approved|rejected|published|reverted), `run_id`, `created_at`, `reviewed_by`, `reviewed_at`, `published_at`
-2. `optimizer_runs` — per scan: started/finished, counts per category, status, summary jsonb
-3. `seo_audit_findings` — 70-pt checklist: `check_key`, `page_url`, `severity`, `status`, `details`, `run_id`
-4. `trending_keywords` — discovered keywords: `keyword`, `volume_score`, `source`, `mapped_target_type`, `mapped_target_id`, `discovered_at`
-5. RLS: admins manage all; public has no access (admin-only data).
+`news_drafts` — staging table for AI-generated articles
+- `id`, `run_id`, `status` (pending|approved|rejected|published|regenerating)
+- `topic`, `source_summary` (jsonb: original sources & links found by AI)
+- `category` (Stock Market | Mutual Funds | Real Estate | Economy | …)
+- `tags text[]`, `trending boolean`
+- `headline`, `slug`, `summary`, `content` (HTML), `read_time_min`
+- `meta_title`, `meta_description`, `meta_keywords text[]`
+- `featured_image_prompt`, `featured_image_url`
+- `insights jsonb` — 14 blocks: what_is, why_matters, market_impact, investor_impact, economy_impact, pros, risks, companies_affected, sentiment, expert_analysis, key_facts, faqs, related_topics, educational_context
+- `schema_jsonld jsonb`, `social_meta jsonb`
+- `seo_score int`, `internal_links jsonb`
+- `created_at`, `reviewed_by`, `reviewed_at`, `published_at`, `blog_post_id uuid`
 
-## Edge function: `content-optimizer`
+`news_runs` — per-generate-batch
+- `id`, `triggered_by`, `requested_count`, `discovered`, `generated`, `failed`, `status`, `started_at`, `completed_at`, `summary jsonb`, `error`
 
-Actions: `scan` (admin or cron), `apply` (publish approved), `revert`, `audit` (SEO only), `keywords` (trend fetch).
+RLS: admin-only for both. GRANT to authenticated + service_role; no anon.
 
-Scan pipeline:
-1. Pull recent records from each in-scope table; flag rows where `updated_at < now - 7d`, missing meta_title/description, no schema, empty key_metrics, etc.
-2. Verify numeric integrity (no NaN/blank in price_history, key_metrics, forex_rates).
-3. Pull trending keywords via Lovable AI (Gemini) — return 25 finance keywords with mapping suggestions. Persist to `trending_keywords`.
-4. For each flagged target, generate a proposal via Lovable AI: refreshed meta title, meta description, FAQ block, internal link suggestion, or schema JSON. Insert into `optimizer_proposals` as `pending` — **never mutate live tables in scan**.
-5. Run 70-point SEO checklist over a curated URL list (home, /stocks, /mf, /crypto, /real-estate, /currency-converter, /economy, /markets, /news, calculators); write to `seo_audit_findings`.
+## Edge function `news-engine`
 
-Apply pipeline (admin-triggered, one or many proposal ids):
-- Update target tables atomically; snapshot old_value already present for revert.
-- Mark proposals `published`; insert audit entry into `optimizer_runs.summary`.
+Actions:
+- `discover` — body `{count: 10|25|50|100}`. Single AI call asks Gemini (web-grounded via system prompt) to return N current trending Indian finance topics with category, brief, source hints. Stored in a run row.
+- `generate` — for each topic (loop with concurrency 3), one structured-JSON Gemini call returns the full article + 14 insight blocks + SEO bundle + JSON-LD + social meta. Inserts into `news_drafts` (status=pending).
+- `regenerate` — re-run generate for a single draft id (admin override).
+- `approve` / `reject` — bulk status update on `news_drafts`.
+- `publish` — for each approved draft: insert into `blog_posts` (category="News", subcategory=draft.category, status=published, tags, content includes insights rendered as styled HTML sections, meta_title/desc copied), set draft to published.
+- `image` — optional: kick off Lovable AI image generation for featured image, stash URL.
 
-Cron: daily 02:00 IST via pg_cron + pg_net (matches existing forex cron pattern).
+JSON contract for generate (strict): one call, low temp, returns full bundle so the cost stays bounded. Reuses `llmJson` helper pattern from `content-optimizer`.
 
-## Admin UI: `AdminAIOptimizer.tsx` (new tab in `AdminDashboard`)
+## Admin UI — `AdminNewsEngine.tsx` (new tab in AdminDashboard)
 
 Sections:
-- **Live progress strip**: pages scanned / updated / refreshed / keywords / SEO fixed / pending / etc.
-- **Run history**: latest 20 runs with status + counts; "Run scan now" button.
-- **Review queue**: filterable table grouped by category (Content Refresh, SEO, Data Integrity, Trending Keyword, Schema, Broken Element). Each row shows target, field, old → new diff, AI reason, confidence; actions: approve, reject, view. Bulk select + bulk publish + "Approve all high-confidence".
-- **SEO Audit tab**: 70-pt checklist with pass/fail per URL.
-- **Trending Keywords tab**: discovered keywords with target mappings.
-- **Audit log**: published/reverted entries with rollback.
+- **Generate strip**: count selector (10/25/50/100), category multi-filter (optional), "Discover & Generate" button, live status (topics found / articles generated / failed).
+- **Live progress tracker**: topics discovered, articles generated, approved, published, categories updated, SEO improvements applied (count of seo_score ≥ 80), internal links added, schema generated.
+- **Queue tabs**: Pending Approval | Approved | Published | Rejected | Generation Logs.
+- **Article row**: headline, category chip, trending chip, SEO score, read time, AI summary; expand to edit headline/summary/content/meta inline; actions: Approve, Reject, Regenerate, Edit, Preview.
+- **Bulk actions**: Approve All, Reject All, Publish All Approved.
+- **Run history**: latest 20 runs with counts + error.
 
-## Sitewide Disclaimer
+## Public frontend
 
-`ComplianceDisclaimer` already exists. Mount the exact required copy across:
-- Footer (already)
-- Calculator pages (SIP, EMI, FD, Tax) — bottom card variant
-- Stocks, MF, Crypto, Markets, Economy pages — inline variant after hero
-- Currency Converter — inline near results
-- Stock review detail, AIAssistantBar — tiny variant
+`src/pages/NewsHubPage.tsx` — premium timeline
+- Hero with live "AI-curated finance news" label
+- Chronological vertical timeline grouped by date with sticky date headers
+- Card: publish date · time · category · trending pill · read-time · featured image · headline · summary
+- Filter chips (categories), search box, infinite scroll (50/page)
 
-Update `ComplianceDisclaimer` text to the exact wording requested.
+`src/pages/NewsDetailPage.tsx` — already exists; **extend**, don't replace, to render the new `insights` jsonb when present. Render 14 collapsible sections (lucide icons, premium card design). Falls back to legacy article rendering when insights missing.
+
+Route additions (`src/App.tsx`):
+- `/news-hub` → NewsHubPage (keep existing `/news` for backward compat, link it to new hub)
+
+JSON-LD `NewsArticle` schema injected per detail page from draft's `schema_jsonld`.
+
+## SEO
+
+- Per-article meta_title/desc set from draft.
+- `NewsArticle` + `BreadcrumbList` + `FAQPage` JSON-LD per detail page.
+- OpenGraph + Twitter card metadata.
+- Auto-internal-links: draft.internal_links is a list of `{anchor, slug_to}` injected on publish using a simple HTML pass.
+- Sitemap entry created via existing sitemap_urls insert on publish.
 
 ## Files
 
 **New**
-- `supabase/functions/content-optimizer/index.ts`
-- `src/components/AdminAIOptimizer.tsx` (tabs: Overview, Review Queue, SEO Audit, Keywords, History)
-- `src/components/optimizer/ProposalDiff.tsx`
-- `supabase/migrations/<ts>_optimizer.sql` (4 tables + RLS + grants + pg_cron job)
-- `src/hooks/useOptimizer.ts`
+- `supabase/functions/news-engine/index.ts`
+- `supabase/migrations/<ts>_news_engine.sql` (2 tables + RLS + grants)
+- `src/components/AdminNewsEngine.tsx`
+- `src/components/news/NewsTimeline.tsx`
+- `src/components/news/NewsInsightsPanel.tsx`
+- `src/pages/NewsHubPage.tsx`
 
 **Edited**
-- `src/pages/AdminDashboard.tsx` — add "AI Optimizer" tab/route
-- `src/components/ComplianceDisclaimer.tsx` — update copy to exact requested text
-- `src/pages/{SIPCalculatorPage,EMICalculatorPage,FDCalculatorPage,TaxCalculatorPage,StocksPage,MFPage,CryptoPage,MarketsPage,EconomyPage,CurrencyConverterPage}.tsx` — mount disclaimer
-- `src/integrations/supabase/types.ts` — auto-regen post-migration
-- `supabase/config.toml` — register `content-optimizer` function (verify_jwt=true)
+- `src/App.tsx` — add `/news-hub` route
+- `src/pages/AdminDashboard.tsx` — add "News Engine" tab
+- `src/pages/NewsDetailPage.tsx` — render insights panel when present
+- `src/integrations/supabase/types.ts` — regen post-migration
+- `supabase/config.toml` — register `news-engine` (verify_jwt=false; in-code admin check)
 
 ## Non-goals / explicit deferrals
 
-- Real Google Trends API integration — uses Lovable AI to infer trending finance keywords (no paid key, deterministic enough). Can swap to a connector later.
-- Core Web Vitals live measurement (requires CrUX/Lighthouse API) — checklist will mark these as "manual verification recommended" rather than fake green checks.
-- Auto-publishing without review — explicitly disabled; everything routes through approval queue per spec.
+- True live web crawl: Gemini's training cutoff limits freshness. The function uses prompting to bias toward "currently trending" topics and stamps the run with the current date, but for verified live news a Firecrawl/NewsAPI connector is a follow-up. The UI surfaces "AI-curated; verify before publishing" so admins know to spot-check.
+- Image generation defaults OFF (cost). Admin can click "Generate image" per draft.
+- Core Web Vitals live measurement (deferred — same as existing optimizer).
 
-## Confirmation needed
+## Confirmation
 
-This is a large, multi-file build (≈1 edge function + 4 tables + 1 large admin component + ~10 disclaimer mounts). Confirm to proceed and I'll implement in one pass.
+Large multi-file build (~1 edge function + 2 tables + 1 admin tab + 1 hub page + extended detail page). Confirm and I'll implement in one pass.
