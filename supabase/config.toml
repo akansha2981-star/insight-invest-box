@@ -38,3 +38,7 @@ verify_jwt = false
 
 [functions.sitemap-xml]
 verify_jwt = false
+
+[functions.smart-refresh]
+verify_jwt = true
+
