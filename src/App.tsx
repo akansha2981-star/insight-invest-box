@@ -56,6 +56,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/index.html" element={<Navigate to="/" replace />} />
           <Route path="/news" element={<NewsPage />} />
+          <Route path="/news-hub" element={<NewsHubPage />} />
           <Route path="/news/:slug" element={<NewsDetailPage />} />
           {/* Legacy/alias routes to prevent 404s from older internal links */}
           <Route path="/blog" element={<Navigate to="/news" replace />} />
