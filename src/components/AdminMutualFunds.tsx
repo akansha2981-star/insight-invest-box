@@ -7,6 +7,13 @@ export default function AdminMutualFunds() {
   const [funds, setFunds] = useState<any[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
+  const [discoverCount, setDiscoverCount] = useState(10);
+  const [discoverCategory, setDiscoverCategory] = useState("");
+  const [discoverTheme, setDiscoverTheme] = useState("");
+  const [candidates, setCandidates] = useState<any[]>([]);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [discovering, setDiscovering] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const load = async () => { const { data } = await supabase.from("mf_funds").select("*").order("scheme_name"); setFunds(data ?? []); };
   useEffect(() => { load(); }, []);
