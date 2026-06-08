@@ -6,11 +6,11 @@ interface Props {
 }
 
 /**
- * SEBI / financial-advice compliance disclaimer.
- * Use across the site (footer, article ends, market analysis sections, side panels).
+ * Compliance disclaimer mounted across the platform.
+ * Exact wording maintained for legal/compliance consistency.
  */
 export function ComplianceDisclaimer({ variant = "inline", className = "" }: Props) {
-  const text = "Investing IQ is not a SEBI-registered investment advisor. Content is for educational and informational purposes only and does not constitute investment advice or a recommendation to buy/sell any security. Markets are subject to risk — please consult a registered advisor before investing.";
+  const text = "Investing IQ is not a SEBI-registered investment advisor. All information provided on this platform is for educational and informational purposes only. Users should not make investment decisions solely based on the information presented on this website.";
 
   if (variant === "tiny") {
     return (
@@ -21,9 +21,7 @@ export function ComplianceDisclaimer({ variant = "inline", className = "" }: Pro
   }
 
   if (variant === "footer") {
-    return (
-      <p className={`text-[10px] leading-relaxed text-white/40 ${className}`}>{text}</p>
-    );
+    return <p className={`text-[10px] leading-relaxed text-white/40 ${className}`}>{text}</p>;
   }
 
   if (variant === "card") {
@@ -35,7 +33,6 @@ export function ComplianceDisclaimer({ variant = "inline", className = "" }: Pro
     );
   }
 
-  // inline
   return (
     <div className={`border-l-2 border-amber-400 bg-amber-50/40 pl-3 py-2 ${className}`}>
       <p className="text-[11px] leading-relaxed text-muted-foreground">

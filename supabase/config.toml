@@ -45,4 +45,9 @@ verify_jwt = true
 [functions.forex-rates]
 verify_jwt = false
 
+[functions.content-optimizer]
+verify_jwt = false
+
+
+
 
