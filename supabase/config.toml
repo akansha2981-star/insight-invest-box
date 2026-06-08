@@ -51,6 +51,9 @@ verify_jwt = false
 [functions.news-engine]
 verify_jwt = false
 
+[functions.re-discover]
+verify_jwt = false
+
 
 
 

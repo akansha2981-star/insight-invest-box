@@ -181,6 +181,9 @@ function PropertiesAdmin() {
 
       <AIPropertyWizard open={wizardOpen} onClose={() => setWizardOpen(false)} onPublish={publishWizardDraft} />
 
+      <AIDiscoverProperties onPublished={fetchProperties} />
+
+
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-muted-foreground">{properties.length} properties</p>
         <button onClick={() => setEditing({ listing_type: "buy", property_type: "apartment", city: "Mumbai", status: "active" })}
@@ -1075,6 +1078,285 @@ function InteriorAdmin() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/* ════ AI Discover Properties (Research → Approve → SEO → Publish) ════ */
+type DiscoverCand = {
+  title: string; property_type: string; listing_type: string;
+  city: string; locality?: string; developer_name?: string;
+  price_min?: number; price_max?: number; bhk?: string;
+  area_min?: number; area_max?: number; rera_status?: string;
+  rationale?: string;
+  _enhanced?: any; _enhancing?: boolean; _publishing?: boolean; _published?: boolean;
+};
+
+function AIDiscoverProperties({ onPublished }: { onPublished: () => void }) {
+  const { toast } = useToast();
+  const [count, setCount] = useState(6);
+  const [category, setCategory] = useState("");
+  const [listingType, setListingType] = useState("buy");
+  const [city, setCity] = useState("");
+  const [stateName, setStateName] = useState("");
+  const [builder, setBuilder] = useState("");
+  const [discovering, setDiscovering] = useState(false);
+  const [candidates, setCandidates] = useState<DiscoverCand[]>([]);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [preview, setPreview] = useState<{ idx: number; data: any } | null>(null);
+
+  const invoke = async (body: any) => {
+    const { data, error } = await supabase.functions.invoke("re-discover", { body });
+    if (error) throw new Error(error.message);
+    if (data?.ok === false) throw new Error(data.error || "Unknown error");
+    return data.result;
+  };
+
+  const discover = async () => {
+    setDiscovering(true); setCandidates([]); setSelected(new Set());
+    try {
+      const r = await invoke({
+        action: "discover",
+        count, category: category || undefined, listingType,
+        city: city || undefined, state: stateName || undefined, builder: builder || undefined,
+      });
+      const list: DiscoverCand[] = r.candidates || [];
+      setCandidates(list);
+      setSelected(new Set(list.map((_, i) => i)));
+      toast({ title: "Research complete", description: `AI found ${list.length} listings. Review & approve.` });
+    } catch (e: any) {
+      toast({ title: "Research failed", description: e.message, variant: "destructive" });
+    } finally { setDiscovering(false); }
+  };
+
+  const toggle = (i: number) => {
+    const s = new Set(selected); s.has(i) ? s.delete(i) : s.add(i); setSelected(s);
+  };
+
+  const seoOne = async (idx: number) => {
+    setCandidates(prev => prev.map((c, i) => i === idx ? { ...c, _enhancing: true } : c));
+    try {
+      const enhanced = await invoke({ action: "seo-enhance", candidate: candidates[idx] });
+      setCandidates(prev => prev.map((c, i) => i === idx ? { ...c, _enhanced: enhanced, _enhancing: false } : c));
+      setPreview({ idx, data: enhanced });
+    } catch (e: any) {
+      toast({ title: "SEO failed", description: e.message, variant: "destructive" });
+      setCandidates(prev => prev.map((c, i) => i === idx ? { ...c, _enhancing: false } : c));
+    }
+  };
+
+  const seoSelected = async () => {
+    const idxs = Array.from(selected);
+    for (const i of idxs) {
+      if (!candidates[i]?._enhanced) await seoOne(i);
+    }
+    toast({ title: "SEO complete", description: `Generated SEO content for ${idxs.length} listings.` });
+  };
+
+  const publishOne = async (idx: number) => {
+    const c = candidates[idx];
+    if (!c._enhanced) { toast({ title: "Run SEO first", variant: "destructive" }); return; }
+    setCandidates(prev => prev.map((x, i) => i === idx ? { ...x, _publishing: true } : x));
+    try {
+      const payload = {
+        ...c._enhanced,
+        property_type: c.property_type, listing_type: c.listing_type, city: c.city, locality: c.locality,
+        developer_name: c.developer_name, bhk: c.bhk, price_min: c.price_min, price_max: c.price_max,
+        area_min: c.area_min, area_max: c.area_max, rera_status: c.rera_status,
+      };
+      await invoke({ action: "publish", payload });
+      setCandidates(prev => prev.map((x, i) => i === idx ? { ...x, _publishing: false, _published: true } : x));
+      toast({ title: "Published", description: c.title });
+      onPublished();
+    } catch (e: any) {
+      toast({ title: "Publish failed", description: e.message, variant: "destructive" });
+      setCandidates(prev => prev.map((x, i) => i === idx ? { ...x, _publishing: false } : x));
+    }
+  };
+
+  const publishAllApproved = async () => {
+    const idxs = Array.from(selected).filter(i => candidates[i]?._enhanced && !candidates[i]?._published);
+    for (const i of idxs) await publishOne(i);
+  };
+
+  return (
+    <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 text-white rounded-2xl p-5 border border-emerald-800/40 shadow-lg mb-5">
+      <div className="flex items-center gap-2 mb-1">
+        <Sparkles className="h-5 w-5 text-emerald-400" />
+        <h3 className="text-lg font-black">Discover Properties with AI</h3>
+      </div>
+      <p className="text-xs text-slate-300 mb-4">
+        AI researches the internet → you approve → applies 70-point SEO → you final-approve → goes live.
+        Leave city & state empty to search all of India. Builder is optional.
+      </p>
+
+      <div className="grid sm:grid-cols-3 md:grid-cols-6 gap-2 mb-3">
+        <div>
+          <label className="text-[10px] uppercase text-slate-400">Count</label>
+          <input type="number" min={1} max={25} value={count} onChange={e => setCount(Math.min(25, Math.max(1, +e.target.value || 1)))}
+            className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-sm" />
+        </div>
+        <div>
+          <label className="text-[10px] uppercase text-slate-400">Category</label>
+          <select value={category} onChange={e => setCategory(e.target.value)}
+            className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-sm">
+            <option value="">Any</option>
+            <option value="apartment">Flat / Apartment</option>
+            <option value="builder_floor">Builder Floor</option>
+            <option value="villa">Villa</option>
+            <option value="plot">Plot / Land</option>
+            <option value="pg">PG</option>
+            <option value="studio">Studio</option>
+            <option value="penthouse">Penthouse</option>
+            <option value="row_house">Row House</option>
+          </select>
+        </div>
+        <div>
+          <label className="text-[10px] uppercase text-slate-400">Intent</label>
+          <select value={listingType} onChange={e => setListingType(e.target.value)}
+            className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-sm">
+            <option value="buy">Buy / Sell</option>
+            <option value="rent">Rent</option>
+            <option value="pg">PG</option>
+          </select>
+        </div>
+        <div>
+          <label className="text-[10px] uppercase text-slate-400">City (optional)</label>
+          <input list="re-cities" value={city} onChange={e => setCity(e.target.value)} placeholder="All India"
+            className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-sm" />
+          <datalist id="re-cities">{CITIES.map(c => <option key={c} value={c} />)}</datalist>
+        </div>
+        <div>
+          <label className="text-[10px] uppercase text-slate-400">State (optional)</label>
+          <input list="re-states" value={stateName} onChange={e => setStateName(e.target.value)} placeholder="All India"
+            className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-sm" />
+          <datalist id="re-states">{STATES.map(s => <option key={s} value={s} />)}</datalist>
+        </div>
+        <div>
+          <label className="text-[10px] uppercase text-slate-400">Builder (optional)</label>
+          <input list="re-builders" value={builder} onChange={e => setBuilder(e.target.value)} placeholder="Any"
+            className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-sm" />
+          <datalist id="re-builders">{POPULAR_BUILDERS.map(b => <option key={b} value={b} />)}</datalist>
+        </div>
+      </div>
+
+      <button onClick={discover} disabled={discovering}
+        className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm px-4 py-2 rounded inline-flex items-center gap-2 disabled:opacity-50">
+        {discovering ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+        {discovering ? "Researching internet..." : "Research with AI"}
+      </button>
+
+      {candidates.length > 0 && (
+        <div className="mt-5 space-y-2">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="text-sm font-semibold">{selected.size} of {candidates.length} selected</div>
+            <div className="flex gap-2">
+              <button onClick={() => setSelected(new Set(candidates.map((_, i) => i)))} className="text-xs text-emerald-300 hover:text-emerald-200">Select all</button>
+              <button onClick={() => setSelected(new Set())} className="text-xs text-slate-400 hover:text-slate-200">Clear</button>
+              <button onClick={seoSelected} disabled={!selected.size}
+                className="text-xs bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold px-3 py-1 rounded inline-flex items-center gap-1 disabled:opacity-50">
+                <Sparkles className="h-3 w-3" /> Apply 70-pt SEO to selected
+              </button>
+              <button onClick={publishAllApproved} disabled={!selected.size}
+                className="text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold px-3 py-1 rounded inline-flex items-center gap-1 disabled:opacity-50">
+                <Save className="h-3 w-3" /> Publish approved
+              </button>
+            </div>
+          </div>
+
+          <div className="max-h-[28rem] overflow-y-auto space-y-1.5 pr-1">
+            {candidates.map((c, i) => (
+              <div key={i} className={`flex items-start gap-3 p-3 rounded border transition ${
+                c._published ? "bg-emerald-950/60 border-emerald-700"
+                : selected.has(i) ? "bg-slate-800/70 border-emerald-700" : "bg-slate-800/40 border-slate-700"
+              }`}>
+                <input type="checkbox" checked={selected.has(i)} onChange={() => toggle(i)} disabled={c._published}
+                  className="mt-1 accent-emerald-500" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="font-semibold text-sm">{c.title}</div>
+                    {c._enhanced && <span className="text-[9px] bg-cyan-900/70 text-cyan-200 px-1.5 py-0.5 rounded uppercase">SEO ready</span>}
+                    {c._published && <span className="text-[9px] bg-emerald-700 text-white px-1.5 py-0.5 rounded uppercase">Live</span>}
+                  </div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">
+                    {c.property_type} · {c.listing_type} · {c.city}{c.locality ? ` · ${c.locality}` : ""}
+                    {c.developer_name ? ` · ${c.developer_name}` : ""}
+                    {c.bhk ? ` · ${c.bhk}` : ""}
+                    {c.price_min ? ` · ₹${(c.price_min / 10000000).toFixed(2)} Cr+` : ""}
+                  </div>
+                  {c.rationale && <div className="text-xs text-slate-300 mt-1">{c.rationale}</div>}
+                </div>
+                <div className="flex flex-col gap-1">
+                  {!c._published && (
+                    <>
+                      <button onClick={() => seoOne(i)} disabled={c._enhancing}
+                        className="text-[10px] bg-cyan-600 hover:bg-cyan-500 text-white px-2 py-1 rounded inline-flex items-center gap-1 disabled:opacity-50">
+                        {c._enhancing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                        {c._enhanced ? "Re-SEO" : "Run SEO"}
+                      </button>
+                      {c._enhanced && (
+                        <>
+                          <button onClick={() => setPreview({ idx: i, data: c._enhanced })}
+                            className="text-[10px] bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded inline-flex items-center gap-1">
+                            <Eye className="h-3 w-3" /> Preview
+                          </button>
+                          <button onClick={() => publishOne(i)} disabled={c._publishing}
+                            className="text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded inline-flex items-center gap-1 disabled:opacity-50">
+                            {c._publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                            Publish live
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {preview && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setPreview(null)}>
+          <div className="bg-white text-slate-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b px-5 py-3 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-slate-500 uppercase">Final SEO preview</div>
+                <div className="font-bold">{preview.data.title}</div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => { publishOne(preview.idx); setPreview(null); }}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-3 py-1.5 rounded inline-flex items-center gap-1">
+                  <Save className="h-4 w-4" /> Approve & Publish
+                </button>
+                <button onClick={() => setPreview(null)} className="p-1.5 hover:bg-slate-100 rounded"><X className="h-4 w-4" /></button>
+              </div>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div><span className="text-slate-500">Meta title:</span> {preview.data.meta_title}</div>
+                <div><span className="text-slate-500">Slug:</span> {preview.data.slug}</div>
+                <div className="col-span-2"><span className="text-slate-500">Meta description:</span> {preview.data.meta_description}</div>
+              </div>
+              {preview.data.overview && (
+                <div><h3 className="font-bold mb-1">Overview</h3><p className="text-sm whitespace-pre-line text-slate-700">{preview.data.overview}</p></div>
+              )}
+              {Array.isArray(preview.data.highlights) && preview.data.highlights.length > 0 && (
+                <div><h3 className="font-bold mb-1">Highlights</h3>
+                  <ul className="list-disc pl-5 text-sm text-slate-700">{preview.data.highlights.map((h: string, i: number) => <li key={i}>{h}</li>)}</ul></div>
+              )}
+              {Array.isArray(preview.data.amenities) && preview.data.amenities.length > 0 && (
+                <div><h3 className="font-bold mb-1">Amenities</h3>
+                  <div className="flex flex-wrap gap-1.5">{preview.data.amenities.map((a: string, i: number) => <span key={i} className="text-xs bg-slate-100 px-2 py-1 rounded">{a}</span>)}</div></div>
+              )}
+              {preview.data.description && (
+                <div><h3 className="font-bold mb-1">Full description</h3>
+                  <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: preview.data.description }} /></div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
