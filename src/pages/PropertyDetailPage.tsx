@@ -1273,9 +1273,73 @@ export default function PropertyDetailPage() {
             />
           </aside>
         </div>
+
+        {/* Trust strip */}
+        <div className="mt-8 bg-card border border-border rounded-2xl p-5 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          {[
+            { icon: BadgeCheck, k: "Verified Listings", v: "100%" },
+            { icon: Shield, k: "RERA Compliant", v: "Cross-checked" },
+            { icon: Users, k: "Happy Buyers", v: "2 Lakh+" },
+            { icon: Award, k: "Trusted Since", v: "2018" },
+          ].map((t, i) => (
+            <div key={i} className="flex flex-col items-center gap-1.5">
+              <t.icon className="h-6 w-6 text-primary" />
+              <div className="number-font font-black text-foreground">{t.v}</div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{t.k}</div>
+            </div>
+          ))}
+        </div>
       </main>
 
+      {/* Mobile sticky action bar */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-card-lg">
+        <div className="flex items-center gap-2 px-3 py-2.5">
+          <div className="flex-1 min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Starting</div>
+            <div className="number-font font-black text-foreground text-base truncate">{property.price_display || formatPrice(property.price)}</div>
+          </div>
+          <button aria-label="Save" className="p-2.5 rounded-lg border border-border text-foreground hover:bg-muted">
+            <Heart className="h-4 w-4" />
+          </button>
+          <a aria-label="Call" href="tel:+911800000000" className="p-2.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
+            <Phone className="h-4 w-4" />
+          </a>
+          <button className="flex-1 bg-gradient-to-r from-primary to-blue-700 text-white px-4 py-2.5 rounded-lg font-bold text-sm hover:opacity-95 inline-flex items-center justify-center gap-1.5">
+            <Calendar className="h-4 w-4" />Site Visit
+          </button>
+        </div>
+      </div>
+      <div className="h-16 lg:hidden" aria-hidden="true" />
+
       <Footer />
+    </div>
+  );
+}
+
+function VerdictPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-white/15 border border-white/20 rounded-lg px-3 py-2 backdrop-blur">
+      <div className="text-[10px] uppercase tracking-widest opacity-75 font-bold">{label}</div>
+      <div className="text-sm font-black mt-0.5 truncate text-white">{value}</div>
+    </div>
+  );
+}
+
+function ScenarioCard({ tone, label, cagr, years, base }: { tone: "emerald" | "blue" | "amber"; label: string; cagr: number; years: number; base: number }) {
+  const map: Record<string, string> = {
+    emerald: "from-emerald-50 to-emerald-100/40 border-emerald-200 text-emerald-700",
+    blue: "from-blue-50 to-blue-100/40 border-blue-200 text-blue-700",
+    amber: "from-amber-50 to-amber-100/40 border-amber-200 text-amber-700",
+  };
+  const value = Math.round(base * Math.pow(1 + cagr / 100, years));
+  const gain = value - base;
+  return (
+    <div className={`bg-gradient-to-br ${map[tone]} border rounded-xl p-4`}>
+      <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{label} · {years}Y</div>
+      <div className="number-font font-black text-foreground text-xl mt-1">{formatPrice(value)}</div>
+      <div className="flex items-center gap-1 mt-1 text-xs font-bold">
+        <TrendingUp className="h-3 w-3" />+{formatPrice(gain)} ({cagr.toFixed(1)}% CAGR)
+      </div>
     </div>
   );
 }
