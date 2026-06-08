@@ -31,6 +31,7 @@ import ContactPage from "./pages/ContactPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import SitemapPage from "./pages/SitemapPage";
+import CurrencyConverterPage from "./pages/CurrencyConverterPage";
 import NotFound from "./pages/NotFound";
 import UserLogin from "./pages/UserLogin";
 import { FloatingAIButton } from "./components/FloatingAIButton";
