@@ -9,8 +9,9 @@ import {
   ArrowLeft, Clock, User, Share2, Tag, Newspaper, Info, Target, LineChart,
   Layers, Globe, ThumbsUp, AlertTriangle, Building2, Activity, Brain, ListChecks,
   HelpCircle, BookOpen, Hash, Search, Sparkles, ExternalLink, Quote, Lightbulb,
-  Radio,
+  Radio, TrendingUp, TrendingDown, Minus, Gauge, ShieldAlert, BarChart3,
 } from "lucide-react";
+
 import { ComplianceDisclaimer } from "@/components/ComplianceDisclaimer";
 
 interface Faq { q?: string; a?: string; question?: string; answer?: string; }
