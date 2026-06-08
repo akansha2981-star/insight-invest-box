@@ -1,4 +1,4 @@
-export interface CurrencyMeta { code: string; name: string; flag: string; symbol: string; }
+export interface CurrencyMeta { code: string; name: string; symbol: string; }
 
 export const CURRENCIES: CurrencyMeta[] = [
   { code: "USD", name: "US Dollar",          flag: "🇺🇸", symbol: "$" },
@@ -12,10 +12,10 @@ export const CURRENCIES: CurrencyMeta[] = [
   { code: "CNY", name: "Chinese Yuan",       flag: "🇨🇳", symbol: "¥" },
   { code: "HKD", name: "Hong Kong Dollar",   flag: "🇭🇰", symbol: "HK$" },
   { code: "SGD", name: "Singapore Dollar",   flag: "🇸🇬", symbol: "S$" },
-  { code: "NZD", name: "New Zealand Dollar", flag: "🇳🇿", symbol: "NZ$" },
+  { code: "NZD", name: "New Zealand Dollar", symbol: "NZ$" },
   { code: "AED", name: "UAE Dirham",         flag: "🇦🇪", symbol: "د.إ" },
   { code: "SAR", name: "Saudi Riyal",        flag: "🇸🇦", symbol: "﷼" },
-  { code: "ZAR", name: "South African Rand", flag: "🇿🇦", symbol: "R" },
+  { code: "ZAR", name: "South African Rand", symbol: "R" },
   { code: "MXN", name: "Mexican Peso",       flag: "🇲🇽", symbol: "$" },
   { code: "BRL", name: "Brazilian Real",     flag: "🇧🇷", symbol: "R$" },
   { code: "KRW", name: "South Korean Won",   flag: "🇰🇷", symbol: "₩" },
