@@ -203,8 +203,36 @@ export default function NewsDetailPage() {
   const [post, setPost] = useState<BlogPost | null>(null);
   const [related, setRelated] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [enriching, setEnriching] = useState(false);
 
   useEffect(() => { if (slug) fetchPost(slug); }, [slug]);
+
+  function insightsAreRich(ins: Insights | null | undefined): boolean {
+    if (!ins) return false;
+    const keys: (keyof Insights)[] = [
+      "what_is", "why_matters", "market_impact", "investor_impact", "economy_impact",
+      "expert_analysis", "educational_context", "sentiment",
+    ];
+    if (keys.some(k => typeof ins[k] === "string" && (ins[k] as string).trim().length > 20)) return true;
+    const arrs: (keyof Insights)[] = ["pros", "risks", "key_facts", "key_takeaways", "faqs", "sector_impact", "companies_affected", "related_topics"];
+    return arrs.some(k => Array.isArray(ins[k]) && (ins[k] as unknown[]).length > 0);
+  }
+
+  async function enrichInsights(s: string) {
+    setEnriching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("news-engine", {
+        body: { action: "enrich", slug: s },
+      });
+      if (!error && data?.insights) {
+        setPost(prev => (prev ? { ...prev, insights: data.insights } : prev));
+      }
+    } catch (e) {
+      console.error("enrich failed", e);
+    } finally {
+      setEnriching(false);
+    }
+  }
 
   async function fetchPost(s: string) {
     setLoading(true);
@@ -228,6 +256,9 @@ export default function NewsDetailPage() {
         .order("published_at", { ascending: false })
         .limit(6);
       setRelated((rel as unknown as BlogPost[]) ?? []);
+      if (!insightsAreRich(p.insights)) {
+        enrichInsights(s);
+      }
     }
     setLoading(false);
   }
