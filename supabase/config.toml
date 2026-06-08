@@ -48,6 +48,9 @@ verify_jwt = false
 [functions.content-optimizer]
 verify_jwt = false
 
+[functions.news-engine]
+verify_jwt = false
+
 
 
 
