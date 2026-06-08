@@ -42,3 +42,7 @@ verify_jwt = false
 [functions.smart-refresh]
 verify_jwt = true
 
+[functions.forex-rates]
+verify_jwt = false
+
+
