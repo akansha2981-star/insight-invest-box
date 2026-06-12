@@ -99,7 +99,15 @@ class RealEstateErrorBoundary extends Component<{ children: ReactNode }, { hasEr
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("Real estate page render failed", error, info);
+    console.error("InvestingIQ route render failed", error, info);
+
+    if (isChunkLoadError(error) && typeof window !== "undefined") {
+      const key = `iiq-reloaded-${window.location.pathname}`;
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, "1");
+        window.location.reload();
+      }
+    }
   }
 
   render() {
