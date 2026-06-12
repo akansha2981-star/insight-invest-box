@@ -8,6 +8,20 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { FloatingAIButton } from "./components/FloatingAIButton";
 import { useParams, Navigate as RRNavigate } from "react-router-dom";
 
+const isChunkLoadError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  return /Failed to fetch dynamically imported module|Importing a module script failed|Loading chunk|ChunkLoadError/i.test(message);
+};
+
+const PageLoader = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 shadow-card">
+      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+      <span className="text-sm font-semibold">Loading InvestingIQ…</span>
+    </div>
+  </div>
+);
+
 const Index = lazy(() => import("./pages/Index"));
 const NewsHubPage = lazy(() => import("./pages/NewsHubPage"));
 const NewsDetailPage = lazy(() => import("./pages/NewsDetailPage"));
