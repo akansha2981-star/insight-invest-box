@@ -228,14 +228,16 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <RealEstateErrorBoundary>
-          <Suspense fallback={null}>
-            <FloatingAIButton />
-          </Suspense>
-        </RealEstateErrorBoundary>
-        <AppRoutes />
-      </BrowserRouter>
+      <RealEstateErrorBoundary>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <RealEstateErrorBoundary>
+            <Suspense fallback={null}>
+              <FloatingAIButton />
+            </Suspense>
+          </RealEstateErrorBoundary>
+          <AppRoutes />
+        </BrowserRouter>
+      </RealEstateErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
 );
