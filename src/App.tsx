@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { Building2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -63,6 +64,8 @@ import {
   BestETFsIndia, GoldETFvsPhysical, ETFvsMutualFund, SIPvsLumpsum,
 } from "./pages/seo/MFLandingPages";
 import { useParams, Navigate as RRNavigate } from "react-router-dom";
+import { Header } from "./components/Header";
+import { Footer } from "./components/Footer";
 
 const NewsToBlogRedirect = () => {
   const { slug } = useParams();
