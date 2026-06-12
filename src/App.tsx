@@ -107,13 +107,12 @@ class RealEstateErrorBoundary extends Component<{ children: ReactNode }, { hasEr
 
     return (
       <div className="min-h-screen bg-background">
-        <Header />
         <main className="mx-auto max-w-3xl px-4 py-16 text-center">
           <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
             <Building2 className="mx-auto mb-4 h-12 w-12 text-primary" />
-            <h1 className="mb-2 text-2xl font-black text-foreground">Real estate page is reloading safely</h1>
+            <h1 className="mb-2 text-2xl font-black text-foreground">InvestingIQ is reloading safely</h1>
             <p className="mb-6 text-sm text-muted-foreground">
-              Some property intelligence data could not render. Refresh the page or return to the listings.
+              A page module could not render, so the site stopped it from turning into a blank screen.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
               <button onClick={() => window.location.reload()} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground">
@@ -125,19 +124,17 @@ class RealEstateErrorBoundary extends Component<{ children: ReactNode }, { hasEr
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <FloatingAIButton />
+function AppRoutes() {
+  const location = useLocation();
+
+  return (
+    <RealEstateErrorBoundary key={location.pathname}>
+      <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/index.html" element={<Navigate to="/" replace />} />
@@ -167,9 +164,9 @@ const App = () => (
           <Route path="/portfolio" element={<PortfolioPage />} />
           <Route path="/stocks/reviews" element={<StockReviewPage />} />
           <Route path="/stocks/review/:symbol" element={<StockReviewDetailPage />} />
-          <Route path="/real-estate" element={<RealEstateErrorBoundary><RealEstatePage /></RealEstateErrorBoundary>} />
-          <Route path="/real-estate/:city/:bucket" element={<RealEstateErrorBoundary><CityBucketPage /></RealEstateErrorBoundary>} />
-          <Route path="/real-estate/:slug" element={<RealEstateErrorBoundary><PropertyDetailPage /></RealEstateErrorBoundary>} />
+          <Route path="/real-estate" element={<RealEstatePage />} />
+          <Route path="/real-estate/:city/:bucket" element={<CityBucketPage />} />
+          <Route path="/real-estate/:slug" element={<PropertyDetailPage />} />
           <Route path="/tools/sip" element={<SIPCalculatorPage />} />
           <Route path="/tools/emi" element={<EMICalculatorPage />} />
           <Route path="/tools/fd" element={<FDCalculatorPage />} />
@@ -212,6 +209,19 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+      </Suspense>
+    </RealEstateErrorBoundary>
+  );
+}
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <FloatingAIButton />
+        <AppRoutes />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
