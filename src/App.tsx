@@ -5,7 +5,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { FloatingAIButton } from "./components/FloatingAIButton";
 import { useParams, Navigate as RRNavigate } from "react-router-dom";
 
 const isChunkLoadError = (error: unknown) => {
@@ -21,6 +20,8 @@ const PageLoader = () => (
     </div>
   </div>
 );
+
+const FloatingAIButton = lazy(() => import("./components/FloatingAIButton").then((m) => ({ default: m.FloatingAIButton })));
 
 const Index = lazy(() => import("./pages/Index"));
 const NewsHubPage = lazy(() => import("./pages/NewsHubPage"));
