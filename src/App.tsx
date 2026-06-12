@@ -1,71 +1,89 @@
-import { Component, type ErrorInfo, type ReactNode } from "react";
-import { Building2 } from "lucide-react";
+import { Component, Suspense, lazy, type ErrorInfo, type ReactNode } from "react";
+import { Building2, Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
-import NewsPage from "./pages/NewsPage";
-import NewsHubPage from "./pages/NewsHubPage";
-import NewsDetailPage from "./pages/NewsDetailPage";
-import AdminLogin from "./pages/AdminLogin";
-import AdminDashboard from "./pages/AdminDashboard";
-import MarketsPage from "./pages/MarketsPage";
-import StocksPage from "./pages/StocksPage";
-import EconomyPage from "./pages/EconomyPage";
-import MFPage from "./pages/MFPage";
-import CryptoPage from "./pages/CryptoPage";
-import PortfolioPage from "./pages/PortfolioPage";
-import StockReviewPage from "./pages/StockReviewPage";
-import StockReviewDetailPage from "./pages/StockReviewDetailPage";
-import RealEstatePage from "./pages/RealEstatePage";
-import PropertyDetailPage from "./pages/PropertyDetailPage";
-import CityBucketPage from "./pages/CityBucketPage";
-import SIPCalculatorPage from "./pages/SIPCalculatorPage";
-import EMICalculatorPage from "./pages/EMICalculatorPage";
-import FDCalculatorPage from "./pages/FDCalculatorPage";
-import TaxCalculatorPage from "./pages/TaxCalculatorPage";
-import StockScreenerPage from "./pages/StockScreenerPage";
-import PortfolioTesterPage from "./pages/PortfolioTesterPage";
-import AboutPage from "./pages/AboutPage";
-import CareersPage from "./pages/CareersPage";
-import ContactPage from "./pages/ContactPage";
-import PrivacyPage from "./pages/PrivacyPage";
-import TermsPage from "./pages/TermsPage";
-import SitemapPage from "./pages/SitemapPage";
-import CurrencyConverterPage from "./pages/CurrencyConverterPage";
-import NotFound from "./pages/NotFound";
-import UserLogin from "./pages/UserLogin";
-import { FloatingAIButton } from "./components/FloatingAIButton";
-import MFScreenerPage from "./pages/MFScreenerPage";
-import MFDetailPage from "./pages/MFDetailPage";
-import MFComparePage from "./pages/MFComparePage";
-import MFOverlapPage from "./pages/MFOverlapPage";
-import MFFundHousePage from "./pages/MFFundHousePage";
-import MFNewsPage from "./pages/MFNewsPage";
-import ETFPage from "./pages/ETFPage";
-import ETFScreenerPage from "./pages/ETFScreenerPage";
-import ETFDetailPage from "./pages/ETFDetailPage";
-import ETFComparePage from "./pages/ETFComparePage";
-import ToolsHubPage from "./pages/ToolsHubPage";
-import StepUpSIPPage from "./pages/tools/StepUpSIPPage";
-import GoalSIPPage from "./pages/tools/GoalSIPPage";
-import RetirementSIPPage from "./pages/tools/RetirementSIPPage";
-import ChildEducationSIPPage from "./pages/tools/ChildEducationSIPPage";
-import MarriageSIPPage from "./pages/tools/MarriageSIPPage";
-import InflationSIPPage from "./pages/tools/InflationSIPPage";
-import FIRECalculatorPage from "./pages/tools/FIRECalculatorPage";
-import LumpsumCalculatorPage from "./pages/tools/LumpsumCalculatorPage";
-import SWPCalculatorPage from "./pages/tools/SWPCalculatorPage";
-import PortfolioAnalyzerPage from "./pages/tools/PortfolioAnalyzerPage";
-import {
-  BestMutualFunds2026, BestSIPFunds, BestELSSFunds, BestSmallCapFunds, BestIndexFunds,
-  BestETFsIndia, GoldETFvsPhysical, ETFvsMutualFund, SIPvsLumpsum,
-} from "./pages/seo/MFLandingPages";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useParams, Navigate as RRNavigate } from "react-router-dom";
-import { Header } from "./components/Header";
-import { Footer } from "./components/Footer";
+
+const isChunkLoadError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  return /Failed to fetch dynamically imported module|Importing a module script failed|Loading chunk|ChunkLoadError/i.test(message);
+};
+
+const PageLoader = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 shadow-card">
+      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+      <span className="text-sm font-semibold">Loading InvestingIQ…</span>
+    </div>
+  </div>
+);
+
+const FloatingAIButton = lazy(() => import("./components/FloatingAIButton").then((m) => ({ default: m.FloatingAIButton })));
+
+const Index = lazy(() => import("./pages/Index"));
+const NewsHubPage = lazy(() => import("./pages/NewsHubPage"));
+const NewsDetailPage = lazy(() => import("./pages/NewsDetailPage"));
+const AdminLogin = lazy(() => import("./pages/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const MarketsPage = lazy(() => import("./pages/MarketsPage"));
+const StocksPage = lazy(() => import("./pages/StocksPage"));
+const EconomyPage = lazy(() => import("./pages/EconomyPage"));
+const MFPage = lazy(() => import("./pages/MFPage"));
+const CryptoPage = lazy(() => import("./pages/CryptoPage"));
+const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
+const StockReviewPage = lazy(() => import("./pages/StockReviewPage"));
+const StockReviewDetailPage = lazy(() => import("./pages/StockReviewDetailPage"));
+const RealEstatePage = lazy(() => import("./pages/RealEstatePage"));
+const PropertyDetailPage = lazy(() => import("./pages/PropertyDetailPage"));
+const CityBucketPage = lazy(() => import("./pages/CityBucketPage"));
+const SIPCalculatorPage = lazy(() => import("./pages/SIPCalculatorPage"));
+const EMICalculatorPage = lazy(() => import("./pages/EMICalculatorPage"));
+const FDCalculatorPage = lazy(() => import("./pages/FDCalculatorPage"));
+const TaxCalculatorPage = lazy(() => import("./pages/TaxCalculatorPage"));
+const StockScreenerPage = lazy(() => import("./pages/StockScreenerPage"));
+const PortfolioTesterPage = lazy(() => import("./pages/PortfolioTesterPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const CareersPage = lazy(() => import("./pages/CareersPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const SitemapPage = lazy(() => import("./pages/SitemapPage"));
+const CurrencyConverterPage = lazy(() => import("./pages/CurrencyConverterPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const UserLogin = lazy(() => import("./pages/UserLogin"));
+const MFScreenerPage = lazy(() => import("./pages/MFScreenerPage"));
+const MFDetailPage = lazy(() => import("./pages/MFDetailPage"));
+const MFComparePage = lazy(() => import("./pages/MFComparePage"));
+const MFOverlapPage = lazy(() => import("./pages/MFOverlapPage"));
+const MFFundHousePage = lazy(() => import("./pages/MFFundHousePage"));
+const MFNewsPage = lazy(() => import("./pages/MFNewsPage"));
+const ETFPage = lazy(() => import("./pages/ETFPage"));
+const ETFScreenerPage = lazy(() => import("./pages/ETFScreenerPage"));
+const ETFDetailPage = lazy(() => import("./pages/ETFDetailPage"));
+const ETFComparePage = lazy(() => import("./pages/ETFComparePage"));
+const ToolsHubPage = lazy(() => import("./pages/ToolsHubPage"));
+const StepUpSIPPage = lazy(() => import("./pages/tools/StepUpSIPPage"));
+const GoalSIPPage = lazy(() => import("./pages/tools/GoalSIPPage"));
+const RetirementSIPPage = lazy(() => import("./pages/tools/RetirementSIPPage"));
+const ChildEducationSIPPage = lazy(() => import("./pages/tools/ChildEducationSIPPage"));
+const MarriageSIPPage = lazy(() => import("./pages/tools/MarriageSIPPage"));
+const InflationSIPPage = lazy(() => import("./pages/tools/InflationSIPPage"));
+const FIRECalculatorPage = lazy(() => import("./pages/tools/FIRECalculatorPage"));
+const LumpsumCalculatorPage = lazy(() => import("./pages/tools/LumpsumCalculatorPage"));
+const SWPCalculatorPage = lazy(() => import("./pages/tools/SWPCalculatorPage"));
+const PortfolioAnalyzerPage = lazy(() => import("./pages/tools/PortfolioAnalyzerPage"));
+const BestMutualFunds2026 = lazy(() => import("./pages/seo/MFLandingPages").then((m) => ({ default: m.BestMutualFunds2026 })));
+const BestSIPFunds = lazy(() => import("./pages/seo/MFLandingPages").then((m) => ({ default: m.BestSIPFunds })));
+const BestELSSFunds = lazy(() => import("./pages/seo/MFLandingPages").then((m) => ({ default: m.BestELSSFunds })));
+const BestSmallCapFunds = lazy(() => import("./pages/seo/MFLandingPages").then((m) => ({ default: m.BestSmallCapFunds })));
+const BestIndexFunds = lazy(() => import("./pages/seo/MFLandingPages").then((m) => ({ default: m.BestIndexFunds })));
+const BestETFsIndia = lazy(() => import("./pages/seo/MFLandingPages").then((m) => ({ default: m.BestETFsIndia })));
+const GoldETFvsPhysical = lazy(() => import("./pages/seo/MFLandingPages").then((m) => ({ default: m.GoldETFvsPhysical })));
+const ETFvsMutualFund = lazy(() => import("./pages/seo/MFLandingPages").then((m) => ({ default: m.ETFvsMutualFund })));
+const SIPvsLumpsum = lazy(() => import("./pages/seo/MFLandingPages").then((m) => ({ default: m.SIPvsLumpsum })));
 
 const NewsToBlogRedirect = () => {
   const { slug } = useParams();
@@ -82,7 +100,15 @@ class RealEstateErrorBoundary extends Component<{ children: ReactNode }, { hasEr
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("Real estate page render failed", error, info);
+    console.error("InvestingIQ route render failed", error, info);
+
+    if (isChunkLoadError(error) && typeof window !== "undefined") {
+      const key = `iiq-reloaded-${window.location.pathname}`;
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, "1");
+        window.location.reload();
+      }
+    }
   }
 
   render() {
@@ -90,13 +116,12 @@ class RealEstateErrorBoundary extends Component<{ children: ReactNode }, { hasEr
 
     return (
       <div className="min-h-screen bg-background">
-        <Header />
         <main className="mx-auto max-w-3xl px-4 py-16 text-center">
           <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
             <Building2 className="mx-auto mb-4 h-12 w-12 text-primary" />
-            <h1 className="mb-2 text-2xl font-black text-foreground">Real estate page is reloading safely</h1>
+            <h1 className="mb-2 text-2xl font-black text-foreground">InvestingIQ is reloading safely</h1>
             <p className="mb-6 text-sm text-muted-foreground">
-              Some property intelligence data could not render. Refresh the page or return to the listings.
+              A page module could not render, so the site stopped it from turning into a blank screen.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
               <button onClick={() => window.location.reload()} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground">
@@ -108,19 +133,17 @@ class RealEstateErrorBoundary extends Component<{ children: ReactNode }, { hasEr
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <FloatingAIButton />
+function AppRoutes() {
+  const location = useLocation();
+
+  return (
+    <RealEstateErrorBoundary key={location.pathname}>
+      <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/index.html" element={<Navigate to="/" replace />} />
@@ -150,9 +173,9 @@ const App = () => (
           <Route path="/portfolio" element={<PortfolioPage />} />
           <Route path="/stocks/reviews" element={<StockReviewPage />} />
           <Route path="/stocks/review/:symbol" element={<StockReviewDetailPage />} />
-          <Route path="/real-estate" element={<RealEstateErrorBoundary><RealEstatePage /></RealEstateErrorBoundary>} />
-          <Route path="/real-estate/:city/:bucket" element={<RealEstateErrorBoundary><CityBucketPage /></RealEstateErrorBoundary>} />
-          <Route path="/real-estate/:slug" element={<RealEstateErrorBoundary><PropertyDetailPage /></RealEstateErrorBoundary>} />
+          <Route path="/real-estate" element={<RealEstatePage />} />
+          <Route path="/real-estate/:city/:bucket" element={<CityBucketPage />} />
+          <Route path="/real-estate/:slug" element={<PropertyDetailPage />} />
           <Route path="/tools/sip" element={<SIPCalculatorPage />} />
           <Route path="/tools/emi" element={<EMICalculatorPage />} />
           <Route path="/tools/fd" element={<FDCalculatorPage />} />
@@ -195,7 +218,26 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
+      </Suspense>
+    </RealEstateErrorBoundary>
+  );
+}
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <RealEstateErrorBoundary>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <RealEstateErrorBoundary>
+            <Suspense fallback={null}>
+              <FloatingAIButton />
+            </Suspense>
+          </RealEstateErrorBoundary>
+          <AppRoutes />
+        </BrowserRouter>
+      </RealEstateErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
 );
