@@ -229,7 +229,11 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <FloatingAIButton />
+        <RealEstateErrorBoundary>
+          <Suspense fallback={null}>
+            <FloatingAIButton />
+          </Suspense>
+        </RealEstateErrorBoundary>
         <AppRoutes />
       </BrowserRouter>
     </TooltipProvider>
