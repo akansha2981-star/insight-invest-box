@@ -1,3 +1,5 @@
+import { Component, type ErrorInfo, type ReactNode } from "react";
+import { Building2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -62,6 +64,8 @@ import {
   BestETFsIndia, GoldETFvsPhysical, ETFvsMutualFund, SIPvsLumpsum,
 } from "./pages/seo/MFLandingPages";
 import { useParams, Navigate as RRNavigate } from "react-router-dom";
+import { Header } from "./components/Header";
+import { Footer } from "./components/Footer";
 
 const NewsToBlogRedirect = () => {
   const { slug } = useParams();
@@ -69,6 +73,46 @@ const NewsToBlogRedirect = () => {
 };
 
 const queryClient = new QueryClient();
+
+class RealEstateErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("Real estate page render failed", error, info);
+  }
+
+  render() {
+    if (!this.state.hasError) return this.props.children;
+
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="mx-auto max-w-3xl px-4 py-16 text-center">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
+            <Building2 className="mx-auto mb-4 h-12 w-12 text-primary" />
+            <h1 className="mb-2 text-2xl font-black text-foreground">Real estate page is reloading safely</h1>
+            <p className="mb-6 text-sm text-muted-foreground">
+              Some property intelligence data could not render. Refresh the page or return to the listings.
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <button onClick={() => window.location.reload()} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground">
+                Refresh page
+              </button>
+              <a href="/real-estate" className="rounded-lg border border-border px-5 py-2.5 text-sm font-bold text-foreground hover:bg-muted">
+                Back to Real Estate
+              </a>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -106,9 +150,9 @@ const App = () => (
           <Route path="/portfolio" element={<PortfolioPage />} />
           <Route path="/stocks/reviews" element={<StockReviewPage />} />
           <Route path="/stocks/review/:symbol" element={<StockReviewDetailPage />} />
-          <Route path="/real-estate" element={<RealEstatePage />} />
-          <Route path="/real-estate/:city/:bucket" element={<CityBucketPage />} />
-          <Route path="/real-estate/:slug" element={<PropertyDetailPage />} />
+          <Route path="/real-estate" element={<RealEstateErrorBoundary><RealEstatePage /></RealEstateErrorBoundary>} />
+          <Route path="/real-estate/:city/:bucket" element={<RealEstateErrorBoundary><CityBucketPage /></RealEstateErrorBoundary>} />
+          <Route path="/real-estate/:slug" element={<RealEstateErrorBoundary><PropertyDetailPage /></RealEstateErrorBoundary>} />
           <Route path="/tools/sip" element={<SIPCalculatorPage />} />
           <Route path="/tools/emi" element={<EMICalculatorPage />} />
           <Route path="/tools/fd" element={<FDCalculatorPage />} />
