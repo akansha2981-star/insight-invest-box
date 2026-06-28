@@ -197,6 +197,8 @@ export default function AdminDashboard() {
     setView(id as AdminView);
     setEditingPost(null);
     setSidebarOpen(false);
+    const item = NAV_ITEMS.find(n => n.id === id);
+    if (item) logAdminActivity({ action: `Opened "${item.label}"`, category: "navigation", details: { section: id } });
   }
 
   const sidebarContent = (
@@ -254,7 +256,12 @@ export default function AdminDashboard() {
           </div>
         </div>
         <button
-          onClick={() => { supabase.auth.signOut(); navigate('/admin/login'); }}
+          onClick={async () => {
+            await logAdminActivity({ action: "Signed out", category: "auth" });
+            try { sessionStorage.removeItem("admin_login_logged"); } catch { /* ignore */ }
+            supabase.auth.signOut();
+            navigate('/admin/login');
+          }}
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
         >
           <LogOut className="h-3.5 w-3.5" /> Sign Out
