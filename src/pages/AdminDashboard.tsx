@@ -93,7 +93,18 @@ export default function AdminDashboard() {
         setUser(session.user);
         const ok = await verifyRole(session.user.id);
         if (cancelled) return;
-        if (ok) { setAuthorized(true); fetchPosts(); }
+        if (ok) {
+          setAuthorized(true);
+          fetchPosts();
+          // Log admin sign-in once per browser session
+          try {
+            const flag = sessionStorage.getItem("admin_login_logged");
+            if (!flag) {
+              sessionStorage.setItem("admin_login_logged", "1");
+              logAdminActivity({ action: "Signed in to admin panel", category: "auth" });
+            }
+          } catch { /* ignore */ }
+        }
         else { setAuthorized(false); }
       } finally {
         checking = false;
