@@ -412,6 +412,7 @@ export default function AdminDashboard() {
         {view === 'newsletter' && <AdminNewsletterSubscribers />}
         {view === 'real-estate' && <AdminRealEstate />}
         {view === 'auth-analytics' && <AdminAuthAnalytics />}
+        {view === 'activity-logs' && <AdminActivityLogs />}
         {view === 'ai-studio' && <AdminAIContentStudio />}
         {view === 'sitemap' && <AdminSitemapManager />}
         {view === 'smart-refresh' && <AdminSmartRefresh />}
