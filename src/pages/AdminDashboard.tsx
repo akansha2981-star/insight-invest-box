@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users, Menu, X, RefreshCw, Sparkles, ListTree, Zap, Globe } from "lucide-react";
+import { TrendingUp, Plus, Edit, Trash2, Eye, FileText, LogOut, CheckCircle, Clock, AlertCircle, BarChart2, PenSquare, Newspaper, Layout, Radio, LineChart, Image, Mail, Home, Users, Menu, X, RefreshCw, Sparkles, ListTree, Zap, Globe, Activity } from "lucide-react";
+import { logAdminActivity } from "@/lib/adminActivity";
+import { AdminActivityLogs } from "@/components/AdminActivityLogs";
 import { BlogEditor } from "@/components/BlogEditor";
 import { AdminPageSections } from "@/components/AdminPageSections";
 import { AdminBreakingNews } from "@/components/AdminBreakingNews";
@@ -27,7 +29,7 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio' | 'sitemap' | 'smart-refresh' | 'forex' | 'ai-optimizer' | 'news-engine' | 'mutual-funds';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio' | 'sitemap' | 'smart-refresh' | 'forex' | 'ai-optimizer' | 'news-engine' | 'mutual-funds' | 'activity-logs';
 
 const NAV_ITEMS = [
   { id: 'dashboard',        label: 'Dashboard',          icon: BarChart2 },
@@ -49,6 +51,7 @@ const NAV_ITEMS = [
   { id: 'newsletter',       label: 'Subscribers',        icon: Mail },
   { id: 'registered-users', label: 'Registered Users',   icon: Users },
   { id: 'auth-analytics',   label: 'Login Analytics',    icon: Users },
+  { id: 'activity-logs',    label: 'Admin Activity Logs', icon: Activity },
 ];
 
 export default function AdminDashboard() {
@@ -90,7 +93,18 @@ export default function AdminDashboard() {
         setUser(session.user);
         const ok = await verifyRole(session.user.id);
         if (cancelled) return;
-        if (ok) { setAuthorized(true); fetchPosts(); }
+        if (ok) {
+          setAuthorized(true);
+          fetchPosts();
+          // Log admin sign-in once per browser session
+          try {
+            const flag = sessionStorage.getItem("admin_login_logged");
+            if (!flag) {
+              sessionStorage.setItem("admin_login_logged", "1");
+              logAdminActivity({ action: "Signed in to admin panel", category: "auth" });
+            }
+          } catch { /* ignore */ }
+        }
         else { setAuthorized(false); }
       } finally {
         checking = false;
@@ -183,6 +197,8 @@ export default function AdminDashboard() {
     setView(id as AdminView);
     setEditingPost(null);
     setSidebarOpen(false);
+    const item = NAV_ITEMS.find(n => n.id === id);
+    if (item) logAdminActivity({ action: `Opened "${item.label}"`, category: "navigation", details: { section: id } });
   }
 
   const sidebarContent = (
@@ -240,7 +256,12 @@ export default function AdminDashboard() {
           </div>
         </div>
         <button
-          onClick={() => { supabase.auth.signOut(); navigate('/admin/login'); }}
+          onClick={async () => {
+            await logAdminActivity({ action: "Signed out", category: "auth" });
+            try { sessionStorage.removeItem("admin_login_logged"); } catch { /* ignore */ }
+            supabase.auth.signOut();
+            navigate('/admin/login');
+          }}
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
         >
           <LogOut className="h-3.5 w-3.5" /> Sign Out
@@ -391,6 +412,7 @@ export default function AdminDashboard() {
         {view === 'newsletter' && <AdminNewsletterSubscribers />}
         {view === 'real-estate' && <AdminRealEstate />}
         {view === 'auth-analytics' && <AdminAuthAnalytics />}
+        {view === 'activity-logs' && <AdminActivityLogs />}
         {view === 'ai-studio' && <AdminAIContentStudio />}
         {view === 'sitemap' && <AdminSitemapManager />}
         {view === 'smart-refresh' && <AdminSmartRefresh />}
