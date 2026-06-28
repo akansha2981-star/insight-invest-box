@@ -20,15 +20,15 @@ export async function logAdminActivity({ action, category = "other", details = {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("admin_activity_log").insert({
+    await supabase.from("admin_activity_log").insert([{
       admin_id: user.id,
-      admin_email: user.email ?? null,
+      admin_email: user.email ?? undefined,
       action,
       category,
-      details,
-      path: typeof window !== "undefined" ? window.location.pathname : null,
-      user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 300) : null,
-    });
+      details: details as never,
+      path: typeof window !== "undefined" ? window.location.pathname : undefined,
+      user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 300) : undefined,
+    }]);
   } catch (e) {
     // Silent — logging must never break the UI
     console.warn("logAdminActivity failed", e);
