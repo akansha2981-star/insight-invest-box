@@ -134,8 +134,9 @@ export function HomeHero() {
         <div className="text-center mb-6">
           <h1 className="font-extrabold text-2xl sm:text-3xl lg:text-[2.5rem] text-foreground leading-tight tracking-tight mb-2.5">
             Smart Investing Starts
-            <span className="bg-gradient-to-r from-primary via-blue-600 to-violet-600 bg-clip-text text-transparent"> with Better Research</span>
+            <span className="text-gradient-brand"> with Better Research</span>
           </h1>
+
           <p className="text-muted-foreground text-[13px] sm:text-sm max-w-md mx-auto leading-relaxed">
             Real-time market data, expert analysis, and AI-powered insights
           </p>
