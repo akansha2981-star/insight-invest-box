@@ -418,13 +418,13 @@ export default function Index() {
 
         {/* ── Sectors + Market Breadth — compact row ── */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-5" data-reveal>
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Sector Performance</span>
             </div>
             <div className="p-3 grid grid-cols-4 gap-2">
               {SECTORS.map(sec => (
-                <div key={sec.name} className="rounded-lg p-2.5 text-center border border-border hover:border-primary/20 transition-all cursor-pointer">
+                <div key={sec.name} className="rounded-lg p-2.5 text-center border border-border hover:border-primary/30 hover:bg-primary/[0.03] hover:-translate-y-0.5 transition-all cursor-pointer duration-300">
                   <sec.icon className={`h-4 w-4 mx-auto mb-1 ${sec.up ? 'text-gain' : 'text-loss'}`} />
                   <div className="text-[11px] font-medium text-foreground">{sec.name}</div>
                   <div className={`text-[11px] font-semibold ${sec.up ? 'text-gain' : 'text-loss'}`}>{sec.change}</div>
@@ -433,7 +433,7 @@ export default function Index() {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Market Breadth — NSE</span>
             </div>
@@ -499,7 +499,7 @@ export default function Index() {
         {/* ── Global + Commodities + Currency — clean 3-col ── */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5" data-reveal>
           {/* Global Markets */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border flex items-center justify-between">
               <span className="font-semibold text-[14px] text-foreground">Global Markets</span>
               <Link to="/markets" className="text-[11px] text-primary font-medium">More</Link>
@@ -521,7 +521,7 @@ export default function Index() {
           </div>
 
           {/* Commodities */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Commodities</span>
             </div>
@@ -539,7 +539,7 @@ export default function Index() {
           </div>
 
           {/* Currencies */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border flex items-center justify-between">
               <span className="font-semibold text-[14px] text-foreground">Currency Rates</span>
               {marketDataUpdatedAt && <span className="text-[9px] text-gain font-medium">LIVE</span>}
@@ -561,7 +561,7 @@ export default function Index() {
         {/* ── Expert Picks + IPO + Analysts — sidebar-style row ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Expert Picks */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Expert Picks</span>
             </div>
@@ -588,7 +588,7 @@ export default function Index() {
           </div>
 
           {/* IPO Corner */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border flex items-center justify-between">
               <span className="font-semibold text-[14px] text-foreground">IPO Corner</span>
               <Link to="/markets" className="text-[11px] text-primary font-medium">All IPOs</Link>
@@ -620,7 +620,7 @@ export default function Index() {
 
         {/* ── FII/DII ── */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-5" data-reveal>
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Institutional Flows</span>
             </div>
@@ -641,7 +641,7 @@ export default function Index() {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Market Snapshot</span>
             </div>
@@ -705,7 +705,7 @@ export default function Index() {
               { icon: Globe, title: "IPO Investing Guide", desc: "GMP analysis and listing gains", tag: "Popular" },
               { icon: Zap, title: "Options Trading Basics", desc: "Calls, puts, and hedging strategies", tag: "Advanced" },
             ].map(item => (
-              <div key={item.title} className="bg-card border border-border rounded-xl p-4 hover:border-primary/20 transition-all cursor-pointer group">
+              <div key={item.title} className="bg-card border border-border rounded-xl p-4 hover-lift cursor-pointer group">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center shrink-0">
                     <item.icon className="h-4 w-4 text-primary" />
