@@ -335,7 +335,7 @@ export default function Index() {
         </section>
 
         {/* ─── Breaking News Marquee ─── */}
-        <div className="border border-border bg-card rounded-xl overflow-hidden -mt-4">
+        <div data-reveal="fade" className="border border-border bg-card rounded-xl overflow-hidden -mt-4">
           <div className="flex items-center">
             <div className="flex items-center gap-1.5 shrink-0 px-4 py-2.5 bg-destructive/10 border-r border-border">
               <span className="inline-flex h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" />
