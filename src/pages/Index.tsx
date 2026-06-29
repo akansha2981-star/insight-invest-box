@@ -377,10 +377,10 @@ export default function Index() {
 
 
         {/* ── Stock Reviews ── */}
-        <FeaturedStockReviews />
+        <div data-reveal><FeaturedStockReviews /></div>
 
         {/* ── Top Stories ── */}
-        <section>
+        <section data-reveal>
           <SectionHeading title="Top Stories" link="/news" />
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
             <div className="lg:col-span-3">
@@ -417,7 +417,7 @@ export default function Index() {
         </section>
 
         {/* ── Sectors + Market Breadth — compact row ── */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-5" data-reveal>
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Sector Performance</span>
@@ -466,14 +466,14 @@ export default function Index() {
         </div>
 
         {/* ── Market Movers ── */}
-        <section>
+        <section data-reveal>
           <SectionHeading title="Market Movers" link="/stocks" />
           <GainersLosers />
         </section>
 
         {/* ── Latest News Grid ── */}
         {!loading && gridPosts.length > 0 && (
-          <section>
+          <section data-reveal>
             <SectionHeading title="Latest News" link="/news" linkLabel="More Stories" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {gridPosts.map(post => <NewsCard key={post.id} post={post} featured />)}
@@ -482,22 +482,22 @@ export default function Index() {
         )}
 
         {/* ── AI Section ── */}
-        <AIAssistantBar />
+        <div data-reveal><AIAssistantBar /></div>
 
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5" data-reveal>
           <div className="lg:col-span-2">
             <AIInsightTeaser variant="homepage" />
           </div>
           <AIMarketPulse />
         </section>
 
-        <AIStockRecommendations />
+        <div data-reveal><AIStockRecommendations /></div>
 
         {/* ── Real Estate ── */}
-        <HomeRealEstateSection />
+        <div data-reveal><HomeRealEstateSection /></div>
 
         {/* ── Global + Commodities + Currency — clean 3-col ── */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-5" data-reveal>
           {/* Global Markets */}
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="px-4 py-3 border-b border-border flex items-center justify-between">
@@ -619,7 +619,7 @@ export default function Index() {
         </div>
 
         {/* ── FII/DII ── */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-5" data-reveal>
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Institutional Flows</span>
@@ -663,7 +663,7 @@ export default function Index() {
 
         {/* ── More News ── */}
         {!loading && moreNews.length > 0 && (
-          <section>
+          <section data-reveal>
             <SectionHeading title="More From InvestingIQ" link="/news" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {moreNews.map(post => <NewsCard key={post.id} post={post} featured />)}
@@ -672,7 +672,7 @@ export default function Index() {
         )}
 
         {/* ── Why InvestingIQ ── */}
-        <section className="bg-card border border-border rounded-2xl p-8 sm:p-10">
+        <section className="bg-card border border-border rounded-2xl p-8 sm:p-10" data-reveal>
           <div className="text-center mb-8">
             <h2 className="font-semibold text-xl text-foreground mb-2">Why Investors Trust InvestingIQ</h2>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">Actionable insights, real-time data, and expert analysis for 50,000+ investors</p>
@@ -694,7 +694,7 @@ export default function Index() {
         </section>
 
         {/* ── Learning Hub ── */}
-        <section>
+        <section data-reveal>
           <SectionHeading title="Learning Hub" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
@@ -722,7 +722,7 @@ export default function Index() {
         </section>
 
         {/* ── Tools ── */}
-        <section>
+        <section data-reveal>
           <SectionHeading title="Tools & Calculators" />
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
             {TOOLS.map(tool => (
