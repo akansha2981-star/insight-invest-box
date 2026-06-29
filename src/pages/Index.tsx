@@ -298,6 +298,9 @@ export default function Index() {
   const gridPosts = posts.slice(5, 9);
   const moreNews = posts.slice(9, 13);
 
+  useScrollReveal([loading, posts.length]);
+
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
