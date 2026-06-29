@@ -309,3 +309,90 @@
   animation: shimmer-x 3s linear infinite;
 }
 
+/* ── Glassmorphism ── */
+.glass {
+  background: hsla(0, 0%, 100%, 0.65);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid hsla(214, 32%, 91%, 0.7);
+}
+.glass-dark {
+  background: hsla(215, 30%, 12%, 0.55);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid hsla(0, 0%, 100%, 0.08);
+}
+
+/* ── Premium glows ── */
+.glow-primary {
+  box-shadow:
+    0 0 0 1px hsl(var(--primary) / 0.1),
+    0 10px 40px -10px hsl(var(--primary) / 0.35),
+    0 4px 12px -4px hsl(var(--primary) / 0.2);
+}
+
+/* ── Animated mesh gradient ── */
+@keyframes mesh-shift {
+  0%, 100% { background-position: 0% 50%, 100% 50%, 50% 0%; }
+  50% { background-position: 100% 50%, 0% 50%, 50% 100%; }
+}
+.mesh-bg {
+  background-image:
+    radial-gradient(circle at 20% 30%, hsl(221 83% 55% / 0.18), transparent 50%),
+    radial-gradient(circle at 80% 20%, hsl(262 70% 60% / 0.15), transparent 50%),
+    radial-gradient(circle at 50% 80%, hsl(180 70% 50% / 0.12), transparent 50%);
+  background-size: 200% 200%, 200% 200%, 200% 200%;
+  animation: mesh-shift 18s ease-in-out infinite;
+}
+
+/* ── Conic glow ── */
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+.conic-glow {
+  background: conic-gradient(from 0deg, hsl(var(--primary)), hsl(262 70% 60%), hsl(180 70% 50%), hsl(var(--primary)));
+  filter: blur(60px);
+  opacity: 0.35;
+  animation: spin-slow 20s linear infinite;
+}
+
+/* ── Card pin/stack stage ── */
+.pin-stage-card {
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+/* ── Premium gradient border ── */
+.gradient-border {
+  position: relative;
+  background: hsl(var(--card));
+  border-radius: 1rem;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.6), hsl(262 70% 60% / 0.4), transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Animated counter rhythm */
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+.pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid hsl(var(--primary) / 0.5);
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+
