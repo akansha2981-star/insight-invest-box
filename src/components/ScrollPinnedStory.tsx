@@ -98,23 +98,47 @@ export function ScrollPinnedStory() {
       style={{ height: `${n * 90}vh` }}
       aria-label="Why InvestingIQ — pinned scroll story"
     >
-      <div className="sticky top-0 h-screen flex items-center overflow-hidden bg-gradient-to-br from-[#f8fafc] via-[#eef2ff] to-[#f5f3ff]">
-        {/* Animated background layers — light & airy */}
+      <div className="sticky top-0 h-screen flex items-center overflow-hidden light-mesh-bg">
+        {/* Advanced light-theme background layers */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-gradient-to-br from-violet-200/60 to-sky-200/40 blur-3xl animate-pulse" style={{ animationDuration: "8s" }} />
-          <div className="absolute -bottom-60 -right-40 w-[700px] h-[700px] rounded-full bg-gradient-to-br from-emerald-200/50 to-cyan-200/40 blur-3xl animate-pulse" style={{ animationDuration: "11s" }} />
-          <div className="absolute top-1/3 left-1/2 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/30 blur-3xl" />
-          <div
-            className="absolute inset-0 opacity-50"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(99,102,241,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.07) 1px, transparent 1px)",
-              backgroundSize: "60px 60px",
-              maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
-              WebkitMaskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
-            }}
-          />
+          {/* Aurora blobs */}
+          <div className="aurora-blob aurora-blob-slow -top-32 -left-32 w-[520px] h-[520px] bg-gradient-to-br from-violet-300/60 via-fuchsia-200/50 to-transparent" />
+          <div className="aurora-blob top-1/4 -right-40 w-[560px] h-[560px] bg-gradient-to-br from-sky-300/55 via-cyan-200/45 to-transparent" style={{ animationDelay: "-4s" }} />
+          <div className="aurora-blob aurora-blob-slow -bottom-40 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-emerald-200/55 via-teal-200/40 to-transparent" style={{ animationDelay: "-8s" }} />
+          <div className="aurora-blob top-2/3 right-1/4 w-[360px] h-[360px] bg-gradient-to-br from-rose-200/45 to-amber-200/30" style={{ animationDelay: "-12s" }} />
+
+          {/* Animated grid */}
+          <div className="absolute inset-0 light-grid" />
+
+          {/* Floating glass chips */}
+          <div className="hidden lg:block absolute top-[14%] left-[8%] float-y" style={{ ['--r' as any]: '-6deg' }}>
+            <div className="px-3 py-2 rounded-xl bg-white/70 backdrop-blur-xl border border-white shadow-[0_10px_30px_-12px_rgba(99,102,241,0.35)] flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-bold tracking-wider text-slate-700">NIFTY · LIVE</span>
+            </div>
+          </div>
+          <div className="hidden lg:block absolute top-[22%] right-[6%] float-y" style={{ ['--r' as any]: '5deg', animationDelay: '-2s' }}>
+            <div className="px-3 py-2 rounded-xl bg-white/70 backdrop-blur-xl border border-white shadow-[0_10px_30px_-12px_rgba(16,185,129,0.35)]">
+              <span className="text-[10px] font-mono font-bold text-emerald-600">+0.84%</span>
+            </div>
+          </div>
+          <div className="hidden lg:block absolute bottom-[14%] left-[10%] float-y" style={{ ['--r' as any]: '4deg', animationDelay: '-3.5s' }}>
+            <div className="px-3 py-2 rounded-xl bg-white/70 backdrop-blur-xl border border-white shadow-[0_10px_30px_-12px_rgba(139,92,246,0.35)] flex items-center gap-2">
+              <Sparkles className="h-3 w-3 text-violet-500" />
+              <span className="text-[10px] font-bold tracking-wider text-slate-700">AI INSIGHT</span>
+            </div>
+          </div>
+          <div className="hidden lg:block absolute bottom-[22%] right-[10%] float-y" style={{ ['--r' as any]: '-5deg', animationDelay: '-5s' }}>
+            <div className="px-3 py-2 rounded-xl bg-white/70 backdrop-blur-xl border border-white shadow-[0_10px_30px_-12px_rgba(56,189,248,0.35)] flex items-center gap-2">
+              <BarChart3 className="h-3 w-3 text-sky-500" />
+              <span className="text-[10px] font-mono font-bold text-slate-700">2,147 stocks</span>
+            </div>
+          </div>
+
+          {/* Soft vignette */}
+          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, transparent 40%, rgba(255,255,255,0.5) 100%)" }} />
         </div>
+
 
         <div className="relative max-w-[1200px] mx-auto px-4 sm:px-8 w-full grid lg:grid-cols-2 gap-10 items-center">
           {/* Left: sticky narrative */}
