@@ -29,6 +29,8 @@ import {
 import { Link } from "react-router-dom";
 import { getMarketStatusText } from "@/lib/marketTime";
 import { AdaptiveImage } from "@/components/AdaptiveImage";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
+
 
 interface BlogPost {
   id: string; title: string; slug: string; excerpt: string | null;
