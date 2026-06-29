@@ -8,6 +8,8 @@ import { NewsCard } from "@/components/NewsCard";
 import { Footer } from "@/components/Footer";
 import { FeaturedStockReviews } from "@/components/FeaturedStockReviews";
 import { HomeHero } from "@/components/HomeHero";
+import { ScrollPinnedStory } from "@/components/ScrollPinnedStory";
+
 import { MiniIndexChart } from "@/components/MiniIndexChart";
 import { TrendingTopics } from "@/components/TrendingTopics";
 import { TopAnalysts } from "@/components/TopAnalysts";
