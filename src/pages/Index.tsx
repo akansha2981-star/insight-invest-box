@@ -29,6 +29,8 @@ import {
 import { Link } from "react-router-dom";
 import { getMarketStatusText } from "@/lib/marketTime";
 import { AdaptiveImage } from "@/components/AdaptiveImage";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
+
 
 interface BlogPost {
   id: string; title: string; slug: string; excerpt: string | null;
@@ -296,6 +298,9 @@ export default function Index() {
   const gridPosts = posts.slice(5, 9);
   const moreNews = posts.slice(9, 13);
 
+  useScrollReveal([loading, posts.length]);
+
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -307,7 +312,8 @@ export default function Index() {
       <main className="max-w-[1280px] mx-auto px-4 py-6 space-y-10">
 
         {/* ── Market Status + Indices ── */}
-        <section>
+        <section data-reveal>
+
           <div className="flex items-center justify-between mb-4">
             {(() => {
               const ms = getMarketStatusText();
@@ -329,7 +335,7 @@ export default function Index() {
         </section>
 
         {/* ─── Breaking News Marquee ─── */}
-        <div className="border border-border bg-card rounded-xl overflow-hidden -mt-4">
+        <div data-reveal="fade" className="border border-border bg-card rounded-xl overflow-hidden -mt-4">
           <div className="flex items-center">
             <div className="flex items-center gap-1.5 shrink-0 px-4 py-2.5 bg-destructive/10 border-r border-border">
               <span className="inline-flex h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" />
@@ -353,12 +359,12 @@ export default function Index() {
         </div>
 
         {/* ── Charts + Trending + Summary ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div data-reveal className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <MiniIndexChart />
           <TrendingTopics />
           <div className="grid grid-cols-2 gap-3 content-start">
-            {MARKET_SUMMARY.map(s => (
-              <div key={s.label} className="bg-card border border-border rounded-xl px-4 py-3">
+            {MARKET_SUMMARY.map((s, i) => (
+              <div key={s.label} data-reveal="zoom" data-reveal-delay={((i % 4) + 1) as 1 | 2 | 3 | 4} className="bg-card border border-border rounded-xl px-4 py-3 hover-lift">
                 <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">{s.label}</div>
                 <div className={`number-font text-lg font-bold ${s.red ? 'text-loss' : s.green ? 'text-gain' : 'text-foreground'}`}>
                   {s.value}
@@ -369,11 +375,12 @@ export default function Index() {
           </div>
         </div>
 
+
         {/* ── Stock Reviews ── */}
-        <FeaturedStockReviews />
+        <div data-reveal><FeaturedStockReviews /></div>
 
         {/* ── Top Stories ── */}
-        <section>
+        <section data-reveal>
           <SectionHeading title="Top Stories" link="/news" />
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
             <div className="lg:col-span-3">
@@ -410,14 +417,14 @@ export default function Index() {
         </section>
 
         {/* ── Sectors + Market Breadth — compact row ── */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-5" data-reveal>
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Sector Performance</span>
             </div>
             <div className="p-3 grid grid-cols-4 gap-2">
               {SECTORS.map(sec => (
-                <div key={sec.name} className="rounded-lg p-2.5 text-center border border-border hover:border-primary/20 transition-all cursor-pointer">
+                <div key={sec.name} className="rounded-lg p-2.5 text-center border border-border hover:border-primary/30 hover:bg-primary/[0.03] hover:-translate-y-0.5 transition-all cursor-pointer duration-300">
                   <sec.icon className={`h-4 w-4 mx-auto mb-1 ${sec.up ? 'text-gain' : 'text-loss'}`} />
                   <div className="text-[11px] font-medium text-foreground">{sec.name}</div>
                   <div className={`text-[11px] font-semibold ${sec.up ? 'text-gain' : 'text-loss'}`}>{sec.change}</div>
@@ -426,7 +433,7 @@ export default function Index() {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Market Breadth — NSE</span>
             </div>
@@ -459,14 +466,14 @@ export default function Index() {
         </div>
 
         {/* ── Market Movers ── */}
-        <section>
+        <section data-reveal>
           <SectionHeading title="Market Movers" link="/stocks" />
           <GainersLosers />
         </section>
 
         {/* ── Latest News Grid ── */}
         {!loading && gridPosts.length > 0 && (
-          <section>
+          <section data-reveal>
             <SectionHeading title="Latest News" link="/news" linkLabel="More Stories" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {gridPosts.map(post => <NewsCard key={post.id} post={post} featured />)}
@@ -475,24 +482,24 @@ export default function Index() {
         )}
 
         {/* ── AI Section ── */}
-        <AIAssistantBar />
+        <div data-reveal><AIAssistantBar /></div>
 
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5" data-reveal>
           <div className="lg:col-span-2">
             <AIInsightTeaser variant="homepage" />
           </div>
           <AIMarketPulse />
         </section>
 
-        <AIStockRecommendations />
+        <div data-reveal><AIStockRecommendations /></div>
 
         {/* ── Real Estate ── */}
-        <HomeRealEstateSection />
+        <div data-reveal><HomeRealEstateSection /></div>
 
         {/* ── Global + Commodities + Currency — clean 3-col ── */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-5" data-reveal>
           {/* Global Markets */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border flex items-center justify-between">
               <span className="font-semibold text-[14px] text-foreground">Global Markets</span>
               <Link to="/markets" className="text-[11px] text-primary font-medium">More</Link>
@@ -514,7 +521,7 @@ export default function Index() {
           </div>
 
           {/* Commodities */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Commodities</span>
             </div>
@@ -532,7 +539,7 @@ export default function Index() {
           </div>
 
           {/* Currencies */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border flex items-center justify-between">
               <span className="font-semibold text-[14px] text-foreground">Currency Rates</span>
               {marketDataUpdatedAt && <span className="text-[9px] text-gain font-medium">LIVE</span>}
@@ -554,7 +561,7 @@ export default function Index() {
         {/* ── Expert Picks + IPO + Analysts — sidebar-style row ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Expert Picks */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Expert Picks</span>
             </div>
@@ -581,7 +588,7 @@ export default function Index() {
           </div>
 
           {/* IPO Corner */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border flex items-center justify-between">
               <span className="font-semibold text-[14px] text-foreground">IPO Corner</span>
               <Link to="/markets" className="text-[11px] text-primary font-medium">All IPOs</Link>
@@ -612,8 +619,8 @@ export default function Index() {
         </div>
 
         {/* ── FII/DII ── */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-5" data-reveal>
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Institutional Flows</span>
             </div>
@@ -634,7 +641,7 @@ export default function Index() {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden hover-lift">
             <div className="px-4 py-3 border-b border-border">
               <span className="font-semibold text-[14px] text-foreground">Market Snapshot</span>
             </div>
@@ -656,7 +663,7 @@ export default function Index() {
 
         {/* ── More News ── */}
         {!loading && moreNews.length > 0 && (
-          <section>
+          <section data-reveal>
             <SectionHeading title="More From InvestingIQ" link="/news" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {moreNews.map(post => <NewsCard key={post.id} post={post} featured />)}
@@ -665,7 +672,7 @@ export default function Index() {
         )}
 
         {/* ── Why InvestingIQ ── */}
-        <section className="bg-card border border-border rounded-2xl p-8 sm:p-10">
+        <section className="bg-card border border-border rounded-2xl p-8 sm:p-10" data-reveal>
           <div className="text-center mb-8">
             <h2 className="font-semibold text-xl text-foreground mb-2">Why Investors Trust InvestingIQ</h2>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">Actionable insights, real-time data, and expert analysis for 50,000+ investors</p>
@@ -687,7 +694,7 @@ export default function Index() {
         </section>
 
         {/* ── Learning Hub ── */}
-        <section>
+        <section data-reveal>
           <SectionHeading title="Learning Hub" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
@@ -698,7 +705,7 @@ export default function Index() {
               { icon: Globe, title: "IPO Investing Guide", desc: "GMP analysis and listing gains", tag: "Popular" },
               { icon: Zap, title: "Options Trading Basics", desc: "Calls, puts, and hedging strategies", tag: "Advanced" },
             ].map(item => (
-              <div key={item.title} className="bg-card border border-border rounded-xl p-4 hover:border-primary/20 transition-all cursor-pointer group">
+              <div key={item.title} className="bg-card border border-border rounded-xl p-4 hover-lift cursor-pointer group">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center shrink-0">
                     <item.icon className="h-4 w-4 text-primary" />
@@ -715,7 +722,7 @@ export default function Index() {
         </section>
 
         {/* ── Tools ── */}
-        <section>
+        <section data-reveal>
           <SectionHeading title="Tools & Calculators" />
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
             {TOOLS.map(tool => (
