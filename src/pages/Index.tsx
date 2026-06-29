@@ -312,7 +312,8 @@ export default function Index() {
       <main className="max-w-[1280px] mx-auto px-4 py-6 space-y-10">
 
         {/* ── Market Status + Indices ── */}
-        <section>
+        <section data-reveal>
+
           <div className="flex items-center justify-between mb-4">
             {(() => {
               const ms = getMarketStatusText();
