@@ -380,6 +380,13 @@ export default function Index() {
 
         {/* ── Stock Reviews ── */}
         <div data-reveal><FeaturedStockReviews /></div>
+      </main>
+
+      {/* ── Scroll-pinned storytelling (full-bleed, breaks out of main container) ── */}
+      <ScrollPinnedStory />
+
+      <main className="max-w-[1280px] mx-auto px-4 py-10 space-y-10">
+
 
         {/* ── Top Stories ── */}
         <section data-reveal>
