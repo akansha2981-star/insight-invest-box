@@ -359,12 +359,12 @@ export default function Index() {
         </div>
 
         {/* ── Charts + Trending + Summary ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div data-reveal className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <MiniIndexChart />
           <TrendingTopics />
           <div className="grid grid-cols-2 gap-3 content-start">
-            {MARKET_SUMMARY.map(s => (
-              <div key={s.label} className="bg-card border border-border rounded-xl px-4 py-3">
+            {MARKET_SUMMARY.map((s, i) => (
+              <div key={s.label} data-reveal="zoom" data-reveal-delay={((i % 4) + 1) as 1 | 2 | 3 | 4} className="bg-card border border-border rounded-xl px-4 py-3 hover-lift">
                 <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">{s.label}</div>
                 <div className={`number-font text-lg font-bold ${s.red ? 'text-loss' : s.green ? 'text-gain' : 'text-foreground'}`}>
                   {s.value}
@@ -374,6 +374,7 @@ export default function Index() {
             ))}
           </div>
         </div>
+
 
         {/* ── Stock Reviews ── */}
         <FeaturedStockReviews />
