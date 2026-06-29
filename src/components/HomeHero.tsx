@@ -76,7 +76,7 @@ export function HomeHero() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-[#0a1024] to-slate-950 text-white">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#2a3a6b] via-[#3b4a8a] to-[#2d4a7a] text-white">
       {/* Animated mesh + conic glows */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-48 -left-48 w-[700px] h-[700px] conic-glow" />
