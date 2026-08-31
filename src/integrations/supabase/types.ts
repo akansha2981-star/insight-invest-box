@@ -74,6 +74,48 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_rates: {
+        Row: {
+          bank_name: string
+          created_at: string
+          effective_date: string
+          id: string
+          is_active: boolean
+          loan_type: string
+          max_rate: number
+          min_rate: number
+          processing_fee: string | null
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          bank_name: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          is_active?: boolean
+          loan_type: string
+          max_rate: number
+          min_rate: number
+          processing_fee?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          bank_name?: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          is_active?: boolean
+          loan_type?: string
+          max_rate?: number
+          min_rate?: number
+          processing_fee?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_name: string | null
