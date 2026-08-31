@@ -41,7 +41,7 @@ const staticEntries: Entry[] = [
   // Tools
   { path: "/tools", changefreq: "weekly", priority: "0.8" },
   { path: "/tools/sip", changefreq: "monthly", priority: "0.7" },
-  { path: "/tools/emi", changefreq: "monthly", priority: "0.7" },
+  { path: "/calculators/emi-calculator", changefreq: "monthly", priority: "0.7" },
   { path: "/tools/fd", changefreq: "monthly", priority: "0.7" },
   { path: "/tools/tax", changefreq: "monthly", priority: "0.7" },
   { path: "/tools/screener", changefreq: "weekly", priority: "0.7" },

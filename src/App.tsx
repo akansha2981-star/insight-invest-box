@@ -40,7 +40,7 @@ const RealEstatePage = lazy(() => import("./pages/RealEstatePage"));
 const PropertyDetailPage = lazy(() => import("./pages/PropertyDetailPage"));
 const CityBucketPage = lazy(() => import("./pages/CityBucketPage"));
 const SIPCalculatorPage = lazy(() => import("./pages/SIPCalculatorPage"));
-const EMICalculatorPage = lazy(() => import("./pages/EMICalculatorPage"));
+const EMICalculatorPage = lazy(() => import("./pages/calculators/EMICalculatorPage"));
 const FDCalculatorPage = lazy(() => import("./pages/FDCalculatorPage"));
 const TaxCalculatorPage = lazy(() => import("./pages/TaxCalculatorPage"));
 const StockScreenerPage = lazy(() => import("./pages/StockScreenerPage"));
@@ -177,7 +177,8 @@ function AppRoutes() {
           <Route path="/real-estate/:city/:bucket" element={<CityBucketPage />} />
           <Route path="/real-estate/:slug" element={<PropertyDetailPage />} />
           <Route path="/tools/sip" element={<SIPCalculatorPage />} />
-          <Route path="/tools/emi" element={<EMICalculatorPage />} />
+          <Route path="/tools/emi" element={<Navigate to="/calculators/emi-calculator" replace />} />
+          <Route path="/calculators/emi-calculator" element={<EMICalculatorPage />} />
           <Route path="/tools/fd" element={<FDCalculatorPage />} />
           <Route path="/tools/tax" element={<TaxCalculatorPage />} />
           <Route path="/tools/screener" element={<StockScreenerPage />} />

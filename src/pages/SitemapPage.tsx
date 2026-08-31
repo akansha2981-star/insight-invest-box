@@ -21,7 +21,7 @@ const SECTIONS = [
   ]},
   { title: "Tools", links: [
     { label: "SIP Calculator", to: "/tools/sip" },
-    { label: "EMI Calculator", to: "/tools/emi" },
+    { label: "EMI Calculator", to: "/calculators/emi-calculator" },
     { label: "FD Calculator", to: "/tools/fd" },
     { label: "Tax Calculator", to: "/tools/tax" },
     { label: "Stock Screener", to: "/tools/screener" },

@@ -16,7 +16,7 @@ const TOOLS = [
   { l: "Inflation Adjusted SIP", h: "/tools/inflation-sip", icon: TrendingUp, d: "Real returns calculator" },
   { l: "FIRE Calculator", h: "/tools/fire-calculator", icon: Flame, d: "Financial independence target" },
   { l: "Portfolio Analyzer", h: "/tools/portfolio-analyzer", icon: Briefcase, d: "Analyze your MF portfolio" },
-  { l: "EMI Calculator", h: "/tools/emi", icon: Calculator, d: "Loan EMI breakup" },
+  { l: "EMI Calculator", h: "/calculators/emi-calculator", icon: Calculator, d: "Loan EMI breakup" },
   { l: "FD Calculator", h: "/tools/fd", icon: Calculator, d: "Fixed deposit returns" },
   { l: "Tax Calculator", h: "/tools/tax", icon: Calculator, d: "Income tax estimator" },
   { l: "Stock Screener", h: "/tools/screener", icon: Layers, d: "Advanced stock filters" },
