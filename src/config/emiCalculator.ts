@@ -5,7 +5,7 @@
 export const EMI_CONFIG = {
   currency: "₹",
   locale: "en-IN",
-  canonical: "https://www.investingiq.in/calculators/emi-calculator/",
+  canonical: "https://www.investingiq.in/calculators/emi-calculator",
   methodologyReviewed: "2026-08-30",
 
   amount: { min: 10000, max: 200000000, step: 10000, default: 1000000 },
