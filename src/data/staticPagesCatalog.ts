@@ -10,7 +10,7 @@ export type StaticPage = {
 export const STATIC_PAGES: StaticPage[] = [
   // Tools / Calculators
   { title: "SIP Calculator", subtitle: "Calculate mutual fund SIP returns", href: "/tools/sip", category: "Tools", keywords: ["sip", "calculator", "mutual fund", "investment", "returns"] },
-  { title: "EMI Calculator", subtitle: "Home, car & personal loan EMI", href: "/tools/emi", category: "Tools", keywords: ["emi", "loan", "calculator", "home loan", "car loan", "interest"] },
+  { title: "EMI Calculator", subtitle: "Home, car & personal loan EMI", href: "/calculators/emi-calculator", category: "Tools", keywords: ["emi", "loan", "calculator", "home loan", "car loan", "interest"] },
   { title: "FD Calculator", subtitle: "Fixed deposit maturity calculator", href: "/tools/fd", category: "Tools", keywords: ["fd", "fixed deposit", "calculator", "maturity", "interest"] },
   { title: "Income Tax Calculator", subtitle: "Old vs new regime tax calculator", href: "/tools/tax", category: "Tools", keywords: ["tax", "income tax", "calculator", "regime", "deduction"] },
   { title: "Stock Screener", subtitle: "Filter stocks by criteria", href: "/tools/screener", category: "Tools", keywords: ["screener", "filter", "stock", "pe", "marketcap"] },

@@ -106,7 +106,7 @@ const FALLBACK_BREAKING_NEWS = [
 
 const TOOLS = [
   { name: "SIP Calculator", icon: Calculator, to: "/tools/sip" },
-  { name: "EMI Calculator", icon: Home, to: "/tools/emi" },
+  { name: "EMI Calculator", icon: Home, to: "/calculators/emi-calculator" },
   { name: "Stock Screener", icon: Search, to: "/tools/screener" },
   { name: "Portfolio Tester", icon: PieChart, to: "/tools/portfolio" },
   { name: "Tax Calculator", icon: Newspaper, to: "/tools/tax" },
