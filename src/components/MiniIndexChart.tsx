@@ -3,6 +3,11 @@ import { ArrowUp, ArrowDown, TrendingUp } from "lucide-react";
 import type { IndexData } from "@/data/mockStocks";
 import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
 
+const INITIAL_INDICES: IndexData[] = [
+  { name: "NIFTY 50", value: 25367.45, change: -41, changePercent: -0.17, high: 25410.4, low: 25321.1 },
+  { name: "SENSEX", value: 83740.1, change: -102.2, changePercent: -0.12, high: 83918.6, low: 83654.4 },
+];
+
 function generateChartPoints(baseValue: number, positive: boolean, count = 24): number[] {
   const points: number[] = [];
   let val = baseValue * 0.997;
@@ -51,7 +56,7 @@ function AreaChart({ points, positive, width = 220, height = 60 }: { points: num
 }
 
 export function MiniIndexChart() {
-  const [indices, setIndices] = useState<IndexData[]>([]);
+  const [indices, setIndices] = useState<IndexData[]>(INITIAL_INDICES);
   const [active, setActive] = useState(0);
 
   const fetchLive = useCallback(async () => {
@@ -81,13 +86,7 @@ export function MiniIndexChart() {
 
   const idx = indices[active];
 
-  if (!idx) {
-    return (
-      <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden p-5 text-sm text-muted-foreground">
-        Loading live index chart…
-      </div>
-    );
-  }
+  if (!idx) return null;
   const up = idx.change >= 0;
 
   return (
