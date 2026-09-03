@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, TrendingUp, BarChart3, Users, ShieldCheck, ArrowRight, Newspaper, LineChart, Calculator, Building2 } from "lucide-react";
+import { Search, TrendingUp, BarChart3, ShieldCheck, ArrowRight, Newspaper, LineChart, Calculator, Building2, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/bse-editorial-hero.jpg";
@@ -13,24 +13,25 @@ const POPULAR_SEARCHES = [
 ];
 
 const STATS = [
-  { icon: BarChart3, value: "50,000+", label: "Active Investors", tone: "text-primary bg-primary/10" },
-  { icon: TrendingUp, value: "1,200+", label: "Stock Reviews", tone: "text-gain bg-gain-light" },
-  { icon: Users, value: "95%", label: "Reader Satisfaction", tone: "text-primary bg-secondary" },
-  { icon: ShieldCheck, value: "SEBI", label: "Disclosure First", tone: "text-gold bg-gold-light" },
+  { icon: BarChart3, value: "NSE + BSE", label: "Indian Market Coverage", detail: "Indices, equities and breadth", tone: "text-primary bg-primary/10" },
+  { icon: TrendingUp, value: "1,200+", label: "Research Reviews", detail: "Targets, ratings and thesis", tone: "text-gain bg-gain-light" },
+  { icon: RefreshCw, value: "30 sec", label: "Market Refresh", detail: "During standard market hours", tone: "text-primary bg-secondary" },
+  { icon: ShieldCheck, value: "Research First", label: "Transparent Insights", detail: "Sources and disclosures shown", tone: "text-gold bg-gold-light" },
 ];
 
 function StatCard({ stat }: { stat: typeof STATS[number] }) {
   const Icon = stat.icon;
   return (
-    <div className="group flex min-h-[86px] items-center gap-3 border border-border bg-card p-3.5 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-card-md sm:p-4">
+    <div className="group flex min-h-[94px] items-center gap-3 border border-border bg-card p-3.5 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-card-md sm:p-4">
       <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${stat.tone}`}>
         <Icon className="h-5 w-5" strokeWidth={2.1} />
       </div>
       <div className="min-w-0">
-        <div className="font-home-display text-base font-bold text-foreground sm:text-lg">
+        <div className="font-home-display text-sm font-bold text-foreground sm:text-base">
           {stat.value}
         </div>
         <div className="mt-0.5 text-[10px] font-bold uppercase text-muted-foreground">{stat.label}</div>
+        <div className="mt-1 hidden text-[10px] text-muted-foreground sm:block">{stat.detail}</div>
       </div>
     </div>
   );
@@ -54,19 +55,27 @@ export function HomeHero() {
 
   return (
     <section className="border-b border-border bg-muted/30 font-home">
-      <div className="mx-auto max-w-[1280px] px-4 py-5 sm:py-7">
-        <div className="mb-4 grid grid-cols-2 gap-2.5 md:grid-cols-4">
+      <div className="mx-auto max-w-[1280px] px-4 py-4 sm:py-5">
+        <div className="mb-3 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-primary">InvestingIQ Intelligence Desk</p>
+            <h2 className="mt-1 font-home-display text-lg font-bold text-foreground sm:text-xl">Research the market from one place</h2>
+          </div>
+          <p className="hidden max-w-md text-right text-xs leading-5 text-muted-foreground md:block">Live Indian markets, institutional-style stock research, financial tools and property intelligence in one focused dashboard.</p>
+        </div>
+        <div className="mb-3 grid grid-cols-2 gap-2.5 md:grid-cols-4">
           {STATS.map(stat => <StatCard key={stat.label} stat={stat} />)}
         </div>
 
         <div className="grid overflow-hidden border border-border bg-card shadow-card-md lg:grid-cols-12">
-          <div className="group relative min-h-[410px] overflow-hidden lg:col-span-8 lg:min-h-[500px]">
+          <div className="group relative min-h-[390px] overflow-hidden lg:col-span-8 lg:min-h-[460px]">
             <img
               src={heroImage}
               alt="Mumbai financial district representing Indian market intelligence"
               width={1536}
               height={864}
               fetchPriority="high"
+              decoding="async"
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.025]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/45 to-transparent" />

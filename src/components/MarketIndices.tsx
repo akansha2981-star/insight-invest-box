@@ -4,6 +4,13 @@ import type { IndexData } from "@/data/mockStocks";
 import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
 import { isMarketOpen } from "@/lib/marketTime";
 
+const INITIAL_INDICES: IndexData[] = [
+  { name: "NIFTY 50", value: 25367.45, change: -41, changePercent: -0.17, high: 25410.4, low: 25321.1 },
+  { name: "BANK NIFTY", value: 57380.6, change: 208.6, changePercent: 0.36, high: 57553.6, low: 57242.2 },
+  { name: "SENSEX", value: 83740.1, change: -102.2, changePercent: -0.12, high: 83918.6, low: 83654.4 },
+  { name: "NIFTY IT", value: 30838.85, change: -206.45, changePercent: -0.85, high: 31085.7, low: 30621.65 },
+];
+
 function generateSparkPoints(baseValue: number, positive: boolean, count = 20): { x: number; y: number }[] {
   const points: { x: number; y: number }[] = [];
   let val = baseValue * 0.998;
@@ -58,7 +65,7 @@ function HoverAreaChart({ points, positive, width = 140, height = 40 }: {
 }
 
 export function MarketIndices() {
-  const [indices, setIndices] = useState<IndexData[]>([]);
+  const [indices, setIndices] = useState<IndexData[]>(INITIAL_INDICES);
   const [liveEnabled, setLiveEnabled] = useState(false);
   const [expandedIdx, setExpandedIdx] = useState<string | null>(null);
   const [hoveredIdx, setHoveredIdx] = useState<string | null>(null);
@@ -110,7 +117,7 @@ export function MarketIndices() {
       <div className="flex items-center gap-1.5 text-xs">
         {liveEnabled && isMarketOpen()
           ? <><Wifi className="h-3 w-3 text-gain" /><span className="text-gain font-semibold">Live data from NSE/BSE</span></>
-          : <><WifiOff className="h-3 w-3 text-muted-foreground" /><span className="text-muted-foreground">{isMarketOpen() ? 'Loading live data...' : 'Market Closed · Showing last traded prices'}</span></>
+          : <><WifiOff className="h-3 w-3 text-muted-foreground" /><span className="text-muted-foreground">{isMarketOpen() ? 'Connecting to NSE/BSE market feed' : 'Market Closed · Showing last traded prices'}</span></>
         }
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">

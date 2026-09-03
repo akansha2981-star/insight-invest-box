@@ -133,7 +133,7 @@ export function Header() {
       {/* Bottom row: Navigation */}
       <div className="hidden lg:block border-t border-border/60 bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
-          <nav className="flex items-center gap-0.5 -mb-px">
+          <nav className="flex items-center justify-center gap-1 -mb-px" aria-label="Primary navigation">
             {NAV_ITEMS.map((item) => (
               <div
                 key={item.label}

@@ -1,24 +1,14 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { lazy, Suspense, useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { StockTicker } from "@/components/StockTicker";
 import { MarketIndices } from "@/components/MarketIndices";
-import { GainersLosers } from "@/components/GainersLosers";
 import { NewsCard } from "@/components/NewsCard";
 import { Footer } from "@/components/Footer";
-import { FeaturedStockReviews } from "@/components/FeaturedStockReviews";
 import { HomeHero } from "@/components/HomeHero";
-import { ScrollPinnedStory } from "@/components/ScrollPinnedStory";
 
 import { MiniIndexChart } from "@/components/MiniIndexChart";
 import { TrendingTopics } from "@/components/TrendingTopics";
-import { TopAnalysts } from "@/components/TopAnalysts";
-import { NewsletterSignup } from "@/components/NewsletterSignup";
-import { HomeRealEstateSection } from "@/components/HomeRealEstateSection";
-import { AIAssistantBar } from "@/components/AIAssistantBar";
-import { AIInsightTeaser } from "@/components/AIInsightTeaser";
-import { AIMarketPulse } from "@/components/AIMarketPulse";
-import { AIStockRecommendations } from "@/components/AIStockRecommendations";
 import {
   RefreshCw, ArrowUp, ArrowDown, TrendingUp,
   Flame, Star, Globe, BarChart3, Zap, ChevronRight, Clock,
@@ -32,6 +22,21 @@ import { Link } from "react-router-dom";
 import { getMarketStatusText } from "@/lib/marketTime";
 import { AdaptiveImage } from "@/components/AdaptiveImage";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+
+const GainersLosers = lazy(() => import("@/components/GainersLosers").then(module => ({ default: module.GainersLosers })));
+const FeaturedStockReviews = lazy(() => import("@/components/FeaturedStockReviews").then(module => ({ default: module.FeaturedStockReviews })));
+const ScrollPinnedStory = lazy(() => import("@/components/ScrollPinnedStory").then(module => ({ default: module.ScrollPinnedStory })));
+const TopAnalysts = lazy(() => import("@/components/TopAnalysts").then(module => ({ default: module.TopAnalysts })));
+const NewsletterSignup = lazy(() => import("@/components/NewsletterSignup").then(module => ({ default: module.NewsletterSignup })));
+const HomeRealEstateSection = lazy(() => import("@/components/HomeRealEstateSection").then(module => ({ default: module.HomeRealEstateSection })));
+const AIAssistantBar = lazy(() => import("@/components/AIAssistantBar").then(module => ({ default: module.AIAssistantBar })));
+const AIInsightTeaser = lazy(() => import("@/components/AIInsightTeaser").then(module => ({ default: module.AIInsightTeaser })));
+const AIMarketPulse = lazy(() => import("@/components/AIMarketPulse").then(module => ({ default: module.AIMarketPulse })));
+const AIStockRecommendations = lazy(() => import("@/components/AIStockRecommendations").then(module => ({ default: module.AIStockRecommendations })));
+
+const DeferredSection = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<div className="min-h-24" aria-hidden="true" />}>{children}</Suspense>
+);
 
 
 interface BlogPost {
@@ -379,11 +384,11 @@ export default function Index() {
 
 
         {/* ── Stock Reviews ── */}
-        <div data-reveal><FeaturedStockReviews /></div>
+        <div data-reveal><DeferredSection><FeaturedStockReviews /></DeferredSection></div>
       </main>
 
       {/* ── Scroll-pinned storytelling (full-bleed, breaks out of main container) ── */}
-      <ScrollPinnedStory />
+      <DeferredSection><ScrollPinnedStory /></DeferredSection>
 
       <main className="max-w-[1280px] mx-auto px-4 py-10 space-y-10">
 
@@ -477,7 +482,7 @@ export default function Index() {
         {/* ── Market Movers ── */}
         <section data-reveal>
           <SectionHeading title="Market Movers" link="/stocks" />
-          <GainersLosers />
+          <DeferredSection><GainersLosers /></DeferredSection>
         </section>
 
         {/* ── Latest News Grid ── */}
@@ -491,19 +496,19 @@ export default function Index() {
         )}
 
         {/* ── AI Section ── */}
-        <div data-reveal><AIAssistantBar /></div>
+        <div data-reveal><DeferredSection><AIAssistantBar /></DeferredSection></div>
 
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-5" data-reveal>
           <div className="lg:col-span-2">
-            <AIInsightTeaser variant="homepage" />
+            <DeferredSection><AIInsightTeaser variant="homepage" /></DeferredSection>
           </div>
-          <AIMarketPulse />
+          <DeferredSection><AIMarketPulse /></DeferredSection>
         </section>
 
-        <div data-reveal><AIStockRecommendations /></div>
+        <div data-reveal><DeferredSection><AIStockRecommendations /></DeferredSection></div>
 
         {/* ── Real Estate ── */}
-        <div data-reveal><HomeRealEstateSection /></div>
+        <div data-reveal><DeferredSection><HomeRealEstateSection /></DeferredSection></div>
 
         {/* ── Global + Commodities + Currency — clean 3-col ── */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5" data-reveal>
@@ -624,7 +629,7 @@ export default function Index() {
           </div>
 
           {/* Top Analysts */}
-          <TopAnalysts />
+          <DeferredSection><TopAnalysts /></DeferredSection>
         </div>
 
         {/* ── FII/DII ── */}
@@ -745,7 +750,7 @@ export default function Index() {
         </section>
 
         {/* ── Newsletter ── */}
-        <NewsletterSignup />
+        <DeferredSection><NewsletterSignup /></DeferredSection>
 
         {/* ── Disclaimer ── */}
         <div className="bg-muted/50 rounded-xl p-4 flex items-start gap-3">
