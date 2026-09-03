@@ -1,5 +1,5 @@
 import { Component, Suspense, lazy, type ErrorInfo, type ReactNode } from "react";
-import { Building2, Loader2 } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,15 +11,6 @@ const isChunkLoadError = (error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
   return /Failed to fetch dynamically imported module|Importing a module script failed|Loading chunk|ChunkLoadError/i.test(message);
 };
-
-const PageLoader = () => (
-  <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 shadow-card">
-      <Loader2 className="h-5 w-5 animate-spin text-primary" />
-      <span className="text-sm font-semibold">Loading InvestingIQ…</span>
-    </div>
-  </div>
-);
 
 const FloatingAIButton = lazy(() => import("./components/FloatingAIButton").then((m) => ({ default: m.FloatingAIButton })));
 
@@ -143,7 +134,7 @@ function AppRoutes() {
 
   return (
     <RealEstateErrorBoundary key={location.pathname}>
-      <Suspense fallback={<PageLoader />}>
+      <Suspense fallback={null}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/index.html" element={<Navigate to="/" replace />} />

@@ -47,7 +47,7 @@ export function StockTicker() {
           {showLive ? (
             <><Wifi className="h-2.5 w-2.5" /> LIVE</>
           ) : (
-            <><WifiOff className="h-2.5 w-2.5" /> {marketOpen ? 'LOADING' : 'CLOSED'}</>
+            <><WifiOff className="h-2.5 w-2.5" /> {marketOpen ? 'CONNECTING' : 'CLOSED'}</>
           )}
         </div>
         {!marketOpen && stocks.length > 0 && (
@@ -57,8 +57,10 @@ export function StockTicker() {
         )}
         <div className="overflow-hidden flex-1">
           {doubled.length === 0 ? (
-            <div className="text-[12px] text-muted-foreground font-medium py-1">
-              {marketOpen ? "Loading live NSE/BSE prices…" : "Fetching last close prices…"}
+            <div className="flex items-center gap-6 whitespace-nowrap py-1 text-[11px] font-semibold text-muted-foreground">
+              <span>NSE &amp; BSE market feed</span>
+              <span>Stocks · Indices · Market breadth</span>
+              <span className="hidden sm:inline">Prices update automatically</span>
             </div>
           ) : (
             <div className="ticker-animate flex items-center gap-7 whitespace-nowrap" style={{ width: 'max-content' }}>
