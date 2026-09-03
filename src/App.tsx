@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useParams, Navigate as RRNavigate } from "react-router-dom";
+import Index from "./pages/Index";
 
 const isChunkLoadError = (error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
@@ -14,7 +15,6 @@ const isChunkLoadError = (error: unknown) => {
 
 const FloatingAIButton = lazy(() => import("./components/FloatingAIButton").then((m) => ({ default: m.FloatingAIButton })));
 
-const Index = lazy(() => import("./pages/Index"));
 const NewsHubPage = lazy(() => import("./pages/NewsHubPage"));
 const NewsDetailPage = lazy(() => import("./pages/NewsDetailPage"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
