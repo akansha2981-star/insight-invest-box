@@ -1732,6 +1732,51 @@ export type Database = {
         }
         Relationships: []
       }
+      swing_live_orders: {
+        Row: {
+          broker_order_id: string | null
+          created_at: string
+          exchange: string
+          id: string
+          message: string | null
+          order_value: number
+          price: number
+          quantity: number
+          side: string
+          status: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          broker_order_id?: string | null
+          created_at?: string
+          exchange?: string
+          id?: string
+          message?: string | null
+          order_value: number
+          price: number
+          quantity: number
+          side: string
+          status: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          broker_order_id?: string | null
+          created_at?: string
+          exchange?: string
+          id?: string
+          message?: string | null
+          order_value?: number
+          price?: number
+          quantity?: number
+          side?: string
+          status?: string
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       swing_portfolios: {
         Row: {
           capital: number
