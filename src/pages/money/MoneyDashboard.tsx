@@ -49,7 +49,14 @@ export default function MoneyDashboard() {
   const loadAll = async (uid: string) => {
     const [s, p, t, pf] = await Promise.all([
       db.from("swing_strategies").select("*").order("created_at"),
-      db.from("swing_prices").select("symbol,trade_date,open,high,low,close,volume").order("trade_date").limit(20000),
+      (async () => {
+        const all: any[] = [];
+        for (let from = 0; ; from += 1000) {
+          const { data } = await db.from("swing_prices").select("symbol,trade_date,open,high,low,close,volume").order("trade_date").order("symbol").range(from, from + 999);
+          all.push(...(data ?? [])); if (!data || data.length < 1000) break;
+        }
+        return { data: all };
+      })(),
       db.from("swing_trades").select("*").order("created_at", { ascending: false }),
       db.from("swing_portfolios").select("capital").eq("user_id", uid).maybeSingle(),
     ]);
