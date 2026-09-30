@@ -60,7 +60,7 @@ function Candle(props: any) {
   return <g><line x1={cx} x2={cx} y1={y} y2={y + height} stroke={color} /><rect x={x + width * 0.15} width={Math.max(1, width * 0.7)} y={top} height={Math.max(1, bot - top)} fill={color} /></g>;
 }
 
-export function Terminal({ strategies, onPaperBuy }: { strategies: StrategyLite[]; onPaperBuy: (symbol: string, strategyId: string, price: number) => void }) {
+export function Terminal({ strategies, onPaperBuy, onQuote }: { strategies: StrategyLite[]; onPaperBuy: (symbol: string, strategyId: string, price: number) => void; onQuote?: (symbol: string, price: number) => void }) {
   const [watch, setWatch] = useState<Instrument[]>(() => { try { return JSON.parse(localStorage.getItem(WL_KEY) ?? "") || DEFAULT_WL; } catch { return DEFAULT_WL; } });
   const [sel, setSel] = useState<Instrument>(watch[0] ?? DEFAULT_WL[0]);
   const [charts, setCharts] = useState<Record<string, ChartData>>({});
@@ -70,12 +70,13 @@ export function Terminal({ strategies, onPaperBuy }: { strategies: StrategyLite[
   const [q, setQ] = useState(""); const [results, setResults] = useState<Instrument[]>([]); const [searching, setSearching] = useState(false);
   const [nextAt, setNextAt] = useState(Date.now() + REFRESH_MS); const [, force] = useState(0);
   const key = (i: Instrument) => `${i.exchange}:${i.token}`;
+  const onQuoteRef = useRef(onQuote); onQuoteRef.current = onQuote;
 
   useEffect(() => localStorage.setItem(WL_KEY, JSON.stringify(watch)), [watch]);
 
   const load = useCallback(async (i: Instrument) => {
     setLoadingKey(key(i));
-    try { const d = await fetchChart(i); setCharts((p) => ({ ...p, [key(i)]: d })); }
+    try { const d = await fetchChart(i); setCharts((p) => ({ ...p, [key(i)]: d })); const px = d.quote?.ltp || d.daily.at(-1)?.close; if (px) onQuoteRef.current?.(i.name, px); }
     catch (e: any) { toast.error(`${i.name}: ${e.message}`); }
     finally { setLoadingKey(null); }
   }, []);

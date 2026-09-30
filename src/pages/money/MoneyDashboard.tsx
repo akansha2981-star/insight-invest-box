@@ -34,6 +34,7 @@ export default function MoneyDashboard() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [capital, setCapital] = useState(50000);
   const [live, setLive] = useState<Record<string, number>>({});
+  const [termPx, setTermPx] = useState<Record<string, number>>({});
   const [results, setResults] = useState<Record<string, BacktestResult>>({});
   const [viewing, setViewing] = useState<Strategy | null>(null);
   const [editing, setEditing] = useState<Partial<Strategy> | null>(null);
@@ -88,7 +89,7 @@ export default function MoneyDashboard() {
   }, []);
 
 
-  const priceOf = (sym: string) => live[sym] ?? bars[sym]?.at(-1)?.close ?? 0;
+  const priceOf = (sym: string) => live[sym] ?? termPx[sym] ?? bars[sym]?.at(-1)?.close ?? 0;
 
   const liveBars = useMemo(() => {
     const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
@@ -208,7 +209,7 @@ export default function MoneyDashboard() {
           </TabsList>
 
           <TabsContent value="terminal">
-            <Terminal strategies={strategies} onPaperBuy={buy} />
+            <Terminal strategies={strategies} onPaperBuy={buy} onQuote={(sym, px) => setTermPx((p) => ({ ...p, [sym]: px }))} />
           </TabsContent>
 
           <TabsContent value="strategies" className="space-y-3">
