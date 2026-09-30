@@ -1636,6 +1636,36 @@ export type Database = {
         }
         Relationships: []
       }
+      swing_custom_strategies: {
+        Row: {
+          created_at: string
+          definition: Json
+          family_id: string
+          id: string
+          name: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          definition: Json
+          family_id?: string
+          id?: string
+          name: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          definition?: Json
+          family_id?: string
+          id?: string
+          name?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: []
+      }
       swing_deployments: {
         Row: {
           capital: number

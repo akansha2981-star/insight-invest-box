@@ -31,14 +31,14 @@ export function tradeEvents(trades: SimTrade[], source: string): TradeEvent[] {
   return ev;
 }
 
-export function StrategyReport({ ctxs, regime, onKeepLive }: { ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; onKeepLive: (keys: string[], capital: number, start: string, filter: boolean) => Promise<void> }) {
+export function StrategyReport({ ctxs, regime, defs, onKeepLive }: { ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; onKeepLive: (keys: string[], capital: number, start: string, filter: boolean) => Promise<void> }) {
   const firstDate = ctxs[0]?.b[Math.min(200, (ctxs[0]?.b.length ?? 1) - 1)]?.date ?? "2024-01-01";
   const [cfg, setCfg] = useState({ capital: 100000, start: firstDate, risk: 1, maxPos: 5, filter: true });
-  const [pick, setPick] = useState<string[]>(STRATEGIES.map((s) => s.key));
+  const [pick, setPick] = useState<string[]>(defs.map((s) => s.key));
   const [run, setRun] = useState(cfg);
   const [runPick, setRunPick] = useState(pick);
 
-  const results = useMemo(() => STRATEGIES.filter((s) => runPick.includes(s.key)).map((def) => ({ def, res: simulate(def, ctxs, { capital: run.capital, riskPct: run.risk, startDate: run.start, maxPositions: run.maxPos, regime: run.filter ? regime : null }) })), [ctxs, regime, run, runPick]);
+  const results = useMemo(() => defs.filter((s) => runPick.includes(s.key)).map((def) => ({ def, res: simulate(def, ctxs, { capital: run.capital, riskPct: run.risk, startDate: run.start, maxPositions: run.maxPos, regime: run.filter ? regime : null }) })), [ctxs, regime, run, runPick, defs]);
 
   const r = useMemo(() => {
     const all = results.flatMap((x) => x.res.trades.map((t) => ({ ...t, key: x.def.key })));
@@ -79,9 +79,9 @@ export function StrategyReport({ ctxs, regime, onKeepLive }: { ctxs: Ctx[]; regi
             <div><Label className="text-xs">Timeframe</Label><Input value="Daily (1D)" disabled /></div>
             <div className="flex items-end gap-2 pb-2"><Switch id="tf" checked={cfg.filter} onCheckedChange={(v) => setCfg({ ...cfg, filter: v })} /><Label htmlFor="tf" className="text-xs">Market filter</Label></div>
           </div>
-          <details className="rounded-md border border-border p-2 text-sm"><summary className="cursor-pointer text-xs font-semibold">Strategies in the test ({pick.length} of 20)</summary>
-            <div className="mt-2 flex gap-2"><Button size="sm" variant="outline" onClick={() => setPick(STRATEGIES.map((s) => s.key))}>All</Button><Button size="sm" variant="outline" onClick={() => setPick([])}>None</Button></div>
-            <div className="mt-2 grid gap-1 md:grid-cols-3">{STRATEGIES.map((s) => <label key={s.key} className="flex items-center gap-2 text-xs"><Checkbox checked={pick.includes(s.key)} onCheckedChange={(v) => setPick(v ? [...pick, s.key] : pick.filter((k) => k !== s.key))} />{s.name}</label>)}</div>
+          <details className="rounded-md border border-border p-2 text-sm"><summary className="cursor-pointer text-xs font-semibold">Strategies in the test ({pick.length} of {defs.length})</summary>
+            <div className="mt-2 flex gap-2"><Button size="sm" variant="outline" onClick={() => setPick(defs.map((s) => s.key))}>All</Button><Button size="sm" variant="outline" onClick={() => setPick([])}>None</Button></div>
+            <div className="mt-2 grid gap-1 md:grid-cols-3">{defs.map((s) => <label key={s.key} className="flex items-center gap-2 text-xs"><Checkbox checked={pick.includes(s.key)} onCheckedChange={(v) => setPick(v ? [...pick, s.key] : pick.filter((k) => k !== s.key))} />{s.name}</label>)}</div>
           </details>
           <div className="flex flex-wrap gap-2">
             <Button disabled={!pick.length} onClick={() => { setRun(cfg); setRunPick(pick); }}><Play className="mr-1 h-4 w-4" />Run test</Button>
