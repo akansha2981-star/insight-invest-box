@@ -105,14 +105,15 @@ export default function MoneyDashboard() {
   const priceOf = (sym: string) => live[sym] ?? termPx[sym] ?? bars[sym]?.at(-1)?.close ?? 0;
 
   const liveBars = useMemo(() => {
-    const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+    const ist = new Date(Date.now() + 330 * 60000); const today = ist.toISOString().slice(0, 10);
+    const mins = ist.getUTCHours() * 60 + ist.getUTCMinutes(); const sessionOpen = ist.getUTCDay() > 0 && ist.getUTCDay() < 6 && mins >= 555; // after 9:15 IST, Mon-Fri
     const out: Record<string, Bar[]> = {};
     Object.entries(bars).forEach(([sym, b]) => {
       const px = live[sym]; const last = b.at(-1);
       if (!px || !last) { out[sym] = b; return; }
       out[sym] = last.date === today
         ? [...b.slice(0, -1), { ...last, close: px, high: Math.max(last.high, px), low: Math.min(last.low, px) }]
-        : [...b, { date: today, open: last.close, high: Math.max(last.close, px), low: Math.min(last.close, px), close: px, volume: last.volume }];
+        : !sessionOpen ? b : [...b, { date: today, open: last.close, high: Math.max(last.close, px), low: Math.min(last.close, px), close: px, volume: last.volume }];
     });
     return out;
   }, [bars, live]);
