@@ -1,1 +1,2 @@
 - Swing auto-trading: deployments store only strategy/amount/start date; trades are re-simulated deterministically from live swing_prices (src/lib/swing/strategies20.ts) — no cron needed and backtest/live use identical logic.
+- Swing market regime: derived client-side from an equal-weight index of the scanned universe (marketRegime in strategies20.ts), since no index feed is synced; mean-reversion strategies allowed in bull+sideways, others bull only.
