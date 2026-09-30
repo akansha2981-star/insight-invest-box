@@ -22,7 +22,7 @@ export function LiveTest({ ctxs, regime, defs, onRealOrder }: { ctxs: Ctx[]; reg
   const last = ctxs[0]?.b.at(-1)?.date ?? "";
   const yearAgo = (() => { const d = new Date(last || Date.now()); d.setFullYear(d.getFullYear() - 1); return d.toISOString().slice(0, 10); })();
   const [cfg, setCfg] = useState({ capital: 100000, start: yearAgo, filter: true }); const [run, setRun] = useState(cfg);
-  const top = useMemo(() => defs.map((def) => ({ def, r: simulate(def, ctxs, { capital: 100000, regime }).netReturn })).sort((a, b) => b.r - a.r).slice(0, 5).map((x) => x.def), [defs, ctxs, regime]);
+  const top = useMemo(() => defs.map((def) => ({ def, r: (() => { const s = simulate(def, ctxs, { capital: 100000, regime }); return s.closedCount >= 5 ? s.netReturn : -1e9 + s.netReturn; })() })).sort((a, b) => b.r - a.r).slice(0, 5).map((x) => x.def), [defs, ctxs, regime]);
   const out = useMemo(() => top.map((def) => ({ def, res: simulate(def, ctxs, { capital: run.capital, startDate: run.start, regime: run.filter ? regime : null }) })), [top, ctxs, regime, run]);
   const eq = useMemo(() => (out[0]?.res.equity ?? []).map((e, i) => Object.fromEntries([["date", e.date], ...out.map((x) => [x.def.name, x.res.equity[i]?.value])])), [out]);
   const trades = out.flatMap((x) => x.res.trades).sort((a, b) => (b.entryDate > a.entryDate ? 1 : -1));
@@ -32,7 +32,7 @@ export function LiveTest({ ctxs, regime, defs, onRealOrder }: { ctxs: Ctx[]; reg
     <div className="space-y-4">
       <Card>
         <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-base"><Radio className="h-4 w-4 text-primary" />Live test: top 5 strategies up to today</CardTitle>
-          <p className="text-xs text-muted-foreground">The 5 best strategies by return over all history, run from your start date up to the latest bar ({last}). During market hours today's bar uses live NSE prices, so results change as prices move. Charges and slippage are included.</p></CardHeader>
+          <p className="text-xs text-muted-foreground">The 5 best strategies by return over all history (at least 5 closed trades), run from your start date up to the latest bar ({last}). During market hours today's bar uses live NSE prices, so results change as prices move. Charges and slippage are included.</p></CardHeader>
         <CardContent className="flex flex-wrap items-end gap-3">
           <div><Label className="text-xs">Capital per strategy (₹)</Label><Input className="w-36" type="number" min={1000} step={1000} value={cfg.capital} onChange={(e) => setCfg({ ...cfg, capital: Math.max(1000, +e.target.value) })} /></div>
           <div><Label className="text-xs">Start date</Label><Input className="w-40" type="date" max={last} value={cfg.start} onChange={(e) => setCfg({ ...cfg, start: e.target.value })} /></div>

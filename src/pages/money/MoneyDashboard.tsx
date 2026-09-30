@@ -229,7 +229,7 @@ export default function MoneyDashboard() {
         <main className="min-w-0 flex-1 space-y-6">
         <div className="flex items-start gap-2 rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
-          Paper trading and research only. No real orders are placed. Not investment advice; data is unofficial and sourced from NSE/BSE.
+          Paper trading and research only. Real broker orders are admin-only and switched off unless enabled in Desk controls. Not investment advice; data is unofficial and sourced from NSE/BSE.
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3 text-xs">
