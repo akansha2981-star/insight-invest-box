@@ -116,20 +116,43 @@ Deno.serve(async (req) => {
     const { data: u } = await userClient.auth.getUser();
     if (!u?.user) return json({ error: "Sign in required" }, 401);
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const force = (await req.json().catch(() => ({})))?.force === true;
+    const body = await req.json().catch(() => ({}));
+    const force = body?.force === true;
+
+    // Add a searched stock to the strategy universe, then fetch its full history right away
+    let only: Record<string, { token: string; exchange: string }> | null = null;
+    if (body?.add) {
+      const a = body.add;
+      if (typeof a.token !== "string" || !/^\d{1,10}$/.test(a.token) || typeof a.symbol !== "string" || !/^[A-Z0-9&-]{1,40}-EQ$/.test(a.symbol)) return json({ error: "Only NSE equity shares (symbol ending in -EQ) can be added" }, 400);
+      const { data: inst } = await admin.from("swing_instruments").select("exchange,token,symbol,name").eq("exchange", "NSE").eq("token", a.token).maybeSingle();
+      if (!inst || inst.symbol !== a.symbol) return json({ error: "Stock not found in the NSE list" }, 400);
+      const key = inst.symbol.replace(/-EQ$/, "");
+      const { count } = await admin.from("swing_universe").select("symbol", { count: "exact", head: true });
+      if (!STOCK_TOKENS[key] && (count ?? 0) >= 150) return json({ error: "Strategy list is full (150 extra stocks). Remove one first." }, 400);
+      if (!STOCK_TOKENS[key]) await admin.from("swing_universe").upsert({ symbol: key, exchange: "NSE", token: inst.token, name: inst.name, added_by: u.user.id }, { onConflict: "symbol" });
+      only = { [key]: { token: inst.token, exchange: "NSE" } };
+    }
 
     // Throttle: skip if synced in the last 15 minutes
     const { data: last } = await admin.from("swing_prices").select("created_at").order("created_at", { ascending: false }).limit(1).maybeSingle();
-    if (!force && last && Date.now() - new Date(last.created_at).getTime() < 15 * 60000) return json({ skipped: true, lastSync: last.created_at });
+    if (!only && !force && last && Date.now() - new Date(last.created_at).getTime() < 15 * 60000) return json({ skipped: true, lastSync: last.created_at });
 
     const apiKey = Deno.env.get("ANGELONE_API_KEY"), clientId = Deno.env.get("ANGELONE_CLIENT_ID"), pin = Deno.env.get("ANGELONE_PIN"), totp = Deno.env.get("ANGELONE_TOTP_SECRET");
     if (!apiKey || !clientId || !pin || !totp) return json({ error: "Market feed credentials missing" }, 500);
     const jwt = await angelOneLogin(apiKey, clientId, pin, totp);
     if (!jwt) return json({ error: "Market feed login failed" }, 502);
 
-    const to = new Date(), from = new Date(Date.now() - 1100 * 86400000);
+    const to = new Date(), full = new Date(Date.now() - 1100 * 86400000), recent = new Date(Date.now() - 20 * 86400000);
+    let targets: Record<string, { token: string; exchange: string; full: boolean }> = {};
+    if (only) Object.entries(only).forEach(([k, v]) => (targets[k] = { ...v, full: true }));
+    else {
+      Object.entries(STOCK_TOKENS).forEach(([k, v]) => (targets[k] = { token: v.token, exchange: v.exchange, full: force }));
+      const { data: extra } = await admin.from("swing_universe").select("symbol,token,exchange").limit(150);
+      (extra ?? []).forEach((e: any) => { if (!targets[e.symbol]) targets[e.symbol] = { token: e.token, exchange: e.exchange, full: force }; });
+    }
     let rows = 0; const failed: string[] = [];
-    for (const [key, t] of Object.entries(STOCK_TOKENS)) {
+    for (const [key, t] of Object.entries(targets)) {
+      const from = t.full ? full : recent;
       const res = await fetch(CANDLE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json", "X-UserType": "USER", "X-SourceID": "WEB", "X-ClientLocalIP": "127.0.0.1", "X-ClientPublicIP": "127.0.0.1", "X-MACAddress": "00:00:00:00:00:00", "X-PrivateKey": apiKey, Authorization: `Bearer ${jwt}` },
@@ -142,7 +165,7 @@ Deno.serve(async (req) => {
       if (error) failed.push(key); else rows += batch.length;
       await sleep(400); // candle API rate limit ~3/sec
     }
-    return json({ synced: rows, symbols: Object.keys(STOCK_TOKENS).length - failed.length, failed });
+    return json({ synced: rows, symbols: Object.keys(targets).length - failed.length, failed });
   } catch (e) {
     console.error(e); return json({ error: String(e) }, 500);
   }
