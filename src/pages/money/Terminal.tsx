@@ -31,6 +31,23 @@ const OVERLAYS = [
   { key: "bb", label: "Bollinger", color: "hsl(var(--secondary-foreground))" },
   { key: "vwap", label: "VWAP", color: "hsl(var(--orange-accent, 24 95% 53%))" },
   { key: "st", label: "Supertrend", color: "" },
+  { key: "sma100", label: "SMA100", color: "" },
+  { key: "ema50", label: "EMA50", color: "" },
+  { key: "ema200", label: "EMA200", color: "" },
+  { key: "ichi", label: "Ichimoku", color: "" },
+  { key: "psar", label: "Parabolic SAR", color: "" },
+  { key: "dc", label: "Donchian", color: "" },
+  { key: "piv", label: "Pivots", color: "" },
+] as const;
+const OSC = [
+  { key: "adx", label: "ADX / DI", lines: [["adx", "--foreground"], ["pdi", "--gain"], ["mdi", "--loss"]], refs: [25] },
+  { key: "stoch", label: "Stochastic", lines: [["stochK", "--primary"], ["stochD", "--gold"]], refs: [80, 20], domain: [0, 100] },
+  { key: "cci", label: "CCI 20", lines: [["cci", "--accent"]], refs: [100, -100] },
+  { key: "willR", label: "Williams %R", lines: [["willR", "--accent"]], refs: [-20, -80], domain: [-100, 0] },
+  { key: "roc", label: "ROC 12", lines: [["roc", "--primary"]], refs: [0] },
+  { key: "mfi", label: "MFI 14", lines: [["mfi", "--accent"]], refs: [80, 20], domain: [0, 100] },
+  { key: "obv", label: "OBV", lines: [["obv", "--primary"]], refs: [] },
+  { key: "atr", label: "ATR 14", lines: [["atr", "--gold"]], refs: [] },
 ] as const;
 
 const fmt = (n?: number | null, d = 2) => (n === undefined || n === null || !Number.isFinite(n) ? "-" : n.toLocaleString("en-IN", { minimumFractionDigits: d, maximumFractionDigits: d }));
@@ -67,6 +84,7 @@ export function Terminal({ strategies, onPaperBuy, onQuote }: { strategies: Stra
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
   const [tf, setTf] = useState<"1D" | "15m">("1D");
   const [on, setOn] = useState<Record<string, boolean>>({ sma20: true, sma50: true, bb: false, vwap: false, st: true, sma200: false, ema20: false });
+  const [osc, setOsc] = useState<(typeof OSC)[number]["key"]>("adx");
   const [q, setQ] = useState(""); const [results, setResults] = useState<Instrument[]>([]); const [searching, setSearching] = useState(false);
   const [nextAt, setNextAt] = useState(Date.now() + REFRESH_MS); const [, force] = useState(0);
   const key = (i: Instrument) => `${i.exchange}:${i.token}`;
@@ -104,7 +122,8 @@ export function Terminal({ strategies, onPaperBuy, onQuote }: { strategies: Stra
   const cur = charts[key(sel)];
   const daily = useMemo(() => withLive(cur?.daily ?? [], cur?.quote ?? null), [cur]);
   const rows: IndicatorRow[] = useMemo(() => (tf === "1D" ? computeAll(daily, false).slice(-130) : computeAll(cur?.intraday ?? [], true).slice(-150)), [daily, cur, tf]);
-  const plot = rows.map((r) => ({ ...r, range: [r.low, r.high] as [number, number], label: tf === "1D" ? r.date.slice(5) : r.date.slice(5, 16) }));
+  const plot = rows.map((r) => ({ ...r, range: [r.low, r.high] as [number, number], label: tf === "1D" ? r.date.slice(5) : r.date.slice(5, 16), psarBull: r.psarUp ? r.psar : null, psarBear: r.psarUp ? null : r.psar }));
+  const oscDef = OSC.find((o) => o.key === osc) ?? OSC[0];
   const verdicts = useMemo(() => readout(rows), [rows]);
   const score = verdicts.reduce((a, v) => a + v.tone, 0);
   const signals = strategies.filter((s) => s.is_active).map((s) => ({ s, sig: runRule(s.rule_type, daily, s.params).at(-1) ?? 0 }));
@@ -179,15 +198,34 @@ export function Terminal({ strategies, onPaperBuy, onQuote }: { strategies: Stra
                     {on.vwap && <Line dataKey="vwap" stroke="hsl(var(--orange-accent))" strokeDasharray="4 2" dot={false} isAnimationActive={false} />}
                     {on.st && <Line dataKey="stUp" stroke="hsl(var(--gain))" strokeWidth={1.5} dot={false} connectNulls={false} isAnimationActive={false} />}
                     {on.st && <Line dataKey="stDown" stroke="hsl(var(--loss))" strokeWidth={1.5} dot={false} connectNulls={false} isAnimationActive={false} />}
+                    {on.sma100 && <Line dataKey="sma100" stroke="hsl(var(--secondary-foreground))" dot={false} isAnimationActive={false} />}
+                    {on.ema50 && <Line dataKey="ema50" stroke="hsl(var(--accent))" strokeDasharray="5 3" dot={false} isAnimationActive={false} />}
+                    {on.ema200 && <Line dataKey="ema200" stroke="hsl(var(--foreground))" strokeDasharray="5 3" dot={false} isAnimationActive={false} />}
+                    {on.ichi && <Line dataKey="tenkan" name="Tenkan" stroke="hsl(var(--primary))" dot={false} isAnimationActive={false} />}
+                    {on.ichi && <Line dataKey="kijun" name="Kijun" stroke="hsl(var(--loss))" dot={false} isAnimationActive={false} />}
+                    {on.ichi && <Line dataKey="spanA" name="Span A" stroke="hsl(var(--gain))" strokeOpacity={0.6} dot={false} isAnimationActive={false} />}
+                    {on.ichi && <Line dataKey="spanB" name="Span B" stroke="hsl(var(--loss))" strokeOpacity={0.6} dot={false} isAnimationActive={false} />}
+                    {on.psar && <Line dataKey="psarBull" name="SAR" stroke="none" dot={{ r: 1.5, fill: "hsl(var(--gain))", stroke: "none" }} isAnimationActive={false} />}
+                    {on.psar && <Line dataKey="psarBear" name="SAR" stroke="none" dot={{ r: 1.5, fill: "hsl(var(--loss))", stroke: "none" }} isAnimationActive={false} />}
+                    {on.dc && <Line dataKey="dcUpper" name="Donchian high" stroke="hsl(var(--gain))" strokeDasharray="2 2" dot={false} isAnimationActive={false} />}
+                    {on.dc && <Line dataKey="dcLower" name="Donchian low" stroke="hsl(var(--loss))" strokeDasharray="2 2" dot={false} isAnimationActive={false} />}
+                    {on.piv && last && (["pp", "r1", "r2", "s1", "s2"] as const).map((k) => last[k] !== null && <ReferenceLine key={k} y={last[k] as number} stroke={k === "pp" ? "hsl(var(--foreground))" : k.startsWith("r") ? "hsl(var(--loss))" : "hsl(var(--gain))"} strokeDasharray="4 4" label={{ value: k.toUpperCase(), position: "insideLeft", fontSize: 9, fill: "hsl(var(--muted-foreground))" }} />)}
                   </ComposedChart>
                 </ResponsiveContainer>
               ) : <Empty busy={loadingKey === key(sel)} />}
             </div>
           </Panel>
-          <div className="grid gap-2 md:grid-cols-3">
-            <Panel title="Volume"><Mini data={plot}><Bar dataKey="volume" isAnimationActive={false}>{plot.map((p, i) => <Cell key={i} fill={p.upDay ? "hsl(var(--gain))" : "hsl(var(--loss))"} />)}</Bar></Mini></Panel>
+          <div className="grid gap-2 md:grid-cols-2">
+            <Panel title="Volume"><Mini data={plot}><Bar dataKey="volume" isAnimationActive={false}>{plot.map((p, i) => <Cell key={i} fill={p.upDay ? "hsl(var(--gain))" : "hsl(var(--loss))"} />)}</Bar><Line dataKey="volMa" name="Vol MA20" stroke="hsl(var(--gold))" dot={false} isAnimationActive={false} /></Mini></Panel>
             <Panel title={`RSI 14 · ${fmt(last?.rsi)}`}><Mini data={plot} domain={[0, 100]}><ReferenceLine y={70} stroke="hsl(var(--loss))" strokeDasharray="3 3" /><ReferenceLine y={30} stroke="hsl(var(--gain))" strokeDasharray="3 3" /><Line dataKey="rsi" stroke="hsl(var(--accent))" dot={false} isAnimationActive={false} /></Mini></Panel>
             <Panel title={`MACD · ${fmt(last?.macdHist)}`}><Mini data={plot}><ReferenceLine y={0} stroke="hsl(var(--border))" /><Bar dataKey="macdHist" isAnimationActive={false}>{plot.map((p, i) => <Cell key={i} fill={(p.macdHist ?? 0) >= 0 ? "hsl(var(--gain))" : "hsl(var(--loss))"} />)}</Bar><Line dataKey="macd" stroke="hsl(var(--primary))" dot={false} isAnimationActive={false} /><Line dataKey="macdSignal" stroke="hsl(var(--gold))" dot={false} isAnimationActive={false} /></Mini></Panel>
+            <Panel title={`${oscDef.label} · ${fmt(last?.[oscDef.lines[0][0]] as number | null)}`}
+              right={<select aria-label="Choose indicator" value={osc} onChange={(e) => setOsc(e.target.value as typeof osc)} className="rounded border border-border bg-card px-1 font-mono text-[10px] text-foreground">{OSC.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}</select>}>
+              <Mini data={plot} domain={"domain" in oscDef ? (oscDef.domain as unknown as [number, number]) : undefined}>
+                {oscDef.refs.map((y) => <ReferenceLine key={y} y={y} stroke="hsl(var(--border))" strokeDasharray="3 3" />)}
+                {oscDef.lines.map(([k, c]) => <Line key={k} dataKey={k} stroke={`hsl(var(${c}))`} dot={false} isAnimationActive={false} />)}
+              </Mini>
+            </Panel>
           </div>
         </div>
 
