@@ -80,34 +80,6 @@ async function generateTOTP(secret: string): Promise<string> {
   const code = ((sig[offset] & 0x7f) << 24) | (sig[offset + 1] << 16) | (sig[offset + 2] << 8) | sig[offset + 3];
   return String(code % 1000000).padStart(6, "0");
 }
-async function generateTOTP(secret: string): Promise<string> {
-  const base32Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-  const upperSecret = secret.toUpperCase().replace(/[^A-Z2-7]/g, "");
-  const bits: number[] = [];
-  for (const c of upperSecret) {
-    const val = base32Chars.indexOf(c);
-    if (val === -1) continue;
-    for (let i = 4; i >= 0; i--) bits.push((val >> i) & 1);
-  }
-  const keyBytes = new Uint8Array(Math.floor(bits.length / 8));
-  for (let i = 0; i < keyBytes.length; i++) {
-    let byte = 0;
-    for (let j = 0; j < 8; j++) byte = (byte << 1) | bits[i * 8 + j];
-    keyBytes[i] = byte;
-  }
-  const counter = Math.floor(Date.now() / 30000);
-  const counterBytes = new Uint8Array(8);
-  let tmp = counter;
-  for (let i = 7; i >= 0; i--) {
-    counterBytes[i] = tmp & 0xff;
-    tmp = Math.floor(tmp / 256);
-  }
-  const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
-  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, counterBytes));
-  const offset = sig[sig.length - 1] & 0x0f;
-  const code = ((sig[offset] & 0x7f) << 24) | (sig[offset + 1] << 16) | (sig[offset + 2] << 8) | sig[offset + 3];
-  return String(code % 1000000).padStart(6, "0");
-}
 async function angelOneLogin(apiKey: string, clientId: string, pin: string, totpSecret: string): Promise<string | null> {
   const totp = await generateTOTP(totpSecret);
   console.log("Generated TOTP for client:", clientId);
