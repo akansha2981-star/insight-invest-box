@@ -37,7 +37,7 @@ export function StrategyLab({ bars, userId }: { bars: Record<string, Bar[]>; use
   const loadDeps = async () => { const { data } = await db.from("swing_deployments").select("*").order("created_at", { ascending: false }); setDeps(data ?? []); };
   useEffect(() => { loadDeps(); }, [userId]);
 
-  const board = useMemo(() => ctxs.length ? STRATEGIES.map((def) => ({ def, res: simulate(def, ctxs, { capital: 50000 }) })).sort((a, b) => b.res.netReturn - a.res.netReturn) : [], [ctxs]);
+  const board = useMemo(() => ctxs.length ? STRATEGIES.map((def) => ({ def, res: simulate(def, ctxs, { capital: 50000 }) })).sort((a, b) => (b.res.trades.length ? 1 : 0) - (a.res.trades.length ? 1 : 0) || b.res.netReturn - a.res.netReturn) : [], [ctxs]);
   const live = useMemo(() => deps.map((d) => { const def = strategyByKey(d.strategy_key); return { d, def, res: def && ctxs.length ? simulate(def, ctxs, { capital: +d.capital, riskPct: +d.risk_pct, startDate: d.start_date, endDate: d.stopped_at ?? undefined }) : null }; }), [deps, ctxs]);
   const lastDate = ctxs[0]?.b.at(-1)?.date;
 
@@ -124,7 +124,7 @@ export function StrategyLab({ bars, userId }: { bars: Record<string, Bar[]>; use
       </Card>
 
       <Dialog open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
-        <DialogContent className="max-h-[90vh] max-w-6xl overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-6xl overflow-y-auto [&>*]:min-w-0">
           {detail && <><DialogHeader><DialogTitle>{detail.title}</DialogTitle></DialogHeader><StrategyDetail def={detail.def} res={detail.res} /></>}
         </DialogContent>
       </Dialog>
