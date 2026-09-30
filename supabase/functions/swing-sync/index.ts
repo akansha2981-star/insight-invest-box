@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
     const jwt = await angelOneLogin(apiKey, clientId, pin, totp);
     if (!jwt) return json({ error: "Market feed login failed" }, 502);
 
-    const to = new Date(), from = new Date(Date.now() - 400 * 86400000);
+    const to = new Date(), from = new Date(Date.now() - 1100 * 86400000);
     let rows = 0; const failed: string[] = [];
     for (const [key, t] of Object.entries(STOCK_TOKENS)) {
       const res = await fetch(CANDLE_URL, {

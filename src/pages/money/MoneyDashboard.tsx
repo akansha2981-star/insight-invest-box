@@ -6,6 +6,7 @@ import { Activity, ArrowDownRight, ArrowUpRight, LogOut, Minus, Play, Plus, Powe
 import { supabase } from "@/integrations/supabase/client";
 import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
 import { Terminal } from "./Terminal";
+import { StrategyLab } from "./StrategyLab";
 import { RULES, runRule, backtest, parseCsv, type Bar, type BacktestResult } from "@/lib/swing/engine";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -219,6 +220,8 @@ export default function MoneyDashboard() {
           </TabsContent>
 
           <TabsContent value="strategies" className="space-y-3">
+            <StrategyLab bars={liveBars} userId={userId} />
+            <h2 className="pt-4 text-sm font-bold uppercase tracking-wider text-muted-foreground">Custom strategies</h2>
             {isAdmin && <Button onClick={() => setEditing({ rule_type: "ma_cross", params: {} })}><Plus className="mr-1 h-4 w-4" />New strategy</Button>}
             {noData && <p className="text-sm text-muted-foreground">Fetching daily price history from NSE. This takes about 30 seconds on first load.</p>}
             <div className="grid gap-3 md:grid-cols-2">

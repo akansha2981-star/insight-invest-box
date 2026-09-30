@@ -1636,6 +1636,45 @@ export type Database = {
         }
         Relationships: []
       }
+      swing_deployments: {
+        Row: {
+          capital: number
+          created_at: string
+          id: string
+          risk_pct: number
+          start_date: string
+          status: string
+          stopped_at: string | null
+          strategy_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capital: number
+          created_at?: string
+          id?: string
+          risk_pct?: number
+          start_date?: string
+          status?: string
+          stopped_at?: string | null
+          strategy_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capital?: number
+          created_at?: string
+          id?: string
+          risk_pct?: number
+          start_date?: string
+          status?: string
+          stopped_at?: string | null
+          strategy_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       swing_instruments: {
         Row: {
           exchange: string
