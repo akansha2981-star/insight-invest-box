@@ -1,6 +1,7 @@
 // Safe, declarative rule engine for the Strategy Builder and Scanner. Rules are plain JSON
 // (no code execution) and compile into the same StrategyDef used by the 20 built-in strategies.
 import type { Ctx, StrategyDef, EntryPlan } from "./strategies20";
+import { sectorOf } from "./robust";
 
 export const FIELDS: { key: string; label: string; group: string }[] = [
   { key: "close", label: "Close", group: "Price" }, { key: "open", label: "Open", group: "Price" }, { key: "high", label: "High", group: "Price" }, { key: "low", label: "Low", group: "Price" },
@@ -20,7 +21,7 @@ export type Op = "gt" | "lt" | "crossAbove" | "crossBelow";
 export const OPS: { key: Op; label: string }[] = [{ key: "gt", label: "is greater than" }, { key: "lt", label: "is less than" }, { key: "crossAbove", label: "crosses above" }, { key: "crossBelow", label: "crosses below" }];
 export interface Cond { type: "cond"; left: string; op: Op; right: { kind: "field"; key: string; mult: number } | { kind: "num"; value: number } }
 export interface Group { type: "group"; logic: "AND" | "OR"; items: (Cond | Group)[] }
-export interface CustomDef { entry: Group; exit: Group | null; slAtr: number; tpAtr: number; trailAtr: number; maxHold: number; regimes: ("bull" | "sideways" | "bear")[] }
+export interface CustomDef { entry: Group; exit: Group | null; slAtr: number; tpAtr: number; trailAtr: number; maxHold: number; regimes: ("bull" | "sideways" | "bear")[]; sectors?: string[] }
 
 export const newCond = (): Cond => ({ type: "cond", left: "close", op: "gt", right: { kind: "field", key: "ema50", mult: 1 } });
 export const newGroup = (logic: "AND" | "OR" = "AND"): Group => ({ type: "group", logic, items: [newCond()] });
@@ -56,9 +57,10 @@ export function describe(g: Group): string {
 export function compileCustom(id: string, name: string, version: number, d: CustomDef): StrategyDef & { regimes: CustomDef["regimes"]; custom: true } {
   return {
     key: `custom:${id}`, name: `${name} v${version}`, family: "Custom", custom: true, regimes: d.regimes,
-    buyRule: describe(d.entry), sellRule: d.exit ? describe(d.exit) + " (or stop / target)" : "Stop loss, take profit" + (d.trailAtr ? ", trailing stop" : "") + (d.maxHold ? ` or ${d.maxHold} sessions` : ""),
+    buyRule: (d.sectors?.length ? `Sector in (${d.sectors.join(", ")}) AND ` : "") + describe(d.entry), sellRule: d.exit ? describe(d.exit) + " (or stop / target)" : "Stop loss, take profit" + (d.trailAtr ? ", trailing stop" : "") + (d.maxHold ? ` or ${d.maxHold} sessions` : ""),
     slRule: `Entry - ${d.slAtr} x ATR`, tpRule: `Entry + ${d.tpAtr} x ATR` + (d.trailAtr ? `, trail ${d.trailAtr} x ATR after target 1` : ""),
     entry: (c, i): EntryPlan | null => {
+      if (d.sectors?.length && !d.sectors.includes(sectorOf(c.sym))) return null;
       if (!evalGroup(c, i, d.entry)) return null; const a = val(c, i, "atr"); if (!Number.isFinite(a)) return null; const px = c.b[i].close;
       return { sl: px - d.slAtr * a, tp1Abs: px + (d.tpAtr / 2) * a, tp2Abs: px + d.tpAtr * a, trail: d.trailAtr || undefined, trailAfterTp1: true, maxHold: d.maxHold || undefined, note: "Custom rule" };
     },
