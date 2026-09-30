@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { Activity, ArrowDownRight, ArrowUpRight, LogOut, Minus, Play, Plus, Power, Upload, Wallet, TrendingUp, ShieldAlert, LayoutDashboard, Globe2, LineChart as LineIcon, ScanSearch, Bot, Wrench, FlaskConical, Swords, Trophy, Gauge, Bell, SplitSquareHorizontal, ListChecks, GitCompare } from "lucide-react";
+import { Activity, ArrowDownRight, ArrowUpRight, LogOut, Minus, Play, Plus, Power, Upload, Wallet, TrendingUp, ShieldAlert, LayoutDashboard, Globe2, LineChart as LineIcon, ScanSearch, Bot, Wrench, FlaskConical, Swords, Trophy, Gauge, Bell, SplitSquareHorizontal, ListChecks, GitCompare, GitCompareArrows, Star, ShieldCheck } from "lucide-react";
 import { STRATEGIES, buildCtx, rankUniverse, marketRegime, type Ctx, type RegimeDay, type StrategyDef } from "@/lib/swing/strategies20";
 import { compileCustom } from "@/lib/swing/rules";
 import { StrategyLab, MarketCard, UniversePanel, type LabView } from "./StrategyLab";
@@ -10,6 +10,10 @@ import { Scanner } from "./Scanner";
 import { MarketView } from "./MarketView";
 import { StrategyBuilder, type CustomRow } from "./StrategyBuilder";
 import { RobustnessLab, Tournament } from "./Robustness";
+import { StrategyCompare } from "./StrategyCompare";
+import { Watchlists } from "./Watchlists";
+import { AdminControls } from "./AdminControls";
+import { DEFAULT_CONTROLS, type Controls } from "@/lib/swing/limits";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
 import { Terminal } from "./Terminal";
@@ -50,7 +54,10 @@ export default function MoneyDashboard() {
   const [regime, setRegime] = useState<Map<string, RegimeDay> | null>(null);
   const [customRows, setCustomRows] = useState<CustomRow[]>([]);
   const [unread, setUnread] = useState(0);
-  const loadCustom = async () => { const { data } = await db.from("swing_custom_strategies").select("*").order("created_at"); setCustomRows(data ?? []); };
+  const [controls, setControls] = useState<Controls>(DEFAULT_CONTROLS);
+  const loadControls = async () => { const { data } = await db.from("swing_settings").select("value").eq("key", "controls").maybeSingle(); if (data?.value) setControls({ ...DEFAULT_CONTROLS, ...data.value }); };
+  useEffect(() => { loadControls(); }, []);
+  const loadCustom = async () => { const { data: u } = await supabase.auth.getUser(); if (!u.user) return; const { data } = await db.from("swing_custom_strategies").select("*").eq("user_id", u.user.id).order("created_at"); setCustomRows(data ?? []); };
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -125,8 +132,9 @@ export default function MoneyDashboard() {
   useEffect(() => { if (userId) loadCustom(); }, [userId]);
   const defs: StrategyDef[] = useMemo(() => {
     const latest = new Map<string, CustomRow>(); customRows.forEach((r) => { const p = latest.get(r.family_id); if (!p || r.version > p.version) latest.set(r.family_id, r); });
-    return [...STRATEGIES, ...customRows.map((r) => compileCustom(r.id, r.name, r.version, r.definition))];
-  }, [customRows]);
+    const all = [...STRATEGIES, ...customRows.map((r) => compileCustom(r.id, r.name, r.version, r.definition))];
+    return isAdmin ? all : all.filter((d) => !controls.disabled.includes(d.key));
+  }, [customRows, controls, isAdmin]);
   const today = regime ? [...regime.values()].at(-1) : undefined;
 
   // Backtest every strategy automatically when data changes
@@ -239,7 +247,7 @@ export default function MoneyDashboard() {
         </div>}
 
           {!ctxs.length && tab !== "stocks" && <p className="text-sm text-muted-foreground">Preparing live NSE price history and indicators...</p>}
-          {ctxs.length > 0 && LAB_TABS[tab] && <StrategyLab ctxs={ctxs} regime={regime} defs={defs} userId={userId} view={LAB_TABS[tab]} onUnread={setUnread} quiet onUniverseChange={() => loadAll(userId)} />}
+          {ctxs.length > 0 && LAB_TABS[tab] && <StrategyLab ctxs={ctxs} regime={regime} defs={defs} userId={userId} limits={controls} view={LAB_TABS[tab]} onUnread={setUnread} quiet onUniverseChange={() => loadAll(userId)} />}
           {ctxs.length > 0 && tab !== "alerts" && !LAB_TABS[tab] && <span className="hidden"><StrategyLab ctxs={ctxs} regime={regime} defs={defs} userId={userId} view="alerts" onUnread={setUnread} /></span>}
 
           <TabsContent value="dashboard" className="space-y-4">
@@ -252,6 +260,9 @@ export default function MoneyDashboard() {
           <TabsContent value="scanner">{ctxs.length > 0 && <Scanner ctxs={ctxs} />}</TabsContent>
           <TabsContent value="builder">{ctxs.length > 0 && <StrategyBuilder ctxs={ctxs} regime={regime} userId={userId} rows={customRows} onSaved={loadCustom} />}</TabsContent>
           <TabsContent value="robust">{ctxs.length > 0 && <RobustnessLab ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
+          <TabsContent value="comparison">{ctxs.length > 0 && <StrategyCompare ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
+          <TabsContent value="watchlists">{userId && <Watchlists ctxs={ctxs} userId={userId} />}</TabsContent>
+          {isAdmin && <TabsContent value="controls"><AdminControls controls={controls} onSaved={loadControls} /></TabsContent>}
           <TabsContent value="tournament">{ctxs.length > 0 && <Tournament ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
 
           <TabsContent value="stocks">
@@ -404,9 +415,9 @@ function SignalBadge({ s }: { s: number }) {
 const LAB_TABS: Record<string, LabView> = { strategies: "live", backtest: "lab", alerts: "alerts", performance: "board", regime: "market" };
 const MENU: { group: string; items: [string, string, any, string][] }[] = [
   { group: "Overview", items: [["dashboard", "Dashboard", LayoutDashboard, ""]] },
-  { group: "Market", items: [["markets", "Markets and sectors", Globe2, "Breadth, advances/declines, sector strength"], ["stocks", "Stock terminal", LineIcon, "Live charts with 20+ indicators"], ["scanner", "Scanner", ScanSearch, "Find stocks matching any rule"]] },
+  { group: "Market", items: [["markets", "Markets and sectors", Globe2, "Breadth, advances/declines, sector strength"], ["stocks", "Stock terminal", LineIcon, "Live charts with 20+ indicators"], ["scanner", "Scanner", ScanSearch, "Find stocks matching any rule"], ["watchlists", "Watchlists", Star, "Your saved stock lists"]] },
   { group: "Strategies", items: [["strategies", "Auto-trading", Bot, "Run strategies live from any date"], ["builder", "Strategy builder", Wrench, "Create versioned strategies without code"], ["performance", "Leaderboard", Trophy, "All strategies ranked"]] },
-  { group: "Research", items: [["backtest", "Backtest and report", FlaskConical, "Any amount, any start date, full report"], ["robust", "Robustness tests", SplitSquareHorizontal, "Out-of-sample and reshuffle tests"], ["tournament", "Tournament", Swords, "Same conditions, robustness score"], ["regime", "Market regime", Gauge, "Bull, sideways or bear; stocks scanned"]] },
+  { group: "Research", items: [["backtest", "Backtest and report", FlaskConical, "Any amount, any start date, full report"], ["robust", "Robustness tests", SplitSquareHorizontal, "Out-of-sample and reshuffle tests"], ["comparison", "Timeframe comparison", GitCompareArrows, "Rank strategies across periods"], ["tournament", "Tournament", Swords, "Same conditions, robustness score"], ["regime", "Market regime", Gauge, "Bull, sideways or bear; stocks scanned"]] },
   { group: "Trading", items: [["signals", "Paper signals", ListChecks, ""], ["portfolio", "Portfolio", Wallet, ""], ["alerts", "Alerts", Bell, ""], ["compare", "Rule comparison", GitCompare, ""]] },
-  { group: "Admin", items: [["data", "Price data", Upload, ""]] },
+  { group: "Admin", items: [["controls", "Desk controls", ShieldCheck, ""], ["data", "Price data", Upload, ""]] },
 ];
