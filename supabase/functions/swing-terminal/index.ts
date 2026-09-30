@@ -25,8 +25,13 @@ const headers = (apiKey: string, jwt?: string) => ({
   ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
 });
 
-async function getJwt(apiKey: string): Promise<string> {
-  if (session && Date.now() - session.at < 4 * 3600_000) return session.jwt;
+let pending: Promise<string> | null = null;
+function getJwt(apiKey: string): Promise<string> {
+  if (session && Date.now() - session.at < 4 * 3600_000) return Promise.resolve(session.jwt);
+  pending ??= login(apiKey).finally(() => { pending = null; });
+  return pending;
+}
+async function login(apiKey: string): Promise<string> {
   const res = await fetch(`${BASE}/auth/angelbroking/user/v1/loginByPassword`, {
     method: "POST", headers: headers(apiKey),
     body: JSON.stringify({ clientcode: Deno.env.get("ANGELONE_CLIENT_ID"), password: Deno.env.get("ANGELONE_PIN"), totp: await generateTOTP(Deno.env.get("ANGELONE_TOTP_SECRET")!) }),
@@ -72,7 +77,8 @@ Deno.serve(async (req) => {
     if (p.action === "search") {
       const out: any[] = [];
       for (const exchange of ["NSE", "BSE"]) {
-        const d = await call("/secure/angelbroking/order/v1/searchScrip", { exchange, searchscrip: p.q });
+        const d = await call("/secure/angelbroking/order/v1/searchScrip", { exchange, searchscrip: p.q.toUpperCase() });
+        if (!Array.isArray(d?.data)) console.log("search", exchange, JSON.stringify(d)?.slice(0, 300));
         (d?.data ?? []).forEach((s: any) => {
           const sym = String(s.tradingsymbol ?? "");
           if (exchange === "NSE" && !sym.endsWith("-EQ")) return;
