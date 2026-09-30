@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ExportButtons } from "./ExportButtons";
+import { TRADE_HEAD, tradeRows, r2 } from "@/lib/swing/exportReport";
 
 const inr = (n: number) => (n < 0 ? "-₹" : "₹") + Math.abs(Math.round(n)).toLocaleString("en-IN");
 const px = (n: number | null | undefined) => (n == null ? "-" : "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 }));
@@ -92,7 +94,17 @@ export function StrategyReport({ ctxs, regime, defs, onKeepLive }: { ctxs: Ctx[]
 
       {/* Report */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-base">Test report</CardTitle>
+        <CardHeader className="pb-2"><div className="flex flex-wrap items-center justify-between gap-2"><CardTitle className="text-base">Test report</CardTitle>
+          <ExportButtons title="Backtest report" build={() => ({
+            meta: [`${runPick.length} strategies, ${inr(run.capital)} each, ${r.from} to ${r.to} (${r.days} trading days), Daily (1D), ${ctxs.length} stocks, risk ${run.risk}%, max ${run.maxPos} stocks, market filter ${run.filter ? "on" : "off"}`],
+            sections: [
+              { title: "Summary", head: ["Total trades", "Avg trades / strategy", "Closed", "Open", "Win rate %", "Net P&L", "Profit booked", "Loss booked", "Charges", "Avg hold days"], rows: [[r.all.length, r2(r.all.length / (runPick.length || 1)), r.closed.length, r.open.length, r.closed.length ? r2((r.wins.length / r.closed.length) * 100) : "", r2(r.netPnl), r2(r.grossProfit), r2(r.grossLoss), r2(r.charges), r2(r.avgHold)]] },
+              { title: "Strategy ranking and risk metrics", head: ["#", "Strategy", "Style", "Net return %", "CAGR %", "Final value", "Trades", "Win rate %", "Profit factor", "Max DD %", "Sharpe", "Expectancy", "Avg R", "Avg hold", "Charges"], rows: r.ranked.map(({ def, res }, k) => [k + 1, def.name, def.family, r2(res.netReturn), r2(res.cagr), r2(res.finalEquity), res.trades.length, res.closedCount ? r2(res.winRate) : "", r2(res.profitFactor), r2(res.maxDrawdown), r2(res.sharpe), r2(res.expectancy), r2(res.avgR), r2(res.avgHold), r2(res.totalCharges)]) },
+              { title: "Monthly booked P&L", head: ["Month", "Net P&L"], rows: r.months.map((m) => [m.month, m.pnl]) },
+              { title: "P&L by stock", head: ["Symbol", "Net P&L"], rows: r.symbols.map(([s, v]) => [s, r2(v)]) },
+              { title: "All trades", head: TRADE_HEAD, rows: tradeRows(r.all) },
+            ],
+          })} /></div>
           <p className="text-xs text-muted-foreground">{runPick.length} strategies · {inr(run.capital)} each · {r.from} to {r.to} ({r.days} trading days) · timeframe Daily (1D) · {ctxs.length} stocks · risk {run.risk}% · max {run.maxPos} stocks · market filter {run.filter ? "on" : "off"}</p></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-8">
