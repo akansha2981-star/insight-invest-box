@@ -45,6 +45,7 @@ const SitemapPage = lazy(() => import("./pages/SitemapPage"));
 const CurrencyConverterPage = lazy(() => import("./pages/CurrencyConverterPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const UserLogin = lazy(() => import("./pages/UserLogin"));
+const MoneyDashboard = lazy(() => import("./pages/money/MoneyDashboard"));
 const MFScreenerPage = lazy(() => import("./pages/MFScreenerPage"));
 const MFDetailPage = lazy(() => import("./pages/MFDetailPage"));
 const MFComparePage = lazy(() => import("./pages/MFComparePage"));
@@ -132,6 +133,12 @@ class RealEstateErrorBoundary extends Component<{ children: ReactNode }, { hasEr
 function AppRoutes() {
   const location = useLocation();
 
+  // money.investingiq.in subdomain opens the swing trading desk
+  if (typeof window !== "undefined" && window.location.hostname.startsWith("money.") && !location.pathname.startsWith("/money") && location.pathname !== "/login") {
+    return <Navigate to="/money" replace />;
+  }
+
+
   return (
     <RealEstateErrorBoundary key={location.pathname}>
       <Suspense fallback={null}>
@@ -205,6 +212,10 @@ function AppRoutes() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/sitemap" element={<SitemapPage />} />
           <Route path="/login" element={<UserLogin />} />
+          <Route path="/money" element={<MoneyDashboard />} />
+          <Route path="/money/dashboard" element={<Navigate to="/money" replace />} />
+          <Route path="/money/login" element={<Navigate to="/login?next=/money" replace />} />
+          <Route path="/dashboard" element={<Navigate to="/money" replace />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

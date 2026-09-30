@@ -1636,6 +1636,152 @@ export type Database = {
         }
         Relationships: []
       }
+      swing_portfolios: {
+        Row: {
+          capital: number
+          created_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capital?: number
+          created_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capital?: number
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      swing_prices: {
+        Row: {
+          close: number
+          created_at: string
+          high: number
+          id: string
+          low: number
+          open: number
+          symbol: string
+          trade_date: string
+          volume: number
+        }
+        Insert: {
+          close: number
+          created_at?: string
+          high: number
+          id?: string
+          low: number
+          open: number
+          symbol: string
+          trade_date: string
+          volume?: number
+        }
+        Update: {
+          close?: number
+          created_at?: string
+          high?: number
+          id?: string
+          low?: number
+          open?: number
+          symbol?: string
+          trade_date?: string
+          volume?: number
+        }
+        Relationships: []
+      }
+      swing_strategies: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          params: Json
+          rule_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          params?: Json
+          rule_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          params?: Json
+          rule_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      swing_trades: {
+        Row: {
+          created_at: string
+          entry_date: string
+          entry_price: number
+          exit_date: string | null
+          exit_price: number | null
+          id: string
+          quantity: number
+          status: string
+          strategy_id: string | null
+          symbol: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_date?: string
+          entry_price: number
+          exit_date?: string | null
+          exit_price?: number | null
+          id?: string
+          quantity: number
+          status?: string
+          strategy_id?: string | null
+          symbol: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_date?: string
+          entry_price?: number
+          exit_date?: string | null
+          exit_price?: number | null
+          id?: string
+          quantity?: number
+          status?: string
+          strategy_id?: string | null
+          symbol?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swing_trades_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "swing_strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trending_keywords: {
         Row: {
           discovered_at: string

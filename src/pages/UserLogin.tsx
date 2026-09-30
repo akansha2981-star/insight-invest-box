@@ -5,7 +5,9 @@ import { lovable } from "@/integrations/lovable";
 import { TrendingUp, Eye, EyeOff, AlertCircle, ArrowLeft, User } from "lucide-react";
 
 export default function UserLogin() {
-  const navigate = useNavigate();
+  const rawNavigate = useNavigate();
+  const nextPath = (() => { const n = new URLSearchParams(window.location.search).get("next"); return n && n.startsWith("/") && !n.startsWith("//") ? n : "/"; })();
+  const navigate = (to: string) => rawNavigate(to === "/" ? nextPath : to);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
