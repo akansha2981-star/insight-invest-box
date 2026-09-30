@@ -59,7 +59,7 @@ export function StrategyLab({ bars, userId, onUniverseChange }: { bars: Record<s
   const totals = live.reduce((a, x) => { if (!x.res) return a; a.inv += x.res.startEquity; a.val += x.res.finalEquity; a.open += x.res.trades.filter((t) => t.open).length; a.closed += x.res.closedCount; return a; }, { inv: 0, val: 0, open: 0, closed: 0 });
   const keepLive = async (keys: string[], capital: number, start: string, filter: boolean) => {
     const { error } = await db.from("swing_deployments").insert(keys.map((k) => ({ user_id: userId, strategy_key: k, capital, risk_pct: form.risk, start_date: start, market_filter: filter })));
-    if (error) return toast.error(error.message); toast.success(`${keys.length} strategies now running live from ${start}`); loadDeps();
+    if (error) { toast.error(error.message); return; } toast.success(`${keys.length} strategies now running live from ${start}`); loadDeps();
   };
   const lastDate = ctxs[0]?.b.at(-1)?.date;
 
