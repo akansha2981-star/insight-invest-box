@@ -3,6 +3,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import { Bot, CircleStop, Play, Trash2, Trophy, ArrowUpRight, ArrowDownRight, Clock, Gauge, Plus, Search, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LIMITS, type Limits } from "@/lib/swing/limits";
 import { StrategyReport, NotificationFeed, tradeEvents } from "./StrategyReport";
 import { supabase } from "@/integrations/supabase/client";
 import type { Bar } from "@/lib/swing/engine";
@@ -29,12 +30,12 @@ const REGIME_LABEL: Record<Regime, string> = { bull: "Strong Bull", sideways: "S
 const regimeList = (def: StrategyDef) => allowedRegimes(def).map((r) => REGIME_LABEL[r]).join(" + ");
 
 export type LabView = "live" | "lab" | "alerts" | "board" | "market";
-export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view, onUnread, quiet }: { ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; userId: string; onUniverseChange?: () => void; view: LabView; onUnread?: (n: number) => void; quiet?: boolean }) {
+export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view, onUnread, quiet, limits = LIMITS }: { limits?: Limits; ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; userId: string; onUniverseChange?: () => void; view: LabView; onUnread?: (n: number) => void; quiet?: boolean }) {
   const strategyByKey = (k: string) => defs.find((d) => d.key === k);
   const [boardFilter, setBoardFilter] = useState(true);
   const [deps, setDeps] = useState<Deployment[]>([]);
   const [detail, setDetail] = useState<{ def: StrategyDef; res: SimResult; title: string } | null>(null);
-  const [form, setForm] = useState({ key: defs[11]?.key ?? defs[0]?.key, capital: 50000, risk: 1, start: todayIST(), filter: true });
+  const [form, setForm] = useState({ key: defs[11]?.key ?? defs[0]?.key, capital: 50000, risk: limits.defaultRisk, start: todayIST(), filter: true });
 
 
   const loadDeps = async () => { const { data } = await db.from("swing_deployments").select("*").order("created_at", { ascending: false }); setDeps(data ?? []); };
@@ -79,7 +80,7 @@ export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view
         <Kpi l="Open / closed trades" v={`${totals.open} / ${totals.closed}`} /><Kpi l="Market today" v={today ? REGIME_LABEL[today.regime] : "-"} />
       </div>
       <Tabs value={view}>
-        <TabsContent value="lab"><StrategyReport ctxs={ctxs} regime={regime} defs={defs} onKeepLive={keepLive} /></TabsContent>
+        <TabsContent value="lab"><StrategyReport limits={limits} ctxs={ctxs} regime={regime} defs={defs} onKeepLive={keepLive} /></TabsContent>
         <TabsContent value="alerts"><NotificationFeed events={events} lastSeen={lastSeen} onSeen={markSeen} /></TabsContent>
         <TabsContent value="live" className="space-y-4">
       {/* Auto-trade */}
@@ -91,7 +92,7 @@ export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view
             <Select value={form.key} onValueChange={(v) => setForm({ ...form, key: v })}><SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{defs.map((s) => <SelectItem key={s.key} value={s.key}>{s.name}</SelectItem>)}</SelectContent></Select></div>
           <div><Label className="text-xs">Amount (₹)</Label><Input type="number" min={1000} value={form.capital} onChange={(e) => setForm({ ...form, capital: +e.target.value })} /></div>
-          <div><Label className="text-xs">Risk per trade (%)</Label><Input type="number" min={0.25} max={5} step={0.25} value={form.risk} onChange={(e) => setForm({ ...form, risk: Math.min(5, Math.max(0.25, +e.target.value)) })} /></div>
+          <div><Label className="text-xs">Risk per trade (%)</Label><Input type="number" min={0.25} max={limits.maxRisk} step={0.25} value={form.risk} onChange={(e) => setForm({ ...form, risk: Math.min(limits.maxRisk, Math.max(0.25, +e.target.value)) })} /></div>
           <div><Label className="text-xs">Start date</Label><Input type="date" max={todayIST()} value={form.start} onChange={(e) => setForm({ ...form, start: e.target.value })} /></div>
           <div className="flex items-center gap-2 md:col-span-5"><Switch id="mf" checked={form.filter} onCheckedChange={(v) => setForm({ ...form, filter: v })} /><Label htmlFor="mf" className="text-xs">Market condition filter: only buy when the market suits this strategy ({regimeList(strategyByKey(form.key)!)})</Label></div>
           <div className="md:col-span-5"><Button onClick={deploy}><Play className="mr-1 h-4 w-4" />Start auto-trading</Button></div>

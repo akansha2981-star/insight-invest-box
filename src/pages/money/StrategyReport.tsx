@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { LIMITS, type Limits } from "@/lib/swing/limits";
 import { ExportButtons } from "./ExportButtons";
 import { TRADE_HEAD, tradeRows, r2 } from "@/lib/swing/exportReport";
 
@@ -33,9 +34,9 @@ export function tradeEvents(trades: SimTrade[], source: string): TradeEvent[] {
   return ev;
 }
 
-export function StrategyReport({ ctxs, regime, defs, onKeepLive }: { ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; onKeepLive: (keys: string[], capital: number, start: string, filter: boolean) => Promise<void> }) {
+export function StrategyReport({ ctxs, regime, defs, onKeepLive, limits = LIMITS }: { limits?: Limits; ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; onKeepLive: (keys: string[], capital: number, start: string, filter: boolean) => Promise<void> }) {
   const firstDate = ctxs[0]?.b[Math.min(200, (ctxs[0]?.b.length ?? 1) - 1)]?.date ?? "2024-01-01";
-  const [cfg, setCfg] = useState({ capital: 100000, start: firstDate, risk: 1, maxPos: 5, filter: true });
+  const [cfg, setCfg] = useState({ capital: 100000, start: firstDate, risk: limits.defaultRisk, maxPos: Math.min(5, limits.maxPositions), filter: true });
   const [pick, setPick] = useState<string[]>(defs.map((s) => s.key));
   const [run, setRun] = useState(cfg);
   const [runPick, setRunPick] = useState(pick);
@@ -76,8 +77,8 @@ export function StrategyReport({ ctxs, regime, defs, onKeepLive }: { ctxs: Ctx[]
           <div className="grid gap-3 md:grid-cols-6">
             <div><Label className="text-xs">Test amount (₹)</Label><Input type="number" min={1000} step={1000} value={cfg.capital} onChange={(e) => setCfg({ ...cfg, capital: Math.max(1000, +e.target.value) })} /></div>
             <div><Label className="text-xs">Test start date</Label><Input type="date" min={ctxs[0]?.b[60]?.date} max={todayIST()} value={cfg.start} onChange={(e) => setCfg({ ...cfg, start: e.target.value })} /></div>
-            <div><Label className="text-xs">Risk per trade (%)</Label><Input type="number" min={0.25} max={5} step={0.25} value={cfg.risk} onChange={(e) => setCfg({ ...cfg, risk: Math.min(5, Math.max(0.25, +e.target.value)) })} /></div>
-            <div><Label className="text-xs">Max open stocks</Label><Input type="number" min={1} max={20} value={cfg.maxPos} onChange={(e) => setCfg({ ...cfg, maxPos: Math.min(20, Math.max(1, +e.target.value)) })} /></div>
+            <div><Label className="text-xs">Risk per trade (%)</Label><Input type="number" min={0.25} max={limits.maxRisk} step={0.25} value={cfg.risk} onChange={(e) => setCfg({ ...cfg, risk: Math.min(limits.maxRisk, Math.max(0.25, +e.target.value)) })} /></div>
+            <div><Label className="text-xs">Max open stocks</Label><Input type="number" min={1} max={limits.maxPositions} value={cfg.maxPos} onChange={(e) => setCfg({ ...cfg, maxPos: Math.min(limits.maxPositions, Math.max(1, +e.target.value)) })} /></div>
             <div><Label className="text-xs">Timeframe</Label><Input value="Daily (1D)" disabled /></div>
             <div className="flex items-end gap-2 pb-2"><Switch id="tf" checked={cfg.filter} onCheckedChange={(v) => setCfg({ ...cfg, filter: v })} /><Label htmlFor="tf" className="text-xs">Market filter</Label></div>
           </div>
