@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { Activity, ArrowDownRight, ArrowUpRight, LogOut, Minus, Play, Plus, Power, Upload, Wallet, TrendingUp, ShieldAlert, LayoutDashboard, Globe2, LineChart as LineIcon, ScanSearch, Bot, Wrench, FlaskConical, Swords, Trophy, Gauge, Bell, SplitSquareHorizontal, ListChecks, GitCompare, GitCompareArrows, Star, ShieldCheck } from "lucide-react";
+import { Activity, ArrowDownRight, ArrowUpRight, LogOut, Minus, Play, Plus, Power, Upload, Wallet, TrendingUp, ShieldAlert, LayoutDashboard, Globe2, LineChart as LineIcon, ScanSearch, Bot, Wrench, FlaskConical, Swords, Trophy, Gauge, Bell, SplitSquareHorizontal, ListChecks, GitCompare, GitCompareArrows, Star, ShieldCheck, Radio } from "lucide-react";
 import { STRATEGIES, buildCtx, rankUniverse, marketRegime, type Ctx, type RegimeDay, type StrategyDef } from "@/lib/swing/strategies20";
 import { compileCustom } from "@/lib/swing/rules";
 import { StrategyLab, MarketCard, UniversePanel, type LabView } from "./StrategyLab";
@@ -13,6 +13,8 @@ import { RobustnessLab, Tournament } from "./Robustness";
 import { StrategyCompare } from "./StrategyCompare";
 import { Watchlists } from "./Watchlists";
 import { AdminControls } from "./AdminControls";
+import { LiveTest } from "./LiveTest";
+import { RealOrderDialog, type RealOrderReq } from "./RealOrderDialog";
 import { DEFAULT_CONTROLS, type Controls } from "@/lib/swing/limits";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
@@ -54,6 +56,7 @@ export default function MoneyDashboard() {
   const [regime, setRegime] = useState<Map<string, RegimeDay> | null>(null);
   const [customRows, setCustomRows] = useState<CustomRow[]>([]);
   const [unread, setUnread] = useState(0);
+  const [realReq, setRealReq] = useState<RealOrderReq | null>(null);
   const [controls, setControls] = useState<Controls>(DEFAULT_CONTROLS);
   const loadControls = async () => { const { data } = await db.from("swing_settings").select("value").eq("key", "controls").maybeSingle(); if (data?.value) setControls({ ...DEFAULT_CONTROLS, ...data.value }); };
   useEffect(() => { loadControls(); }, []);
@@ -207,6 +210,7 @@ export default function MoneyDashboard() {
         </div>
       </header>
 
+      <RealOrderDialog req={realReq} onClose={() => setRealReq(null)} />
       <Tabs value={tab} onValueChange={setTab} orientation="vertical" className="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-6 md:flex-row md:gap-6">
         <aside className="md:w-60 md:shrink-0">
           <TabsList className="flex h-auto w-full flex-row flex-wrap justify-start gap-0.5 rounded-lg border border-border bg-background p-2 md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:flex-col md:flex-nowrap md:items-stretch md:overflow-y-auto">
@@ -225,7 +229,7 @@ export default function MoneyDashboard() {
         <main className="min-w-0 flex-1 space-y-6">
         <div className="flex items-start gap-2 rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
-          Paper trading and research only. No real orders are placed. Not investment advice; data is unofficial and sourced from NSE/BSE.
+          Paper trading and research only. Real broker orders are admin-only and switched off unless enabled in Desk controls. Not investment advice; data is unofficial and sourced from NSE/BSE.
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3 text-xs">
@@ -260,13 +264,14 @@ export default function MoneyDashboard() {
           <TabsContent value="scanner"><Scanner ctxs={ctxs} /></TabsContent>
           <TabsContent value="builder">{ctxs.length > 0 && <StrategyBuilder ctxs={ctxs} regime={regime} userId={userId} rows={customRows} onSaved={loadCustom} />}</TabsContent>
           <TabsContent value="robust">{ctxs.length > 0 && <RobustnessLab ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
+          <TabsContent value="livetest">{ctxs.length > 0 && <LiveTest ctxs={ctxs} regime={regime} defs={defs} onRealOrder={isAdmin ? (symbol, price) => setRealReq({ symbol, price }) : undefined} />}</TabsContent>
           <TabsContent value="comparison">{ctxs.length > 0 && <StrategyCompare ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
           <TabsContent value="watchlists">{userId && <Watchlists ctxs={ctxs} userId={userId} />}</TabsContent>
           {isAdmin && <TabsContent value="controls"><AdminControls controls={controls} onSaved={loadControls} /></TabsContent>}
           <TabsContent value="tournament">{ctxs.length > 0 && <Tournament ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
 
           <TabsContent value="stocks">
-            <Terminal strategies={strategies} onPaperBuy={buy} onQuote={(sym, px) => setTermPx((p) => ({ ...p, [sym]: px }))} />
+            <Terminal strategies={strategies} onPaperBuy={buy} onRealOrder={isAdmin ? (symbol, price) => setRealReq({ symbol, price }) : undefined} onQuote={(sym, px) => setTermPx((p) => ({ ...p, [sym]: px }))} />
           </TabsContent>
 
           <TabsContent value="compare" className="space-y-3">
@@ -417,7 +422,7 @@ const MENU: { group: string; items: [string, string, any, string][] }[] = [
   { group: "Overview", items: [["dashboard", "Dashboard", LayoutDashboard, ""]] },
   { group: "Market", items: [["markets", "Markets and sectors", Globe2, "Breadth, advances/declines, sector strength"], ["stocks", "Stock terminal", LineIcon, "Live charts with 20+ indicators"], ["scanner", "Scanner", ScanSearch, "Find stocks matching any rule"], ["watchlists", "Watchlists", Star, "Your saved stock lists"]] },
   { group: "Strategies", items: [["strategies", "Auto-trading", Bot, "Run strategies live from any date"], ["builder", "Strategy builder", Wrench, "Create versioned strategies without code"], ["performance", "Leaderboard", Trophy, "All strategies ranked"]] },
-  { group: "Research", items: [["backtest", "Backtest and report", FlaskConical, "Any amount, any start date, full report"], ["robust", "Robustness tests", SplitSquareHorizontal, "Out-of-sample and reshuffle tests"], ["comparison", "Timeframe comparison", GitCompareArrows, "Rank strategies across periods"], ["tournament", "Tournament", Swords, "Same conditions, robustness score"], ["regime", "Market regime", Gauge, "Bull, sideways or bear; stocks scanned"]] },
+  { group: "Research", items: [["backtest", "Backtest and report", FlaskConical, "Any amount, any start date, full report"], ["robust", "Robustness tests", SplitSquareHorizontal, "Out-of-sample and reshuffle tests"], ["livetest", "Live test (top 5)", Radio, "Top 5 strategies up to today, plus today's signals"], ["comparison", "Timeframe comparison", GitCompareArrows, "Rank strategies across periods"], ["tournament", "Tournament", Swords, "Same conditions, robustness score"], ["regime", "Market regime", Gauge, "Bull, sideways or bear; stocks scanned"]] },
   { group: "Trading", items: [["signals", "Paper signals", ListChecks, ""], ["portfolio", "Portfolio", Wallet, ""], ["alerts", "Alerts", Bell, ""], ["compare", "Rule comparison", GitCompare, ""]] },
   { group: "Admin", items: [["controls", "Desk controls", ShieldCheck, ""], ["data", "Price data", Upload, ""]] },
 ];

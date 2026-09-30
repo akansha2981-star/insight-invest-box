@@ -60,3 +60,6 @@ verify_jwt = false
 
 [functions.swing-terminal]
 verify_jwt = false
+
+[functions.swing-order]
+verify_jwt = false
