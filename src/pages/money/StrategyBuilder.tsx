@@ -86,4 +86,3 @@ export function StrategyBuilder({ ctxs, regime, userId, rows, onSaved }: { ctxs:
     </div>
   );
 }
-export { newGroup };

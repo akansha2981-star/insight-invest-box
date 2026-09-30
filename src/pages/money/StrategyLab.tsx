@@ -28,29 +28,27 @@ interface Deployment { id: string; strategy_key: string; capital: number; risk_p
 const REGIME_LABEL: Record<Regime, string> = { bull: "Strong Bull", sideways: "Sideways", bear: "Bear" };
 const regimeList = (def: StrategyDef) => allowedRegimes(def).map((r) => REGIME_LABEL[r]).join(" + ");
 
-export function StrategyLab({ bars, userId, onUniverseChange }: { bars: Record<string, Bar[]>; userId: string; onUniverseChange?: () => void }) {
-  const [ctxs, setCtxs] = useState<Ctx[]>([]);
-  const [regime, setRegime] = useState<Map<string, RegimeDay> | null>(null);
+export type LabView = "live" | "lab" | "alerts" | "board" | "market";
+export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view, onUnread }: { ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; userId: string; onUniverseChange?: () => void; view: LabView; onUnread?: (n: number) => void }) {
+  const strategyByKey = (k: string) => defs.find((d) => d.key === k);
   const [boardFilter, setBoardFilter] = useState(true);
   const [deps, setDeps] = useState<Deployment[]>([]);
   const [detail, setDetail] = useState<{ def: StrategyDef; res: SimResult; title: string } | null>(null);
-  const [form, setForm] = useState({ key: STRATEGIES[11].key, capital: 50000, risk: 1, start: todayIST(), filter: true });
+  const [form, setForm] = useState({ key: defs[11]?.key ?? defs[0]?.key, capital: 50000, risk: 1, start: todayIST(), filter: true });
 
-  useEffect(() => { // build indicator context off the main render
-    const id = setTimeout(() => { const c = Object.entries(bars).filter(([, b]) => b.length > 60).map(([s, b]) => buildCtx(s, b)); rankUniverse(c); setRegime(marketRegime(c)); setCtxs(c); }, 30);
-    return () => clearTimeout(id);
-  }, [bars]);
 
   const loadDeps = async () => { const { data } = await db.from("swing_deployments").select("*").order("created_at", { ascending: false }); setDeps(data ?? []); };
   useEffect(() => { loadDeps(); }, [userId]);
 
-  const board = useMemo(() => ctxs.length ? STRATEGIES.map((def) => ({ def, res: simulate(def, ctxs, { capital: 50000, regime: boardFilter ? regime : null }) })).sort((a, b) => (b.res.trades.length ? 1 : 0) - (a.res.trades.length ? 1 : 0) || b.res.netReturn - a.res.netReturn) : [], [ctxs, regime, boardFilter]);
-  const live = useMemo(() => deps.map((d) => { const def = strategyByKey(d.strategy_key); return { d, def, res: def && ctxs.length ? simulate(def, ctxs, { capital: +d.capital, riskPct: +d.risk_pct, startDate: d.start_date, endDate: d.stopped_at ?? undefined, regime: d.market_filter === false ? null : regime }) : null }; }), [deps, ctxs, regime]);
+  const board = useMemo(() => ctxs.length && view === "board" ? defs.map((def) => ({ def, res: simulate(def, ctxs, { capital: 50000, regime: boardFilter ? regime : null }) })).sort((a, b) => (b.res.trades.length ? 1 : 0) - (a.res.trades.length ? 1 : 0) || b.res.netReturn - a.res.netReturn) : [], [ctxs, regime, boardFilter, defs, view]);
+  const live = useMemo(() => deps.map((d) => { const def = strategyByKey(d.strategy_key); return { d, def, res: def && ctxs.length ? simulate(def, ctxs, { capital: +d.capital, riskPct: +d.risk_pct, startDate: d.start_date, endDate: d.stopped_at ?? undefined, regime: d.market_filter === false ? null : regime }) : null }; }), [deps, ctxs, regime, defs]);
   const today = regime ? [...regime.values()].at(-1) : undefined;
   const seenKey = `swing-notif-seen-${userId}`;
   const [lastSeen, setLastSeen] = useState(() => localStorage.getItem(seenKey) ?? "0000");
   const events = useMemo(() => live.filter((x) => x.res).flatMap((x) => tradeEvents(x.res!.trades, x.d.id)).sort((a, b) => b.date.localeCompare(a.date)), [live]);
   const markSeen = () => { const d = events[0]?.date ?? todayIST(); localStorage.setItem(seenKey, d); setLastSeen(d); };
+  const unread = events.filter((e) => e.date > lastSeen).length;
+  useEffect(() => { onUnread?.(unread); }, [unread]);
   const toasted = useRef(false);
   useEffect(() => {
     if (toasted.current || !events.length) return; toasted.current = true;
@@ -71,7 +69,7 @@ export function StrategyLab({ bars, userId, onUniverseChange }: { bars: Record<s
   const stop = async (d: Deployment) => { await db.from("swing_deployments").update({ status: "stopped", stopped_at: todayIST() }).eq("id", d.id); loadDeps(); };
   const remove = async (d: Deployment) => { if (!confirm("Delete this auto-trading plan?")) return; await db.from("swing_deployments").delete().eq("id", d.id); loadDeps(); };
 
-  if (!ctxs.length) return <p className="text-sm text-muted-foreground">Loading live NSE price history and computing indicators...</p>;
+  if (!ctxs.length || !form.key) return <p className="text-sm text-muted-foreground">Loading live NSE price history and computing indicators...</p>;
 
   return (
     <div className="space-y-4">
@@ -80,9 +78,8 @@ export function StrategyLab({ bars, userId, onUniverseChange }: { bars: Record<s
         <Kpi l="Current value" v={inr(totals.val)} /><Kpi l="Net P&L" v={<span className={tone(totals.val - totals.inv)}>{inr(totals.val - totals.inv)}</span>} />
         <Kpi l="Open / closed trades" v={`${totals.open} / ${totals.closed}`} /><Kpi l="Market today" v={today ? REGIME_LABEL[today.regime] : "-"} />
       </div>
-      <Tabs defaultValue="live">
-        <TabsList className="flex h-auto flex-wrap justify-start"><TabsTrigger value="live">Live auto-trading</TabsTrigger><TabsTrigger value="lab">Test lab and report</TabsTrigger><TabsTrigger value="alerts">Notifications{events.filter((e) => e.date > lastSeen).length > 0 && <Badge className="ml-1 h-4 px-1 text-[10px]">{events.filter((e) => e.date > lastSeen).length}</Badge>}</TabsTrigger><TabsTrigger value="board">Leaderboard</TabsTrigger><TabsTrigger value="market">Market and stocks</TabsTrigger></TabsList>
-        <TabsContent value="lab"><StrategyReport ctxs={ctxs} regime={regime} onKeepLive={keepLive} /></TabsContent>
+      <Tabs value={view}>
+        <TabsContent value="lab"><StrategyReport ctxs={ctxs} regime={regime} defs={defs} onKeepLive={keepLive} /></TabsContent>
         <TabsContent value="alerts"><NotificationFeed events={events} lastSeen={lastSeen} onSeen={markSeen} /></TabsContent>
         <TabsContent value="live" className="space-y-4">
       {/* Auto-trade */}
@@ -92,7 +89,7 @@ export function StrategyLab({ bars, userId, onUniverseChange }: { bars: Record<s
         <CardContent className="grid gap-3 md:grid-cols-5">
           <div className="md:col-span-2"><Label className="text-xs">Strategy</Label>
             <Select value={form.key} onValueChange={(v) => setForm({ ...form, key: v })}><SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{STRATEGIES.map((s) => <SelectItem key={s.key} value={s.key}>{s.name}</SelectItem>)}</SelectContent></Select></div>
+              <SelectContent>{defs.map((s) => <SelectItem key={s.key} value={s.key}>{s.name}</SelectItem>)}</SelectContent></Select></div>
           <div><Label className="text-xs">Amount (₹)</Label><Input type="number" min={1000} value={form.capital} onChange={(e) => setForm({ ...form, capital: +e.target.value })} /></div>
           <div><Label className="text-xs">Risk per trade (%)</Label><Input type="number" min={0.25} max={5} step={0.25} value={form.risk} onChange={(e) => setForm({ ...form, risk: Math.min(5, Math.max(0.25, +e.target.value)) })} /></div>
           <div><Label className="text-xs">Start date</Label><Input type="date" max={todayIST()} value={form.start} onChange={(e) => setForm({ ...form, start: e.target.value })} /></div>
@@ -144,7 +141,7 @@ export function StrategyLab({ bars, userId, onUniverseChange }: { bars: Record<s
       {/* Leaderboard */}
       <Card>
         <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-base"><Trophy className="h-4 w-4 text-primary" />Best performing strategies</CardTitle>
-          <p className="text-xs text-muted-foreground">All 20 strategies tested on live NSE daily data for {ctxs.length} stocks, {board[0]?.res.from} to {board[0]?.res.to}. ₹50,000 start, 1% risk per trade, max 5 positions, next-open entry, charges and slippage included. Past results do not guarantee future returns.</p>
+          <p className="text-xs text-muted-foreground">All {defs.length} strategies tested on live NSE daily data for {ctxs.length} stocks, {board[0]?.res.from} to {board[0]?.res.to}. ₹50,000 start, 1% risk per trade, max 5 positions, next-open entry, charges and slippage included. Past results do not guarantee future returns.</p>
           <div className="flex items-center gap-2 pt-1"><Switch id="bf" checked={boardFilter} onCheckedChange={setBoardFilter} /><Label htmlFor="bf" className="text-xs">Apply market condition filter</Label></div></CardHeader>
         <CardContent className="overflow-x-auto p-0">
           <Table><TableHeader><TableRow>
@@ -159,7 +156,7 @@ export function StrategyLab({ bars, userId, onUniverseChange }: { bars: Record<s
                 <TableCell className="text-destructive">-{res.maxDrawdown.toFixed(1)}%</TableCell><TableCell>{res.trades.length}</TableCell><TableCell className={tone(res.avgR)}>{res.avgR.toFixed(2)}R</TableCell><TableCell>{res.sharpe.toFixed(2)}</TableCell>
                 <TableCell>{res.pending.length ? <Badge>{res.pending.length} BUY</Badge> : <span className="text-muted-foreground">-</span>}</TableCell>
                 <TableCell className="whitespace-nowrap"><Button size="sm" variant="outline" onClick={() => setDetail({ def, res, title: def.name })}>Details</Button>{" "}
-                  <Button size="sm" onClick={() => { setForm({ ...form, key: def.key }); toast.info(`${def.name} selected. Open "Live auto-trading" to start it.`); }}>Auto-trade</Button></TableCell>
+                  <Button size="sm" onClick={() => { setForm({ ...form, key: def.key }); toast.info(`${def.name} selected. Open "Strategies" to start it.`); }}>Auto-trade</Button></TableCell>
               </TableRow>))}</TableBody></Table>
         </CardContent>
       </Card>
@@ -224,7 +221,7 @@ function TradeTable({ trades, compact }: { trades: SimResult["trades"]; compact?
 const Kpi = ({ l, v }: { l: string; v: React.ReactNode }) => <div className="rounded-md border border-border bg-muted/30 p-2"><div className="text-[11px] text-muted-foreground">{l}</div><div className="font-semibold text-foreground">{v}</div></div>;
 const Rule = ({ t, v, icon }: { t: string; v: string; icon?: React.ReactNode }) => <div className="rounded-md border border-border p-3"><div className="mb-1 flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">{icon}{t}</div><div className="text-sm text-foreground">{v}</div></div>;
 
-function MarketCard({ today, regime }: { today: RegimeDay; regime: Map<string, RegimeDay> }) {
+export function MarketCard({ today, regime }: { today: RegimeDay; regime: Map<string, RegimeDay> }) {
   const hist = [...regime.values()].slice(-250); const n = (r: Regime) => hist.filter((h) => h.regime === r).length;
   const variant = today.regime === "bull" ? "default" : today.regime === "bear" ? "destructive" : "secondary";
   return (
@@ -237,14 +234,14 @@ function MarketCard({ today, regime }: { today: RegimeDay; regime: Map<string, R
         <Kpi l="ADX (trend strength)" v={today.adx?.toFixed(1) ?? "-"} />
         <Kpi l="Stocks above SMA200" v={today.breadth + "%"} />
         <Kpi l="Last 250 days" v={`${n("bull")} bull · ${n("sideways")} side · ${n("bear")} bear`} />
-        <Kpi l="Strategies allowed" v={STRATEGIES.filter((s) => allowedRegimes(s).includes(today.regime)).length + " of 20"} />
+        <Kpi l="Built-in strategies allowed" v={STRATEGIES.filter((s) => allowedRegimes(s).includes(today.regime)).length + " of 20"} />
       </CardContent>
     </Card>
   );
 }
 
 interface Inst { exchange: string; token: string; symbol: string; name: string }
-function UniversePanel({ count, onAdded }: { count: number; onAdded?: () => void }) {
+export function UniversePanel({ count, onAdded }: { count: number; onAdded?: () => void }) {
   const [q, setQ] = useState(""); const [res, setRes] = useState<Inst[]>([]); const [busy, setBusy] = useState<string | null>(null);
   const [extra, setExtra] = useState<{ symbol: string; name: string }[]>([]);
   const loadExtra = async () => { const { data } = await db.from("swing_universe").select("symbol,name").order("created_at", { ascending: false }); setExtra(data ?? []); };

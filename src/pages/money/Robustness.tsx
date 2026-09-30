@@ -113,4 +113,3 @@ export function RobustnessLab({ ctxs, regime, defs }: { ctxs: Ctx[]; regime: Map
     </div>
   );
 }
-export { LineChart, Line };
