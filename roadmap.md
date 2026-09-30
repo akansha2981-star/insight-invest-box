@@ -6,3 +6,7 @@
 - [x] Detailed report: total trades, avg trades/strategy, best strategy, timeframe
 - [x] Buy/sell notifications with profit book / loss book
 - [x] More professional, detailed dashboard UI
+- [x] Robustness testing (walk-forward, rolling, Monte Carlo, tournament, benchmark)
+- [x] Scanner, market breadth, sector analysis
+- [x] Strategy builder with versions
+- [x] Menu redesign to spec
