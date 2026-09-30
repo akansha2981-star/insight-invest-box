@@ -135,7 +135,7 @@ function AppRoutes() {
 
   // money.investingiq.in subdomain opens the swing trading desk
   if (typeof window !== "undefined" && window.location.hostname.startsWith("money.") && !location.pathname.startsWith("/money") && location.pathname !== "/login") {
-    return <Navigate to={location.pathname === "/login" ? "/login?next=/money" : "/money"} replace />;
+    return <Navigate to="/money" replace />;
   }
 
 
