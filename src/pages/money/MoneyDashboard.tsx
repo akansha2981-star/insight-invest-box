@@ -15,6 +15,8 @@ import { Watchlists } from "./Watchlists";
 import { AdminControls } from "./AdminControls";
 import { LiveTest } from "./LiveTest";
 import { Leaderboard } from "./Leaderboard";
+import { RealTrading } from "./RealTrading";
+import { AIvsCustom } from "./AIvsCustom";
 import { RealOrderDialog, type RealOrderReq } from "./RealOrderDialog";
 import { DEFAULT_CONTROLS, type Controls } from "@/lib/swing/limits";
 import { supabase } from "@/integrations/supabase/client";
@@ -294,7 +296,10 @@ export default function MoneyDashboard() {
           <TabsContent value="robust">{ctxs.length > 0 && <RobustnessLab ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
           <TabsContent value="livetest">{ctxs.length > 0 && <LiveTest ctxs={ctxs} regime={regime} defs={defs} onRealOrder={isAdmin ? (symbol, price) => setRealReq({ symbol, price }) : undefined} />}</TabsContent>
           <TabsContent value="comparison">{ctxs.length > 0 && <StrategyCompare ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
-          <TabsContent value="aicoach"><Leaderboard isAdmin={isAdmin} onStrategiesChanged={loadAi} /></TabsContent>
+          <TabsContent value="aicoach"><Leaderboard isAdmin={isAdmin} onStrategiesChanged={() => { loadAi(); loadCustom(); }} /></TabsContent>
+          <TabsContent value="aibacktest">{ctxs.length > 0 && <AIvsCustom ctxs={ctxs} regime={regime} defs={defs} mode="backtest" />}</TabsContent>
+          <TabsContent value="ailive">{ctxs.length > 0 && <AIvsCustom ctxs={ctxs} regime={regime} defs={defs} mode="live" />}</TabsContent>
+          {isAdmin && <TabsContent value="realtrading"><RealTrading ctxs={ctxs} onOrder={setRealReq} /></TabsContent>}
           <TabsContent value="watchlists">{userId && <Watchlists ctxs={ctxs} userId={userId} />}</TabsContent>
           {isAdmin && <TabsContent value="controls"><AdminControls controls={controls} onSaved={loadControls} /></TabsContent>}
           <TabsContent value="tournament">{ctxs.length > 0 && <Tournament ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
@@ -450,10 +455,10 @@ const LAB_TABS: Record<string, LabView> = { strategies: "live", backtest: "lab",
 const MENU: { group: string; items: [string, string, any, string][] }[] = [
   { group: "Overview", items: [["dashboard", "Dashboard", LayoutDashboard, ""]] },
   { group: "Market", items: [["markets", "Markets and sectors", Globe2, "Breadth, advances/declines, sector strength"], ["stocks", "Stock terminal", LineIcon, "Live charts with 20+ indicators"], ["scanner", "Scanner", ScanSearch, "Find stocks matching any rule"], ["watchlists", "Watchlists", Star, "Your saved stock lists"]] },
-  { group: "Strategies", items: [["strategies", "Auto-trading", Bot, "Run strategies live from any date"], ["builder", "Strategy builder", Wrench, "Create versioned strategies without code"], ["aicoach", "AI Leaderboard", Sparkles, "AI finds faults daily and improves strategies"], ["performance", "Leaderboard", Trophy, "All strategies ranked"]] },
-  { group: "Research", items: [["backtest", "Backtest and report", FlaskConical, "Any amount, any start date, full report"], ["robust", "Robustness tests", SplitSquareHorizontal, "Out-of-sample and reshuffle tests"], ["livetest", "Live test (top 5)", Radio, "Top 5 strategies up to today, plus today's signals"], ["comparison", "Timeframe comparison", GitCompareArrows, "Rank strategies across periods"], ["tournament", "Tournament", Swords, "Same conditions, robustness score"], ["regime", "Market regime", Gauge, "Bull, sideways or bear; stocks scanned"]] },
+  { group: "Strategies", items: [["strategies", "Auto-trading", Bot, "Run strategies live from any date"], ["builder", "Strategy builder", Wrench, "Create versioned strategies without code"], ["aicoach", "AI dashboard", Sparkles, "AI analysis, faults, changes and approvals"], ["performance", "Leaderboard", Trophy, "All strategies ranked"]] },
+  { group: "Research", items: [["backtest", "Backtest and report", FlaskConical, "Any amount, any start date, full report"], ["robust", "Robustness tests", SplitSquareHorizontal, "Out-of-sample and reshuffle tests"], ["livetest", "Live test (top 5)", Radio, "Top 5 strategies up to today, plus today's signals"], ["aibacktest", "AI vs custom backtest", FlaskConical, "AI strategies against yours"], ["ailive", "AI vs custom live test", Radio, "AI vs yours up to today"], ["comparison", "Timeframe comparison", GitCompareArrows, "Rank strategies across periods"], ["tournament", "Tournament", Swords, "Same conditions, robustness score"], ["regime", "Market regime", Gauge, "Bull, sideways or bear; stocks scanned"]] },
   { group: "Trading", items: [["signals", "Paper signals", ListChecks, ""], ["portfolio", "Portfolio", Wallet, ""], ["alerts", "Alerts", Bell, ""], ["compare", "Rule comparison", GitCompare, ""]] },
-  { group: "Admin", items: [["controls", "Desk controls", ShieldCheck, ""], ["data", "Price data", Upload, ""]] },
+  { group: "Admin", items: [["realtrading", "Real trading", ShieldAlert, ""], ["controls", "Desk controls", ShieldCheck, ""], ["data", "Price data", Upload, ""]] },
 ];
 
 const MOBILE_TABS: [string, string, any][] = [["dashboard", "Home", LayoutDashboard], ["stocks", "Terminal", LineIcon], ["aicoach", "AI", Sparkles], ["strategies", "Auto", Bot]];

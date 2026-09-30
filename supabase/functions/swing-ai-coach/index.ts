@@ -69,8 +69,24 @@ async function loadMarket(admin: Admin) {
 async function loadDefs(admin: Admin) {
   const { data: aiRows } = await admin.from("swing_ai_strategies").select("*").order("version");
   const latest = new Map<string, any>(); (aiRows ?? []).forEach((r: any) => latest.set(r.family_id, r));
+  const { data: cRows } = await admin.from("swing_custom_strategies").select("*").order("version");
+  const cl = new Map<string, any>(); (cRows ?? []).forEach((r: any) => cl.set(r.family_id, r));
   return [...STRATEGIES.map((d) => ({ def: d, source: "built-in", row: null as any })),
-    ...[...latest.values()].map((r) => ({ def: { ...compileCustom(r.id, r.name, r.version, r.definition), key: `ai:${r.family_id}`, family: "AI" } as StrategyDef, source: "ai", row: r }))];
+    ...[...latest.values()].map((r) => ({ def: { ...compileCustom(r.id, r.name, r.version, r.definition), key: `ai:${r.family_id}`, family: "AI" } as StrategyDef, source: "ai", row: r })),
+    ...[...cl.values()].slice(0, 30).map((r) => ({ def: { ...compileCustom(r.id, r.name, r.version, r.definition), key: `custom:${r.family_id}` } as StrategyDef, source: "custom", row: r }))];
+}
+
+/** Saves an accepted change: custom parents get a new version of the owner's strategy; others a new AI strategy version. Old versions are never overwritten. */
+async function applyChange(admin: Admin, parentKey: string | null, name: string, def: CustomDef, rec: any, runId: string | null): Promise<{ ai_strategy_id?: string }> {
+  const note = `AI v-change: ${rec.change_summary ?? ""}`.slice(0, 1000);
+  if (parentKey?.startsWith("custom:")) {
+    const { data: p } = await admin.from("swing_custom_strategies").select("user_id,family_id,name,version").eq("family_id", parentKey.slice(7)).order("version", { ascending: false }).limit(1).maybeSingle();
+    if (p) { await admin.from("swing_custom_strategies").insert({ user_id: p.user_id, family_id: p.family_id, name: p.name, version: p.version + 1, definition: def, ai_note: note }); return {}; }
+  }
+  let fam: any = null;
+  if (parentKey?.startsWith("ai:")) { const { data } = await admin.from("swing_ai_strategies").select("family_id,name,version").eq("family_id", parentKey.slice(3)).order("version", { ascending: false }).limit(1).maybeSingle(); fam = data; }
+  const { data: ins } = await admin.from("swing_ai_strategies").insert({ ...(fam ? { family_id: fam.family_id, version: fam.version + 1, name: fam.name } : { name: name.startsWith("AI ") ? name : `AI ${name}` }), parent_key: parentKey, definition: def, fault: rec.fault, change_summary: rec.change_summary, metrics: { train: rec.train, test: rec.test }, run_id: runId }).select("id").single();
+  return { ai_strategy_id: ins?.id };
 }
 
 async function step(admin: Admin, run: any): Promise<boolean> { // returns true when more work remains
@@ -147,10 +163,8 @@ Return json: { "summary": string, "diagnosis": [{ "key": string, "fault": string
       const ok = !reason; Object.assign(rec, { train, test, parent_test: parent?.test ?? null, adopted: ok });
       rec.reason = ok ? (parent ? `Beat ${parent.name} on unseen test: ${test.ret}% vs ${barRet}%` : `Profitable on unseen test: ${test.ret}%, ${test.trades} trades`) : reason;
       if (ok) {
-        let fam: any = null;
-        if (parent?.source === "ai") { const { data } = await admin.from("swing_ai_strategies").select("family_id,name,version").eq("family_id", parent.key.slice(3)).order("version", { ascending: false }).limit(1).maybeSingle(); fam = data; }
-        const { data: ins } = await admin.from("swing_ai_strategies").insert({ ...(fam ? { family_id: fam.family_id, version: fam.version + 1, name: fam.name } : { name: `AI ${name}` }), parent_key: parent?.key ?? null, definition: def, fault: rec.fault, change_summary: rec.change_summary, metrics: { train, test }, run_id: run.id }).select("id").single();
-        rec.ai_strategy_id = ins?.id; adopted++;
+        const r = await applyChange(admin, parent?.key ?? null, name, def, rec, run.id);
+        if (r.ai_strategy_id) rec.ai_strategy_id = r.ai_strategy_id; adopted++;
       }
       await admin.from("swing_ai_proposals").insert(rec);
     }
@@ -179,6 +193,18 @@ Deno.serve(async (req) => {
     const { data } = await admin.from("swing_ai_runs").select("*").eq("id", body.run_id).maybeSingle();
     if (!data || data.status !== "running") return json({ skipped: "Run not active" });
     run = data;
+  } else if (body?.approve_id) {
+    const { data: u } = await admin.auth.getUser(token);
+    if (!u?.user) return json({ error: "Sign in required" }, 401);
+    const { data: isAdmin } = await admin.rpc("has_role", { _user_id: u.user.id, _role: "admin" });
+    if (!isAdmin) return json({ error: "Only admins can approve AI changes" }, 403);
+    const { data: p } = await admin.from("swing_ai_proposals").select("*").eq("id", String(body.approve_id)).maybeSingle();
+    if (!p) return json({ error: "Change not found" }, 404);
+    if (p.adopted) return json({ error: "This change is already applied" }, 400);
+    const def = cleanDef(p.definition); if (!def) return json({ error: "This change cannot be run by the software" }, 400);
+    const r = await applyChange(admin, p.parent_key, p.name, def, p, p.run_id);
+    await admin.from("swing_ai_proposals").update({ adopted: true, approved_at: new Date().toISOString(), approved_by: u.user.id, ai_strategy_id: r.ai_strategy_id ?? p.ai_strategy_id, reason: `${p.reason ?? ""} · Approved manually by admin`.slice(0, 1000) }).eq("id", p.id);
+    return json({ ok: true });
   } else {
     let force = false, trigger = "cron";
     if (body?.force) {

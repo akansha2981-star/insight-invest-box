@@ -35,6 +35,13 @@ export function Leaderboard({ isAdmin, onStrategiesChanged }: { isAdmin: boolean
     if (error || data?.error) return toast.error(data?.error ?? "Could not start the AI analysis");
     toast.success(data?.skipped ?? "AI analysis started. Results appear here in a few minutes."); load();
   };
+  const [approving, setApproving] = useState<string | null>(null);
+  const approve = async (p: any) => {
+    if (!confirm(`Apply "${p.name}"? It failed the automatic test: ${p.reason}`)) return;
+    setApproving(p.id); const { data, error } = await supabase.functions.invoke("swing-ai-coach", { body: { approve_id: p.id } }); setApproving(null);
+    if (error || data?.error) return toast.error(data?.error ?? "Could not apply this change");
+    toast.success("Change applied as a new version"); load(); onStrategiesChanged?.();
+  };
 
   const last = runs[0];
   return (
@@ -83,11 +90,13 @@ export function Leaderboard({ isAdmin, onStrategiesChanged }: { isAdmin: boolean
       </Card>}
 
       <Card>
-        <CardHeader><CardTitle>AI change log</CardTitle></CardHeader>
+        <CardHeader><CardTitle>AI strategy changes</CardTitle><p className="text-xs text-muted-foreground">Changes that pass the unseen-price test are applied automatically (your custom strategies get a new version; old versions are kept). Admins can approve a rejected change by hand.</p></CardHeader>
         <CardContent className="space-y-2">{!props.length ? <p className="text-sm text-muted-foreground">No AI changes yet.</p> : props.map((p) => (
           <div key={p.id} className="rounded-md border border-border p-3 text-sm">
-            <div className="flex flex-wrap items-center gap-2">{p.adopted ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <XCircle className="h-4 w-4 text-muted-foreground" />}<span className="font-medium">{p.name}</span><Badge variant="outline">{p.kind === "new" ? "New strategy" : `Improves ${rows.find((r) => r.strategy_key === p.parent_key)?.name ?? p.parent_key}`}</Badge><Badge variant={p.adopted ? "default" : "secondary"}>{p.adopted ? "Adopted" : "Rejected"}</Badge><span className="ml-auto text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString("en-IN")}</span></div>
-            {p.change_summary && <p className="mt-1">{p.change_summary}</p>}
+            <div className="flex flex-wrap items-center gap-2">{p.adopted ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <XCircle className="h-4 w-4 text-muted-foreground" />}<span className="font-medium">{p.name}</span><Badge variant="outline">{p.kind === "new" ? "New strategy" : `Improves ${rows.find((r) => r.strategy_key === p.parent_key)?.name ?? p.parent_key}`}</Badge><Badge variant={p.adopted ? "default" : "secondary"}>{p.approved_at ? "Approved by admin" : p.adopted ? "Auto-applied" : "Rejected"}</Badge><span className="ml-auto text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString("en-IN")}</span>
+              {isAdmin && !p.adopted && p.definition && <Button size="sm" variant="outline" className="h-7" disabled={approving === p.id} onClick={() => approve(p)}>{approving === p.id ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <CheckCircle2 className="mr-1 h-3 w-3" />}Approve</Button>}</div>
+            {p.fault && <p className="mt-1 text-muted-foreground"><b className="text-foreground">Fault:</b> {p.fault}</p>}
+            {p.change_summary && <p className="mt-1"><b>Change:</b> {p.change_summary}</p>}
             <p className="mt-1 text-xs text-muted-foreground">{p.reason}{p.test && <> · unseen test {pc(p.test.ret)}, win {Number(p.test.win).toFixed(0)}%, drawdown {Number(p.test.dd).toFixed(1)}%, {p.test.trades} trades</>}{p.parent_test && <> · current version {pc(p.parent_test.ret)}</>}</p>
           </div>))}
         </CardContent>
