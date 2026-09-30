@@ -31,6 +31,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Menu as MenuIcon } from "lucide-react";
 
 interface Strategy { id: string; name: string; description: string | null; rule_type: string; params: any; is_active: boolean; updated_at: string }
 interface Trade { id: string; strategy_id: string | null; symbol: string; quantity: number; entry_price: number; entry_date: string; exit_price: number | null; exit_date: string | null; status: string }
@@ -53,6 +55,8 @@ export default function MoneyDashboard() {
   const [viewing, setViewing] = useState<Strategy | null>(null);
   const [editing, setEditing] = useState<Partial<Strategy> | null>(null);
   const [tab, setTab] = useState("dashboard");
+  const [moreOpen, setMoreOpen] = useState(false);
+  const currentLabel = MENU.flatMap((g) => g.items).find(([v]) => v === tab)?.[1] ?? "Dashboard";
   const [ctxs, setCtxs] = useState<Ctx[]>([]);
   const [regime, setRegime] = useState<Map<string, RegimeDay> | null>(null);
   const [customRows, setCustomRows] = useState<CustomRow[]>([]);
@@ -205,9 +209,9 @@ export default function MoneyDashboard() {
   return (
     <div className="min-h-screen bg-muted/40">
       <Helmet><title>Swing Trading Desk | InvestingIQ Money</title><meta name="robots" content="noindex" /></Helmet>
-      <header className="border-b border-border bg-background">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75" style={{ paddingTop: "env(safe-area-inset-top)" }}>
         <div className="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-3">
-          <Link to="/money" className="flex items-center gap-2 font-black text-foreground"><TrendingUp className="h-5 w-5 text-primary" /> InvestingIQ Money</Link>
+          <div className="flex min-w-0 items-center gap-3"><Link to="/money" className="flex items-center gap-2 font-black text-foreground"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"><TrendingUp className="h-4 w-4" /></span><span className="hidden sm:inline">InvestingIQ Money</span></Link><span className="truncate border-l border-border pl-3 text-sm font-semibold text-foreground">{currentLabel}</span><span className="hidden items-center gap-1 text-xs text-muted-foreground md:flex"><span className={"h-2 w-2 rounded-full " + (Object.keys(live).length ? "bg-primary animate-pulse" : "bg-muted-foreground")} />{Object.keys(live).length ? "Live" : "Market closed"}</span></div>
           <div className="flex items-center gap-2">
             {isAdmin && <Badge variant="secondary">Admin</Badge>}
             <Button variant="ghost" size="sm" onClick={async () => { await supabase.auth.signOut(); navigate("/login?next=/money"); }}><LogOut className="mr-1 h-4 w-4" />Sign out</Button>
@@ -216,8 +220,27 @@ export default function MoneyDashboard() {
       </header>
 
       <RealOrderDialog req={realReq} onClose={() => setRealReq(null)} />
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <div className="grid grid-cols-5">
+          {MOBILE_TABS.map(([v, l, I]) => (
+            <button key={v} onClick={() => { setTab(v); window.scrollTo({ top: 0 }); }} className={"flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium " + (tab === v ? "text-primary" : "text-muted-foreground")}><I className="h-5 w-5" />{l}</button>
+          ))}
+          <button onClick={() => setMoreOpen(true)} className={"flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium " + (!MOBILE_TABS.some(([v]) => v === tab) ? "text-primary" : "text-muted-foreground")}><MenuIcon className="h-5 w-5" />More</button>
+        </div>
+      </nav>
+      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto rounded-t-2xl">
+          <SheetHeader><SheetTitle>All sections</SheetTitle></SheetHeader>
+          {MENU.filter((g) => g.group !== "Admin" || isAdmin).map((g) => (
+            <div key={g.group} className="mt-3"><div className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{g.group}</div>
+              <div className="grid grid-cols-3 gap-2">{g.items.map(([v, l, I]) => (
+                <button key={v} onClick={() => { setTab(v); setMoreOpen(false); window.scrollTo({ top: 0 }); }} className={"flex flex-col items-center gap-1 rounded-xl border p-3 text-center text-xs " + (tab === v ? "border-primary bg-primary/10 text-primary" : "border-border text-foreground")}><I className="h-5 w-5" /><span className="leading-tight">{l}</span></button>
+              ))}</div></div>
+          ))}
+        </SheetContent>
+      </Sheet>
       <Tabs value={tab} onValueChange={setTab} orientation="vertical" className="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-6 md:flex-row md:gap-6">
-        <aside className="md:w-60 md:shrink-0">
+        <aside className="hidden md:block md:w-60 md:shrink-0">
           <TabsList className="flex h-auto w-full flex-row flex-wrap justify-start gap-0.5 rounded-lg border border-border bg-background p-2 md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:flex-col md:flex-nowrap md:items-stretch md:overflow-y-auto">
             {MENU.filter((g) => g.group !== "Admin" || isAdmin).map((g) => (
               <div key={g.group} className="contents md:block">
@@ -231,7 +254,7 @@ export default function MoneyDashboard() {
             ))}
           </TabsList>
         </aside>
-        <main className="min-w-0 flex-1 space-y-6">
+        <main className="min-w-0 flex-1 space-y-6 pb-24 md:pb-0">
         <div className="flex items-start gap-2 rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
           Paper trading and research only. Real broker orders are admin-only and switched off unless enabled in Desk controls. Not investment advice; data is unofficial and sourced from NSE/BSE.
@@ -432,3 +455,5 @@ const MENU: { group: string; items: [string, string, any, string][] }[] = [
   { group: "Trading", items: [["signals", "Paper signals", ListChecks, ""], ["portfolio", "Portfolio", Wallet, ""], ["alerts", "Alerts", Bell, ""], ["compare", "Rule comparison", GitCompare, ""]] },
   { group: "Admin", items: [["controls", "Desk controls", ShieldCheck, ""], ["data", "Price data", Upload, ""]] },
 ];
+
+const MOBILE_TABS: [string, string, any][] = [["dashboard", "Home", LayoutDashboard], ["stocks", "Terminal", LineIcon], ["aicoach", "AI", Sparkles], ["strategies", "Auto", Bot]];
