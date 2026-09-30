@@ -1,101 +1,36 @@
-# Mutual Funds & ETFs Research Ecosystem
+# AI Strategy Coach + Leaderboard
 
-This is a large build. To keep it shippable and high-quality, I'll deliver it in **3 phases**. Phase 1 ships a complete, usable product immediately; Phases 2 and 3 add depth.
+## An honest note first
+No software, and no AI, can make strategies "100% working" or promise the highest returns. Markets change, and a strategy tuned too tightly to past prices usually fails later. So the AI gets full freedom to change or invent strategies, but the desk only **adopts** a change when it proves itself on prices it was not tuned on. That keeps the improvements real instead of just looking good on paper.
 
-## Phase 1 — Foundation + Core Hub (this turn)
+## What you will get
 
-### Database (1 migration)
-- `mf_funds` — scheme_code, scheme_name, fund_house, category, sub_category, plan_type (Direct/Regular), option (Growth/IDCW), nav, nav_date, aum_cr, expense_ratio, min_sip, min_lumpsum, exit_load, launch_date, fund_manager, risk_level, rating, returns_1m/3m/6m/1y/3y/5y/10y, alpha, beta, sharpe, sortino, std_dev, holdings (jsonb), sector_allocation (jsonb), ai_summary, ai_pros, ai_risks, ai_verdict, slug, views, trending
-- `mf_etfs` — symbol, name, asset_class, issuer, nav, ltp, aum_cr, expense_ratio, tracking_error, avg_volume, returns_1m/3m/6m/1y/3y/5y, holdings, sector_allocation, ai_summary, slug, views
-- `mf_nav_history` — fund_id, date, nav
-- `mf_fund_houses` — name, slug, total_aum_cr, fund_count, logo_url, description
-- `mf_news` — title, slug, content, category, published_at
-- `mf_industry_stats` — total_mf_aum, total_etf_aum, net_inflows, top_categories (jsonb), updated_at
-- Full GRANTs + RLS (public SELECT, admin write via has_role)
-- Seed ~30 popular funds + 15 ETFs + 8 fund houses
+**1. AI Leaderboard page (new tab under Strategies)**
+- Every strategy (the 20 built-in, your custom ones, and AI-made ones) ranked daily by return, win rate, max drawdown, trade count and robustness score.
+- Up/down arrows showing rank movement since yesterday.
+- A badge for AI-made or AI-improved versions, with their version history (v1, v2, v3...).
 
-### Edge function `mf-engine`
-- `refresh-nav` — pull NAV from AMFI public feed (no API key needed)
-- `ai-analyze` — Gemini-generated summary/pros/risks/verdict per fund
-- `generate-news` — daily MF news using Lovable AI
-- `industry-stats` — aggregate stats
+**2. Daily AI analysis (runs automatically every weekday after market close, around 4:30 PM IST)**
+- The system sends the AI each strategy's results: losing trades, where stops were hit, which market conditions hurt it, drawdown periods, and trade frequency.
+- The AI names the actual fault for each weak strategy (for example "stops too tight in sideways markets", "entries late after breakouts") and proposes a concrete fix.
+- The AI can also invent brand-new strategies of its own, using any indicator, sector filter or rule the builder supports. No limit on what it tries.
 
-### Public pages & routes
-- `/mutual-funds` — **Hub Dashboard**: industry widgets, trending funds, top performers (tabs: 1M/3M/1Y/3Y/5Y), highest AUM, lowest expense, best SIP/ELSS/Large/Mid/Small/Index, NFOs, most viewed
-- `/mutual-funds/screener` — **Advanced Screener** with all filter groups (Basic, Performance, Risk, Cost, Size, Portfolio, Rating, ESG, Tax) + saved ranking presets
-- `/mutual-funds/compare` — compare up to 5 funds (returns, risk, expense, manager, alpha/beta/sharpe + charts)
-- `/mutual-funds/overlap` — portfolio overlap tool (common holdings, overlap %, sector overlap)
-- `/mutual-funds/:slug` — **Fund Detail**: overview, NAV chart, Growth of ₹10k, CAGR, rolling returns, holdings, sector pie, AI analysis panel, embedded SIP/Lumpsum/SWP calculators, similar funds
-- `/mutual-funds/fund-house/:slug` — fund house page (AUM, fund count, top funds, managers)
-- `/mutual-funds/news` — MF news center
+**3. Automatic updating, with a safety test**
+- Every AI proposal is turned into a real strategy and backtested automatically.
+- It is split into a "training" period and an unseen "test" period. The change is adopted (saved as a new version and shown on the leaderboard and in Strategy Lab, auto-trading, live test, etc.) only if it beats the current version on the unseen period and has enough trades.
+- Rejected ideas are still logged with the reason, so the AI learns from them next day (it sees its own past attempts).
+- Old versions are never overwritten, so any earlier backtest stays reproducible and you can switch back.
 
-- `/etfs` — **ETF Hub**: trending, top performers, best gold/sector/dividend ETFs, ETF heatmap
-- `/etfs/screener` — ETF screener (asset class, performance, tracking error, AUM, liquidity)
-- `/etfs/compare` — ETF vs ETF / ETF vs MF / ETF vs Index
-- `/etfs/:slug` — **ETF Detail**: price, NAV, premium/discount, tracking error, charts (1D/1W/1M/6M/1Y/5Y), holdings, sectors
+**4. AI change log**
+- Each day's report: what the AI found, what it changed, before/after numbers, adopted or rejected and why.
+- A "Run AI analysis now" button for admins, plus an on/off switch in Desk controls.
 
-### Tools section
-- `/tools/sip-calculator` (already exists — link in)
-- `/tools/step-up-sip` — Step-Up SIP Calculator
-- `/tools/goal-sip` — Goal-based SIP
-- `/tools/retirement-sip` — Retirement planner
-- `/tools/child-education-sip`
-- `/tools/marriage-sip`
-- `/tools/inflation-sip` — Inflation-adjusted SIP
-- `/tools/fire-calculator` — FIRE calculator
-- `/tools/swp-calculator`
-- `/tools/lumpsum-calculator`
-- `/tools/portfolio-analyzer` — Smart Portfolio Analyzer (fund/units/price → current value, gain/loss, CAGR, diversification)
-- `/tools` — hub listing all calculators
+Everything stays paper trading. Real broker orders remain separately switched off as today.
 
-### SEO landing pages (auto-generated content)
-- `/best-mutual-funds-2026`
-- `/best-sip-funds`
-- `/best-elss-funds`
-- `/best-small-cap-funds`
-- `/best-index-funds`
-- `/best-etfs-india`
-- `/gold-etf-vs-physical-gold`
-- `/etf-vs-mutual-fund`
-- `/sip-vs-lumpsum`
-Each with H1, FAQs, JSON-LD (FAQPage + Article), fund tables.
-
-### Admin (`AdminMutualFunds.tsx` in AdminDashboard)
-- Refresh NAV (AMFI)
-- Generate AI Analysis (bulk + per-fund)
-- Generate SEO content
-- Edit fund records
-- Trigger news generation
-- View industry stats
-
-### Reused components
-- `MFScreener`, `MFFundCard`, `MFCompareTable`, `NAVChart` (recharts), `HoldingsTable`, `SectorPie`, `CalculatorShell`, `AIFundPanel`, `OverlapMatrix`
-
-### Compliance
-- "Not investment advice" disclaimer on every MF/ETF page and AI panel
-- Data sourced from AMFI/public feeds, may be delayed
-
-## Phase 2 (next iteration, after approval)
-- ETF Intelligence Center (flows, heatmap, sector rotation)
-- AI Fund Recommendation Engine with category drill-downs
-- Research Terminal (Bloomberg-like unified dashboard at `/research-terminal`)
-- News auto-scheduling via pg_cron
-
-## Phase 3 (polish)
-- ESG scores, custom user rankings persistence (auth)
-- Live ETF intraday via Angel One integration
-
----
-
-## Technical notes
-- Stack: existing React + Tailwind + shadcn + recharts + framer-motion
-- AI: Lovable AI Gateway (`google/gemini-3-flash-preview`)
-- NAV source: AMFI daily NAVAll.txt (free, no key)
-- All routes added to `App.tsx` + sitemap
-- Design: light theme for tools/hub, dark premium theme for AI panels (matches existing memory rules)
-- No emojis, Lucide icons only
-
-## Scope of this turn
-Phase 1 in full: migration + edge function + all listed pages + admin panel + 9 calculators + 9 SEO landing pages + routes + sitemap. Heavy build — expect ~25 new files.
-
-Approve to proceed with Phase 1.
+## Technical details
+- Copy the pure strategy engine (engine, indicators, strategies20, rules, robust — about 700 lines, no browser dependencies) into `supabase/functions/_shared/swing/` so the server simulates with identical logic to the app.
+- New tables: `swing_ai_runs` (date, status, summary, lock/lease, pause reason), `swing_ai_proposals` (run, parent strategy, fault, rule JSON, train/test metrics, adopted flag, reason), `swing_leaderboard_snapshots` (date, strategy key, metrics, rank). Admin write via service role, signed-in read.
+- New edge function `swing-ai-coach`: single-flight lock, skips if already run today, loads `swing_prices`, computes leaderboard snapshot, sends a compact stats payload to Lovable AI (`openai/gpt-6-astra`, Responses API, structured JSON output matching the rules schema), validates each proposal, backtests train/test, inserts adopted ones into `swing_custom_strategies` with author "AI" and parent link. Bounded to about 10 proposals per run. Stops and records a pause on 402/403/repeated 429.
+- Extend the rules schema only if the AI needs rule types the builder lacks (added in both the app and shared copy).
+- Daily schedule via pg_cron at 11:00 UTC on weekdays calling the function.
+- UI: `Leaderboard.tsx` and `AiCoachLog.tsx` in `src/pages/money/`, wired into MoneyDashboard tabs; toggle in AdminControls.
