@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
       if (!inst || inst.symbol !== a.symbol) return json({ error: "Stock not found in the NSE list" }, 400);
       const key = inst.symbol.replace(/-EQ$/, "");
       const { count } = await admin.from("swing_universe").select("symbol", { count: "exact", head: true });
-      if (!STOCK_TOKENS[key] && (count ?? 0) >= 150) return json({ error: "Strategy list is full (150 extra stocks). Remove one first." }, 400);
+      if (!STOCK_TOKENS[key] && (count ?? 0) >= 150) return json({ error: "Strategy list is full (150 extra stocks already added)." }, 400);
       if (!STOCK_TOKENS[key]) await admin.from("swing_universe").upsert({ symbol: key, exchange: "NSE", token: inst.token, name: inst.name, added_by: u.user.id }, { onConflict: "symbol" });
       only = { [key]: { token: inst.token, exchange: "NSE" } };
     }
