@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ExportButtons } from "./ExportButtons";
+import { TRADE_HEAD, tradeRows, r2 } from "@/lib/swing/exportReport";
 
 const inr = (n: number) => (n < 0 ? "-₹" : "₹") + Math.abs(Math.round(n)).toLocaleString("en-IN");
 const pct = (n: number) => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
@@ -39,7 +41,14 @@ export function Tournament({ ctxs, regime, defs }: { ctxs: Ctx[]; regime: Map<st
       <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-base"><Swords className="h-4 w-4 text-primary" />Strategy tournament</CardTitle>
         <p className="text-xs text-muted-foreground">Every strategy runs on the same {ctxs.length} stocks, the same dates ({split.train[0]} to {split.oos[1]}), the same capital, charges and slippage. The robustness score (0-100) blends Sharpe, Sortino, profit factor, drawdown, expectancy and out-of-sample return (from {split.oos[0]}). Strategies with under 10 closed trades score 0 (too little evidence).</p></CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex flex-wrap items-end gap-2"><Settings cfg={cfg} setCfg={setCfg} /><Button className="mb-0.5" onClick={() => setRun(cfg)}><Play className="mr-1 h-4 w-4" />Run tournament</Button></div>
+        <div className="flex flex-wrap items-end gap-2"><Settings cfg={cfg} setCfg={setCfg} /><Button className="mb-0.5" onClick={() => setRun(cfg)}><Play className="mr-1 h-4 w-4" />Run tournament</Button>
+          <div className="ml-auto"><ExportButtons title="Strategy tournament" build={() => ({
+            meta: [`${ctxs.length} stocks, ${split.train[0]} to ${split.oos[1]}, capital ${inr(run.capital)}, market filter ${run.filter ? "on" : "off"}, out-of-sample from ${split.oos[0]}`, bm ? `Benchmark (equal-weight index): return ${pct(bm.ret)}, max drawdown -${bm.dd.toFixed(1)}%` : ""],
+            sections: [
+              { title: "Ranking and risk metrics", head: ["#", "Strategy", "Score", "CAGR %", "Return %", "Excess %", "Max DD %", "Sharpe", "Sortino", "Profit factor", "Expectancy", "Win rate %", "Trades", "Net P&L", "OOS return %"], rows: rows.map((x, k) => [k + 1, x.def.name, x.score, r2(x.full.cagr), r2(x.full.netReturn), r2(x.full.netReturn - (bm?.ret ?? 0)), r2(x.full.maxDrawdown), r2(x.full.sharpe), r2(x.sortino), r2(x.full.profitFactor), r2(x.full.expectancy), r2(x.full.winRate), x.full.trades.length, r2(x.full.finalEquity - x.full.startEquity), r2(x.oos.netReturn)]) },
+              { title: "All trades (full period)", head: TRADE_HEAD, rows: tradeRows(rows.flatMap((x) => x.full.trades)) },
+            ],
+          })} /></div></div>
         {bm && <div className="grid grid-cols-2 gap-2 md:grid-cols-4"><Kpi l="Benchmark (equal-weight index, buy and hold)" v={<span className={tone(bm.ret)}>{pct(bm.ret)}</span>} /><Kpi l="Benchmark max drawdown" v={<span className="text-destructive">-{bm.dd.toFixed(1)}%</span>} /><Kpi l="Cash" v="0.00%" /><Kpi l="Best strategy vs benchmark" v={rows[0] ? <span className={tone(rows[0].full.netReturn - bm.ret)}>{pct(rows[0].full.netReturn - bm.ret)} excess</span> : "-"} /></div>}
         <div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>#</TableHead><TableHead>Strategy</TableHead><TableHead>Score</TableHead><TableHead>CAGR</TableHead><TableHead>Return</TableHead><TableHead>Excess vs index</TableHead><TableHead>Max DD</TableHead><TableHead>Sharpe</TableHead><TableHead>Sortino</TableHead><TableHead>Profit factor</TableHead><TableHead>Expectancy</TableHead><TableHead>Win rate</TableHead><TableHead>Trades</TableHead><TableHead>Avg hold</TableHead><TableHead>OOS return</TableHead></TableRow></TableHeader>
           <TableBody>{rows.map((x, k) => <TableRow key={x.def.key}><TableCell className="font-bold">{k + 1}</TableCell><TableCell><div className="font-semibold">{x.def.name}</div><div className="text-[11px] text-muted-foreground">{x.def.family}</div></TableCell>
@@ -84,7 +93,17 @@ export function RobustnessLab({ ctxs, regime, defs }: { ctxs: Ctx[]; regime: Map
       </Card>
       {out && run && <>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="flex flex-wrap items-center gap-2 text-base">{run.def.name}: walk-forward result <Badge variant={out.wf.verdict === "Robust" ? "default" : out.wf.verdict === "Mixed" ? "secondary" : "destructive"}>{out.wf.verdict}</Badge></CardTitle></CardHeader>
+          <CardHeader className="pb-2"><div className="flex flex-wrap items-center justify-between gap-2"><CardTitle className="flex flex-wrap items-center gap-2 text-base">{run.def.name}: walk-forward result <Badge variant={out.wf.verdict === "Robust" ? "default" : out.wf.verdict === "Mixed" ? "secondary" : "destructive"}>{out.wf.verdict}</Badge></CardTitle>
+            <ExportButtons title={`Robustness report ${run.def.name}`} build={() => ({
+              meta: [`Strategy: ${run.def.name} (${run.def.family}). Capital ${inr(run.cfg.capital)}, market filter ${run.cfg.filter ? "on" : "off"}. Walk-forward verdict: ${out.wf.verdict}.`, `Training ${run.split.train.join(" to ")}, validation ${run.split.valid.join(" to ")}, out-of-sample ${run.split.oos.join(" to ")}.`],
+              sections: [
+                { title: "Walk-forward periods", head: ["Period", "From", "To", "Return %", "Trades", "Win rate %", "Profit factor", "Max DD %", "Sharpe", "Expectancy"], rows: ([["Training", out.wf.train, run.split.train], ["Validation", out.wf.valid, run.split.valid], ["Out-of-sample", out.wf.oos, run.split.oos]] as const).map(([l, x, p]) => [l, p[0], p[1], r2(x.netReturn), x.trades.length, r2(x.winRate), r2(x.profitFactor), r2(x.maxDrawdown), r2(x.sharpe), r2(x.expectancy)]) },
+                { title: `Rolling ${run.months}-month windows`, head: ["From", "To", "Return %"], rows: out.roll.map((w: any) => [w.from, w.to, r2(w.ret)]) },
+                ...(out.mc ? [{ title: "Monte Carlo (bootstrap, simulation not prediction)", head: ["Runs", "Trades", "Final 5%", "Final median", "Final 95%", "DD median %", "DD bad 5% %", "Streak median", "Streak bad 5%", "P(loss) %", "P(DD>20%) %"], rows: [[out.mc.runs, out.mc.trades, r2(out.mc.final.p5), r2(out.mc.final.p50), r2(out.mc.final.p95), r2(out.mc.dd.p50), r2(out.mc.dd.p95), out.mc.streak.p50, out.mc.streak.p95, r2(out.mc.probLoss), r2(out.mc.probDd20)]] }] : []),
+                { title: "Full-period risk metrics", head: ["Return %", "CAGR %", "Max DD %", "Sharpe", "Profit factor", "Win rate %", "Expectancy", "Net P&L", "Charges"], rows: [[r2(out.full.netReturn), r2(out.full.cagr), r2(out.full.maxDrawdown), r2(out.full.sharpe), r2(out.full.profitFactor), r2(out.full.winRate), r2(out.full.expectancy), r2(out.full.finalEquity - out.full.startEquity), r2(out.full.totalCharges)]] },
+                { title: "All trades", head: TRADE_HEAD, rows: tradeRows(out.full.trades) },
+              ],
+            })} /></div></CardHeader>
           <CardContent className="space-y-3">
             <div className="grid gap-2 md:grid-cols-3">{([["Training", out.wf.train, run.split.train], ["Validation", out.wf.valid, run.split.valid], ["Out-of-sample", out.wf.oos, run.split.oos]] as const).map(([l, r, p]) => (
               <div key={l} className="rounded-md border border-border p-3"><div className="text-xs font-bold uppercase text-muted-foreground">{l}</div><div className="text-[11px] text-muted-foreground">{p[0]} to {p[1]}</div>

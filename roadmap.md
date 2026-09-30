@@ -10,3 +10,9 @@
 - [x] Scanner, market breadth, sector analysis
 - [x] Strategy builder with versions
 - [x] Menu redesign to spec
+- [x] Timeframe comparison view (returns, win rate, drawdown, trades)
+- [x] PDF/CSV exports for backtest, robustness, tournament, comparison
+- [x] Saved watchlists
+- [x] Admin desk controls (disable strategies, risk limits)
+- [x] Sector filters in strategy rules
+- [x] Fix and upgrade Scanner (more advanced, better look)

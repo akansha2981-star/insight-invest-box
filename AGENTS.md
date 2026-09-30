@@ -2,3 +2,4 @@
 - Swing market regime: derived client-side from an equal-weight index of the scanned universe (marketRegime in strategies20.ts), since no index feed is synced; mean-reversion strategies allowed in bull+sideways, others bull only.
 - Swing custom strategies: stored as declarative JSON rules (src/lib/swing/rules.ts) in swing_custom_strategies, insert-only versions (no UPDATE grant) so old backtest definitions are never overwritten; compiled to the same StrategyDef as built-ins.
 - Swing research pages share one ctxs/regime computed in MoneyDashboard; live "today" bar is only appended after 9:15 IST on weekdays.
+- Swing desk controls live in swing_settings (key "controls"): admins write, all signed-in read; disabled strategies hidden from non-admins and risk caps clamp form inputs — one shared row, no per-user overrides.

@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { simulate, type Ctx, type RegimeDay } from "@/lib/swing/strategies20";
 import { compileCustom, newGroup, describe, PRESETS, type CustomDef, type Group } from "@/lib/swing/rules";
 import { RuleEditor } from "./RuleEditor";
+import { SECTORS } from "@/lib/swing/robust";
+const SECTOR_LIST = [...new Set([...Object.values(SECTORS), "Other"])].sort();
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +59,7 @@ export function StrategyBuilder({ ctxs, regime, userId, rows, onSaved }: { ctxs:
             <div><Label className="text-xs">Max holding days (0 = none)</Label><Input type="number" min={0} max={250} value={d.maxHold} onChange={(e) => setD({ ...d, maxHold: Math.min(250, Math.max(0, Math.round(+e.target.value))) })} /></div>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-xs"><span className="text-muted-foreground">Buys allowed in:</span>{(["bull", "sideways", "bear"] as const).map((r) => <label key={r} className="flex items-center gap-1"><Switch checked={d.regimes.includes(r)} onCheckedChange={() => toggleRegime(r)} />{r === "bull" ? "Strong Bull" : r === "sideways" ? "Sideways" : "Bear"}</label>)}</div>
+          <div className="flex flex-wrap items-center gap-2 text-xs"><span className="text-muted-foreground">Only buy stocks in sectors (none selected = all):</span>{SECTOR_LIST.map((sec) => { const on = d.sectors?.includes(sec); return <button key={sec} type="button" onClick={() => setD({ ...d, sectors: on ? d.sectors!.filter((x) => x !== sec) : [...(d.sectors ?? []), sec] })} className={"rounded-full border px-2 py-0.5 " + (on ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground")}>{sec}</button>; })}</div>
           <p className="text-xs text-muted-foreground">Risk per trade and position size follow the common engine (1% risk by default). Target 1 is half the take-profit distance; half the position sells there and the stop moves to the buy price.</p>
           <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => setPreview(d)}><Play className="mr-1 h-4 w-4" />Backtest</Button><Button onClick={save}><Save className="mr-1 h-4 w-4" />{family ? "Save as new version" : "Save strategy"}</Button></div>
           {res && <div className="grid grid-cols-2 gap-2 rounded-md border border-border p-3 text-sm md:grid-cols-6">
