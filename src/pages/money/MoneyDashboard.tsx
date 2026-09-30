@@ -206,7 +206,7 @@ export default function MoneyDashboard() {
                 <div className="hidden px-2 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground md:block">{g.group}</div>
                 {g.items.map(([v, l, I]) => (
                   <TabsTrigger key={v} value={v} className="w-auto justify-start gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground md:w-full">
-                    <I className="h-4 w-4" />{l}{v === "alerts" && unread > 0 && <Badge className="ml-auto h-4 px-1 text-[10px]">{unread}</Badge>}
+                    <I className="h-4 w-4 shrink-0" /><span className="truncate">{l}</span>{v === "alerts" && unread > 0 && <Badge className="ml-auto h-4 px-1 text-[10px]">{unread}</Badge>}
                   </TabsTrigger>
                 ))}
               </div>
@@ -405,7 +405,7 @@ const MENU: { group: string; items: [string, string, any, string][] }[] = [
   { group: "Overview", items: [["dashboard", "Dashboard", LayoutDashboard, ""]] },
   { group: "Market", items: [["markets", "Markets and sectors", Globe2, "Breadth, advances/declines, sector strength"], ["stocks", "Stock terminal", LineIcon, "Live charts with 20+ indicators"], ["scanner", "Scanner", ScanSearch, "Find stocks matching any rule"]] },
   { group: "Strategies", items: [["strategies", "Auto-trading", Bot, "Run strategies live from any date"], ["builder", "Strategy builder", Wrench, "Create versioned strategies without code"], ["performance", "Leaderboard", Trophy, "All strategies ranked"]] },
-  { group: "Research", items: [["backtest", "Backtest and report", FlaskConical, "Any amount, any start date, full report"], ["robust", "Walk-forward and Monte Carlo", SplitSquareHorizontal, "Out-of-sample and reshuffle tests"], ["tournament", "Tournament", Swords, "Same conditions, robustness score"], ["regime", "Market regime and universe", Gauge, "Bull, sideways or bear; stocks scanned"]] },
+  { group: "Research", items: [["backtest", "Backtest and report", FlaskConical, "Any amount, any start date, full report"], ["robust", "Robustness tests", SplitSquareHorizontal, "Out-of-sample and reshuffle tests"], ["tournament", "Tournament", Swords, "Same conditions, robustness score"], ["regime", "Market regime", Gauge, "Bull, sideways or bear; stocks scanned"]] },
   { group: "Trading", items: [["signals", "Paper signals", ListChecks, ""], ["portfolio", "Portfolio", Wallet, ""], ["alerts", "Alerts", Bell, ""], ["compare", "Rule comparison", GitCompare, ""]] },
   { group: "Admin", items: [["data", "Price data", Upload, ""]] },
 ];

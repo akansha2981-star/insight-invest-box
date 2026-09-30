@@ -33,13 +33,13 @@ export function rolling(def: StrategyDef, ctxs: Ctx[], months: number, base: Sim
 
 function rng(seed: number) { return () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }; }
 const q = (a: number[], p: number) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.max(0, Math.floor(p * (s.length - 1))))]; };
-/** Reshuffles closed-trade returns (as % of equity at entry) many times. Simulation, not prediction. */
+/** Resamples closed-trade returns (bootstrap, random order with repeats) (as % of equity at entry) many times. Simulation, not prediction. */
 export function monteCarlo(res: SimResult, runs = 1000) {
   const closed = res.trades.filter((t) => !t.open && t.equityBefore > 0); if (closed.length < 5) return null;
   const rets = closed.map((t) => t.netPnl / t.equityBefore); const rand = rng(42);
   const dds: number[] = [], finals: number[] = [], streaks: number[] = []; const paths: number[][] = [];
   for (let k = 0; k < runs; k++) {
-    const a = [...rets]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    const a = rets.map(() => rets[Math.floor(rand() * rets.length)]); // bootstrap: random order, with repeats
     let eq = res.startEquity; const path = [eq]; let st = 0, mx = 0;
     a.forEach((r) => { eq *= 1 + r; path.push(eq); st = r <= 0 ? st + 1 : 0; mx = Math.max(mx, st); });
     dds.push(drawdown(path)); finals.push(eq); streaks.push(mx); if (k < 40) paths.push(path);

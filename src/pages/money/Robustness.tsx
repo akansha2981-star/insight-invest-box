@@ -67,7 +67,7 @@ export function RobustnessLab({ ctxs, regime, defs }: { ctxs: Ctx[]; regime: Map
     <div className="space-y-4">
       <Card>
         <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-base"><SplitSquareHorizontal className="h-4 w-4 text-primary" />Walk-forward and Monte Carlo testing</CardTitle>
-          <p className="text-xs text-muted-foreground">Split history into training, validation and out-of-sample periods to see if a strategy still works on data it was not tuned on. Then reshuffle its trades 1,000 times to see the range of outcomes.</p></CardHeader>
+          <p className="text-xs text-muted-foreground">Split history into training, validation and out-of-sample periods to see if a strategy still works on data it was not tuned on. Then replay its trades in random order 1,000 times to see the range of outcomes.</p></CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-end gap-3">
             <div><Label className="text-xs">Strategy</Label><select aria-label="Strategy" className="h-9 w-64 rounded-md border border-border bg-background px-2 text-sm" value={def?.key} onChange={(e) => setKey(e.target.value)}>{defs.map((d) => <option key={d.key} value={d.key}>{d.name}</option>)}</select></div>
@@ -95,7 +95,7 @@ export function RobustnessLab({ ctxs, regime, defs }: { ctxs: Ctx[]; regime: Map
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-base"><Shuffle className="h-4 w-4 text-primary" />Monte Carlo simulation</CardTitle>
-            <p className="text-xs text-muted-foreground">Simulation, not a prediction. The {out.mc?.trades ?? 0} closed trades from {run.split.train[0]} to {run.split.oos[1]} are put in random order {out.mc?.runs ?? 0} times to show how lucky or unlucky the sequence could have been.</p></CardHeader>
+            <p className="text-xs text-muted-foreground">Simulation, not a prediction. The {out.mc?.trades ?? 0} closed trades from {run.split.train[0]} to {run.split.oos[1]} are drawn in random order (with repeats) {out.mc?.runs ?? 0} times to show how lucky or unlucky the sequence could have been.</p></CardHeader>
           <CardContent className="space-y-3">
             {!out.mc ? <p className="text-sm text-muted-foreground">Needs at least 5 closed trades.</p> : <>
               <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
