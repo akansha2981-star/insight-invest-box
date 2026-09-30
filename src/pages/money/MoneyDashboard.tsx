@@ -5,6 +5,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import { Activity, ArrowDownRight, ArrowUpRight, LogOut, Minus, Play, Plus, Power, Upload, Wallet, TrendingUp, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
+import { Terminal } from "./Terminal";
 import { RULES, runRule, backtest, parseCsv, type Bar, type BacktestResult } from "@/lib/swing/engine";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -119,7 +120,7 @@ export default function MoneyDashboard() {
   const closed = trades.filter((t) => t.status === "closed");
   const invested = open.reduce((a, t) => a + t.entry_price * t.quantity, 0);
   const realized = closed.reduce((a, t) => a + ((t.exit_price ?? 0) - t.entry_price) * t.quantity, 0);
-  const marketVal = open.reduce((a, t) => a + priceOf(t.symbol) * t.quantity, 0);
+  const marketVal = open.reduce((a, t) => a + (priceOf(t.symbol) || t.entry_price) * t.quantity, 0);
   const cash = capital - invested + realized;
   const value = cash + marketVal;
   const pnl = value - capital;
@@ -132,7 +133,7 @@ export default function MoneyDashboard() {
     toast.success(`Paper-bought ${qty} ${symbol}`); loadAll(userId!);
   };
   const sell = async (t: Trade) => {
-    const { error } = await db.from("swing_trades").update({ status: "closed", exit_price: priceOf(t.symbol), exit_date: new Date().toISOString().slice(0, 10) }).eq("id", t.id);
+    const { error } = await db.from("swing_trades").update({ status: "closed", exit_price: priceOf(t.symbol) || t.entry_price, exit_date: new Date().toISOString().slice(0, 10) }).eq("id", t.id);
     if (error) return toast.error(error.message);
     toast.success(`Closed ${t.symbol}`); loadAll(userId!);
   };
@@ -163,7 +164,7 @@ export default function MoneyDashboard() {
     <div className="min-h-screen bg-muted/40">
       <Helmet><title>Swing Trading Desk | InvestingIQ Money</title><meta name="robots" content="noindex" /></Helmet>
       <header className="border-b border-border bg-background">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-3">
           <Link to="/money" className="flex items-center gap-2 font-black text-foreground"><TrendingUp className="h-5 w-5 text-primary" /> InvestingIQ Money</Link>
           <div className="flex items-center gap-2">
             {isAdmin && <Badge variant="secondary">Admin</Badge>}
@@ -172,7 +173,7 @@ export default function MoneyDashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6">
+      <main className="mx-auto max-w-[1600px] space-y-6 px-4 py-6">
         <div className="flex items-start gap-2 rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
           Paper trading and research only. No real orders are placed. Not investment advice; data is unofficial and sourced from NSE/BSE.
@@ -196,14 +197,19 @@ export default function MoneyDashboard() {
           ))}
         </div>
 
-        <Tabs defaultValue="strategies">
+        <Tabs defaultValue="terminal">
           <TabsList className="flex-wrap">
+            <TabsTrigger value="terminal">Terminal</TabsTrigger>
             <TabsTrigger value="strategies">Strategies</TabsTrigger>
             <TabsTrigger value="signals">Signals</TabsTrigger>
             <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
             <TabsTrigger value="compare">Compare</TabsTrigger>
             {isAdmin && <TabsTrigger value="data">Price Data</TabsTrigger>}
           </TabsList>
+
+          <TabsContent value="terminal">
+            <Terminal strategies={strategies} onPaperBuy={buy} />
+          </TabsContent>
 
           <TabsContent value="strategies" className="space-y-3">
             {isAdmin && <Button onClick={() => setEditing({ rule_type: "ma_cross", params: {} })}><Plus className="mr-1 h-4 w-4" />New strategy</Button>}
@@ -258,7 +264,7 @@ export default function MoneyDashboard() {
                 <TableBody>
                   {trades.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No virtual trades yet. Paper-buy from the Signals tab.</TableCell></TableRow>}
                   {trades.map((t) => {
-                    const px = t.status === "open" ? priceOf(t.symbol) : t.exit_price ?? 0; const p = (px - t.entry_price) * t.quantity;
+                    const px = t.status === "open" ? (priceOf(t.symbol) || t.entry_price) : t.exit_price ?? 0; const p = (px - t.entry_price) * t.quantity;
                     return (
                       <TableRow key={t.id}>
                         <TableCell className="font-semibold">{t.symbol}</TableCell><TableCell className="text-xs">{stratName(t.strategy_id)}</TableCell><TableCell>{t.quantity}</TableCell>
