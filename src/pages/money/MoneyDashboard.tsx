@@ -174,7 +174,22 @@ export default function MoneyDashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] space-y-6 px-4 py-6">
+      <Tabs defaultValue="terminal" orientation="vertical" className="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-6 md:flex-row md:gap-6">
+        <aside className="md:w-56 md:shrink-0">
+          <TabsList className="flex h-auto w-full flex-row flex-wrap justify-start gap-1 rounded-lg border border-border bg-background p-2 md:sticky md:top-4 md:flex-col md:items-stretch">
+            <div className="hidden px-2 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground md:block">Menu</div>
+            {([
+              ["terminal", "Terminal", Activity], ["strategies", "Strategies", Play], ["signals", "Signals", TrendingUp],
+              ["portfolio", "Portfolio", Wallet], ["compare", "Compare", ArrowUpRight],
+              ...(isAdmin ? [["data", "Price Data", Upload]] : []),
+            ] as [string, string, any][]).map(([v, l, I]) => (
+              <TabsTrigger key={v} value={v} className="justify-start gap-2 px-3 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <I className="h-4 w-4" />{l}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </aside>
+        <main className="min-w-0 flex-1 space-y-6">
         <div className="flex items-start gap-2 rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
           Paper trading and research only. No real orders are placed. Not investment advice; data is unofficial and sourced from NSE/BSE.
@@ -198,15 +213,6 @@ export default function MoneyDashboard() {
           ))}
         </div>
 
-        <Tabs defaultValue="terminal">
-          <TabsList className="flex-wrap">
-            <TabsTrigger value="terminal">Terminal</TabsTrigger>
-            <TabsTrigger value="strategies">Strategies</TabsTrigger>
-            <TabsTrigger value="signals">Signals</TabsTrigger>
-            <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
-            <TabsTrigger value="compare">Compare</TabsTrigger>
-            {isAdmin && <TabsTrigger value="data">Price Data</TabsTrigger>}
-          </TabsList>
 
           <TabsContent value="terminal">
             <Terminal strategies={strategies} onPaperBuy={buy} onQuote={(sym, px) => setTermPx((p) => ({ ...p, [sym]: px }))} />
@@ -302,8 +308,8 @@ export default function MoneyDashboard() {
               </CardContent></Card>
             </TabsContent>
           )}
-        </Tabs>
-      </main>
+        </main>
+      </Tabs>
 
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <DialogContent className="max-w-3xl">

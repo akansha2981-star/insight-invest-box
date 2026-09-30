@@ -32,6 +32,13 @@ function getJwt(apiKey: string): Promise<string> {
   return pending;
 }
 async function login(apiKey: string): Promise<string> {
+  let lastErr: unknown;
+  for (let i = 0; i < 3; i++) {
+    try { return await loginOnce(apiKey); } catch (e) { lastErr = e; await new Promise((r) => setTimeout(r, 1200 * (i + 1))); }
+  }
+  throw lastErr;
+}
+async function loginOnce(apiKey: string): Promise<string> {
   const res = await fetch(`${BASE}/auth/angelbroking/user/v1/loginByPassword`, {
     method: "POST", headers: headers(apiKey),
     body: JSON.stringify({ clientcode: Deno.env.get("ANGELONE_CLIENT_ID"), password: Deno.env.get("ANGELONE_PIN"), totp: await generateTOTP(Deno.env.get("ANGELONE_TOTP_SECRET")!) }),
@@ -124,6 +131,8 @@ Deno.serve(async (req) => {
       errors: [daily?.status === false && daily.message, intra?.status === false && intra.message, quote?.status === false && quote.message].filter(Boolean),
     });
   } catch (e) {
-    console.error(e); return json({ error: String(e) }, 500);
+    console.error(e);
+    // Return 200 so the UI can show a friendly message instead of a generic non-2xx error.
+    return json({ error: "Live market feed is busy right now. Please retry in a few seconds.", detail: String(e), daily: [], intraday: [], quote: null, results: [] });
   }
 });
