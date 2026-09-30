@@ -458,3 +458,28 @@
   pointer-events: none;
 }
 
+
+/* Bloomberg-style dark scope for the /money trading terminal */
+.terminal {
+  --background: 226 50% 8%;
+  --foreground: 210 30% 92%;
+  --card: 226 45% 11%;
+  --card-foreground: 210 30% 92%;
+  --popover: 226 45% 12%;
+  --popover-foreground: 210 30% 92%;
+  --primary: 188 90% 48%;
+  --primary-foreground: 226 50% 8%;
+  --secondary: 226 35% 18%;
+  --secondary-foreground: 210 30% 92%;
+  --muted: 226 35% 15%;
+  --muted-foreground: 215 20% 62%;
+  --accent: 262 70% 62%;
+  --accent-foreground: 0 0% 100%;
+  --border: 226 30% 20%;
+  --input: 226 30% 20%;
+  --ring: 188 90% 48%;
+  --gain: 150 70% 45%;
+  --loss: 0 80% 60%;
+  --gold: 38 92% 55%;
+  font-variant-numeric: tabular-nums;
+}
