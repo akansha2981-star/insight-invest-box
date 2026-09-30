@@ -1,2 +1,2 @@
 - [x] Fix ICICIBANK feed error + left sidebar dashboard
-- [ ] Add all 20 indicators from uploaded spec
+- [x] Add all 20 indicators from uploaded spec
