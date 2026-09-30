@@ -1636,6 +1636,161 @@ export type Database = {
         }
         Relationships: []
       }
+      swing_ai_proposals: {
+        Row: {
+          adopted: boolean
+          ai_strategy_id: string | null
+          change_summary: string | null
+          created_at: string
+          definition: Json | null
+          fault: string | null
+          id: string
+          kind: string
+          name: string
+          parent_key: string | null
+          parent_test: Json | null
+          reason: string | null
+          run_id: string
+          test: Json | null
+          train: Json | null
+        }
+        Insert: {
+          adopted?: boolean
+          ai_strategy_id?: string | null
+          change_summary?: string | null
+          created_at?: string
+          definition?: Json | null
+          fault?: string | null
+          id?: string
+          kind: string
+          name: string
+          parent_key?: string | null
+          parent_test?: Json | null
+          reason?: string | null
+          run_id: string
+          test?: Json | null
+          train?: Json | null
+        }
+        Update: {
+          adopted?: boolean
+          ai_strategy_id?: string | null
+          change_summary?: string | null
+          created_at?: string
+          definition?: Json | null
+          fault?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          parent_key?: string | null
+          parent_test?: Json | null
+          reason?: string | null
+          run_id?: string
+          test?: Json | null
+          train?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swing_ai_proposals_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "swing_ai_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swing_ai_runs: {
+        Row: {
+          adopted_count: number
+          completed_at: string | null
+          diagnosis: Json
+          error: string | null
+          id: string
+          lease_until: string | null
+          phase: string
+          proposals_count: number
+          run_date: string
+          started_at: string
+          state: Json
+          status: string
+          summary: string | null
+          trigger_type: string
+        }
+        Insert: {
+          adopted_count?: number
+          completed_at?: string | null
+          diagnosis?: Json
+          error?: string | null
+          id?: string
+          lease_until?: string | null
+          phase?: string
+          proposals_count?: number
+          run_date: string
+          started_at?: string
+          state?: Json
+          status?: string
+          summary?: string | null
+          trigger_type?: string
+        }
+        Update: {
+          adopted_count?: number
+          completed_at?: string | null
+          diagnosis?: Json
+          error?: string | null
+          id?: string
+          lease_until?: string | null
+          phase?: string
+          proposals_count?: number
+          run_date?: string
+          started_at?: string
+          state?: Json
+          status?: string
+          summary?: string | null
+          trigger_type?: string
+        }
+        Relationships: []
+      }
+      swing_ai_strategies: {
+        Row: {
+          change_summary: string | null
+          created_at: string
+          definition: Json
+          family_id: string
+          fault: string | null
+          id: string
+          metrics: Json
+          name: string
+          parent_key: string | null
+          run_id: string | null
+          version: number
+        }
+        Insert: {
+          change_summary?: string | null
+          created_at?: string
+          definition: Json
+          family_id?: string
+          fault?: string | null
+          id?: string
+          metrics?: Json
+          name: string
+          parent_key?: string | null
+          run_id?: string | null
+          version?: number
+        }
+        Update: {
+          change_summary?: string | null
+          created_at?: string
+          definition?: Json
+          family_id?: string
+          fault?: string | null
+          id?: string
+          metrics?: Json
+          name?: string
+          parent_key?: string | null
+          run_id?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
       swing_custom_strategies: {
         Row: {
           created_at: string
@@ -1729,6 +1884,42 @@ export type Database = {
           symbol?: string
           token?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      swing_leaderboard_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          metrics: Json
+          name: string
+          rank: number
+          score: number
+          snap_date: string
+          source: string
+          strategy_key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metrics: Json
+          name: string
+          rank: number
+          score: number
+          snap_date: string
+          source: string
+          strategy_key: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metrics?: Json
+          name?: string
+          rank?: number
+          score?: number
+          snap_date?: string
+          source?: string
+          strategy_key?: string
         }
         Relationships: []
       }

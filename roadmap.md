@@ -1,18 +1,3 @@
 # Roadmap
-- [x] Market condition filter (bull/sideways/bear) for strategies
-- [x] Add any searchable NSE stock to strategy scan
-- [x] Draw new indicators on terminal charts
-- [x] Backtest lab: custom amount + start date, continues live
-- [x] Detailed report: total trades, avg trades/strategy, best strategy, timeframe
-- [x] Buy/sell notifications with profit book / loss book
-- [x] More professional, detailed dashboard UI
-- [x] Robustness testing (walk-forward, rolling, Monte Carlo, tournament, benchmark)
-- [x] Scanner, market breadth, sector analysis
-- [x] Strategy builder with versions
-- [x] Menu redesign to spec
-- [x] Timeframe comparison view (returns, win rate, drawdown, trades)
-- [x] PDF/CSV exports for backtest, robustness, tournament, comparison
-- [x] Saved watchlists
-- [x] Admin desk controls (disable strategies, risk limits)
-- [x] Sector filters in strategy rules
-- [x] Fix and upgrade Scanner (more advanced, better look)
+- [ ] AI Coach + Leaderboard (daily AI analysis, auto-adopt tested improvements, change log)
+- [ ] /money app-style shell: app header, sidebar, mobile bottom nav, installable feel on phone and desktop

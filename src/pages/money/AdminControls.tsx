@@ -24,6 +24,9 @@ export function AdminControls({ controls, onSaved }: { controls: Controls; onSav
   const [orders, setOrders] = useState<any[]>([]);
   useEffect(() => { db.from("swing_settings").select("value").eq("key", "live_orders").maybeSingle().then(({ data }: any) => data?.value && setLo((p) => ({ ...p, ...data.value }))); db.from("swing_live_orders").select("*").order("created_at", { ascending: false }).limit(50).then(({ data }: any) => setOrders(data ?? [])); }, []);
   const saveLo = async (v = lo) => { if (v.enabled && !confirm("Switch ON real orders? Admins will be able to send real-money orders to Angel One.")) return; const { error } = await db.from("swing_settings").upsert({ key: "live_orders", value: v, updated_at: new Date().toISOString() }); if (error) return toast.error(error.message); setLo(v); toast.success(v.enabled ? "Real orders are ON" : "Real order settings saved (orders OFF)"); };
+  const [coach, setCoach] = useState(true);
+  useEffect(() => { db.from("swing_settings").select("value").eq("key", "ai_coach").maybeSingle().then(({ data }: any) => data?.value && setCoach(data.value.enabled !== false)); }, []);
+  const saveCoach = async (v: boolean) => { const { error } = await db.from("swing_settings").upsert({ key: "ai_coach", value: { enabled: v }, updated_at: new Date().toISOString() }); if (error) return toast.error(error.message); setCoach(v); toast.success(v ? "AI coach ON: runs every weekday after market close" : "AI coach OFF"); };
   const toggle = (k: string) => setC({ ...c, disabled: c.disabled.includes(k) ? c.disabled.filter((x) => x !== k) : [...c.disabled, k] });
   const save = async () => {
     const v = { ...c, defaultRisk: Math.min(c.maxRisk, c.defaultRisk) };
@@ -35,6 +38,8 @@ export function AdminControls({ controls, onSaved }: { controls: Controls; onSav
 
   return (
     <div className="space-y-4">
+      <Card><CardHeader className="pb-2"><div className="flex items-center justify-between gap-2"><CardTitle className="text-base">AI coach (daily strategy improvement)</CardTitle><Switch checked={coach} onCheckedChange={saveCoach} /></div></CardHeader>
+        <CardContent className="text-xs text-muted-foreground">When on, the AI reviews every strategy each weekday at about 4:30 PM IST and adds improved versions that pass the unseen-price test.</CardContent></Card>
       <Card className={lo.enabled ? "border-destructive" : ""}>
         <CardHeader className="pb-2"><div className="flex flex-wrap items-center justify-between gap-2"><CardTitle className="flex items-center gap-2 text-base">Real broker orders (Angel One) <Badge variant={lo.enabled ? "destructive" : "outline"}>{lo.enabled ? "ON" : "OFF"}</Badge></CardTitle>
           <div className="flex items-center gap-2"><Switch checked={lo.enabled} onCheckedChange={(v) => saveLo({ ...lo, enabled: v })} /><Button variant="outline" size="sm" onClick={() => saveLo()}>Save limits</Button></div></div>

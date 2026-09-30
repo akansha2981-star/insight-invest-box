@@ -22,7 +22,11 @@ export interface StrategyDef {
 const N = (x: number | null | undefined) => (x === null || x === undefined ? NaN : x);
 const ok = (...x: (number | null | undefined)[]) => x.every((v) => Number.isFinite(N(v)));
 const crossUp = (a: (number | null)[], b: (number | null)[], i: number) => i > 0 && ok(a[i], b[i], a[i - 1], b[i - 1]) && N(a[i - 1]) <= N(b[i - 1]) && N(a[i]) > N(b[i]);
-const col = <K extends keyof IndicatorRow>(r: IndicatorRow[], k: K) => r.map((x) => x[k] as unknown as number | null);
+const colCache = new WeakMap<IndicatorRow[], Map<string, (number | null)[]>>();
+const col = <K extends keyof IndicatorRow>(r: IndicatorRow[], k: K) => { // memoized: identical values, avoids rebuilding columns per bar
+  let m = colCache.get(r); if (!m) { m = new Map(); colCache.set(r, m); }
+  let a = m.get(k as string); if (!a) { a = r.map((x) => x[k] as unknown as number | null); m.set(k as string, a); } return a;
+};
 
 export function buildCtx(sym: string, b: Bar[]): Ctx {
   const r = computeAll(b, false); const c = b.map((x) => x.close);

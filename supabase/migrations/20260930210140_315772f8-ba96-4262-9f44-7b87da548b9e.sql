@@ -1,0 +1,2 @@
+ALTER TABLE public.swing_ai_runs ADD COLUMN phase text NOT NULL DEFAULT 'rank', ADD COLUMN state jsonb NOT NULL DEFAULT '{}'::jsonb;
+UPDATE public.swing_ai_runs SET status = 'failed', error = 'Stopped: exceeded server compute time', lease_until = null, completed_at = now() WHERE status = 'running';
