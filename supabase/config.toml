@@ -63,3 +63,6 @@ verify_jwt = false
 
 [functions.swing-order]
 verify_jwt = false
+
+[functions.swing-ai-coach]
+verify_jwt = false

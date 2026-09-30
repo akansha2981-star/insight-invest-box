@@ -13,6 +13,7 @@ const isChunkLoadError = (error: unknown) => {
   return /Failed to fetch dynamically imported module|Importing a module script failed|Loading chunk|ChunkLoadError/i.test(message);
 };
 
+function FloatingAIGate() { const { pathname } = useLocation(); return pathname.startsWith("/money") ? null : <FloatingAIButton />; }
 const FloatingAIButton = lazy(() => import("./components/FloatingAIButton").then((m) => ({ default: m.FloatingAIButton })));
 
 const NewsHubPage = lazy(() => import("./pages/NewsHubPage"));
@@ -235,7 +236,7 @@ const App = () => (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <RealEstateErrorBoundary>
             <Suspense fallback={null}>
-              <FloatingAIButton />
+              <FloatingAIGate />
             </Suspense>
           </RealEstateErrorBoundary>
           <AppRoutes />
