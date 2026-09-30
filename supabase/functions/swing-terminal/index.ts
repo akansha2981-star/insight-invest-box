@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
       const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       const { data: last } = await admin.from("swing_instruments").select("updated_at").order("updated_at", { ascending: false }).limit(1).maybeSingle();
       if (!last || Date.now() - new Date(last.updated_at).getTime() > 7 * 86400000) await syncInstruments(admin);
-      const q = p.q.toUpperCase().replace(/[^A-Z0-9&\- ]/g, "");
+      const q = p.q.toUpperCase().replace(/[^A-Z0-9&-]/g, "");
       const { data } = await admin.from("swing_instruments").select("exchange,token,symbol,name").or(`name.ilike.${q}%,symbol.ilike.%${q}%`).limit(60);
       const rows = (data ?? []).sort((a: any, b: any) => (a.name.startsWith(q) ? 0 : 1) - (b.name.startsWith(q) ? 0 : 1) || (a.exchange === "NSE" ? 0 : 1) - (b.exchange === "NSE" ? 0 : 1) || a.name.length - b.name.length);
       return json({ results: rows.slice(0, 25) });
