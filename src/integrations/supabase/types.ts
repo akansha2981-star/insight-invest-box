@@ -1636,6 +1636,30 @@ export type Database = {
         }
         Relationships: []
       }
+      swing_instruments: {
+        Row: {
+          exchange: string
+          name: string
+          symbol: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          exchange: string
+          name: string
+          symbol: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          exchange?: string
+          name?: string
+          symbol?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       swing_portfolios: {
         Row: {
           capital: number
