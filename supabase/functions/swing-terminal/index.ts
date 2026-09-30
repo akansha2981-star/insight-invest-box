@@ -44,6 +44,28 @@ async function login(apiKey: string): Promise<string> {
 
 const fmt = (d: Date) => new Date(d.getTime() + 330 * 60000).toISOString().slice(0, 16).replace("T", " ");
 
+// Stream-parse Angel One's public scrip master (~33 MB) and keep only cash-market equities.
+async function syncInstruments(admin: any) {
+  const res = await fetch("https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json");
+  if (!res.ok || !res.body) throw new Error(`Instrument list download failed: ${res.status}`);
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buf = ""; const now = new Date().toISOString(); let batch: any[] = [];
+  const flush = async () => { if (!batch.length) return; const b = batch; batch = []; const { error } = await admin.from("swing_instruments").upsert(b, { onConflict: "exchange,token" }); if (error) console.error(error.message); };
+  for (;;) {
+    const { value, done } = await reader.read(); if (done) break;
+    buf += value; let end = buf.lastIndexOf("}"); if (end < 0) continue;
+    const chunk = buf.slice(0, end + 1); buf = buf.slice(end + 1);
+    for (const m of chunk.matchAll(/\{[^{}]*\}/g)) {
+      const o = m[0]; if (!o.includes('"instrumenttype":""')) continue;
+      const g = (k: string) => o.match(new RegExp(`"${k}":"([^"]*)"`))?.[1] ?? "";
+      const ex = g("exch_seg"), sym = g("symbol"), tok = g("token");
+      if ((ex === "NSE" && sym.endsWith("-EQ")) || (ex === "BSE" && /^5\d{5}$/.test(tok))) batch.push({ exchange: ex, token: tok, symbol: sym, name: (g("name") || sym).toUpperCase(), updated_at: now });
+      if (batch.length >= 1000) await flush();
+    }
+  }
+  await flush();
+}
+
 const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("search"), q: z.string().trim().min(1).max(40) }),
   z.object({ action: z.literal("chart"), exchange: z.enum(["NSE", "BSE"]), token: z.string().regex(/^\d{1,10}$/), symbol: z.string().max(60) }),
@@ -75,17 +97,13 @@ Deno.serve(async (req) => {
 
     const p = parsed.data;
     if (p.action === "search") {
-      const out: any[] = [];
-      for (const exchange of ["NSE", "BSE"]) {
-        const d = await call("/secure/angelbroking/order/v1/searchScrip", { exchange, searchscrip: p.q.toUpperCase() });
-        if (!Array.isArray(d?.data)) console.log("search", exchange, JSON.stringify(d)?.slice(0, 300));
-        (d?.data ?? []).forEach((s: any) => {
-          const sym = String(s.tradingsymbol ?? "");
-          if (exchange === "NSE" && !sym.endsWith("-EQ")) return;
-          out.push({ exchange, token: String(s.symboltoken), symbol: sym, name: sym.replace(/-EQ$/, "") });
-        });
-      }
-      return json({ results: out.slice(0, 25) });
+      const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      const { data: last } = await admin.from("swing_instruments").select("updated_at").order("updated_at", { ascending: false }).limit(1).maybeSingle();
+      if (!last || Date.now() - new Date(last.updated_at).getTime() > 7 * 86400000) await syncInstruments(admin);
+      const q = p.q.toUpperCase().replace(/[^A-Z0-9&\- ]/g, "");
+      const { data } = await admin.from("swing_instruments").select("exchange,token,symbol,name").or(`name.ilike.${q}%,symbol.ilike.%${q}%`).limit(60);
+      const rows = (data ?? []).sort((a: any, b: any) => (a.name.startsWith(q) ? 0 : 1) - (b.name.startsWith(q) ? 0 : 1) || (a.exchange === "NSE" ? 0 : 1) - (b.exchange === "NSE" ? 0 : 1) || a.name.length - b.name.length);
+      return json({ results: rows.slice(0, 25) });
     }
 
     const now = new Date();
