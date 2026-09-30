@@ -184,7 +184,7 @@ export interface SimResult {
 export type Regime = "bull" | "sideways" | "bear";
 export interface RegimeDay { date: string; regime: Regime; close: number; sma50: number | null; sma200: number | null; adx: number | null; breadth: number }
 /** Allowed regimes per strategy (spec: mean-reversion runs in Bull + Sideways, everything else Bull only). */
-export const allowedRegimes = (def: StrategyDef): Regime[] => (def.family === "Mean reversion" ? ["bull", "sideways"] : ["bull"]);
+export const allowedRegimes = (def: StrategyDef): Regime[] => ((def as { regimes?: Regime[] }).regimes?.length ? (def as { regimes: Regime[] }).regimes : def.family === "Mean reversion" ? ["bull", "sideways"] : ["bull"]);
 
 /**
  * Market regime from an equal-weight index of the whole universe (built from each stock's daily
