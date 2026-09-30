@@ -79,12 +79,6 @@ export default function MoneyDashboard() {
     tick(); const id = setInterval(tick, 30000); return () => clearInterval(id);
   }, []);
 
-  // Backtest every strategy automatically when data changes
-  useEffect(() => {
-    const r: Record<string, BacktestResult> = {};
-    strategies.forEach((s) => (r[s.id] = backtest(s.rule_type, s.params, liveBars, 50000)));
-    setResults(r);
-  }, [strategies, liveBars]);
 
   const priceOf = (sym: string) => live[sym] ?? bars[sym]?.at(-1)?.close ?? 0;
 
@@ -100,6 +94,13 @@ export default function MoneyDashboard() {
     });
     return out;
   }, [bars, live]);
+
+  // Backtest every strategy automatically when data changes
+  useEffect(() => {
+    const r: Record<string, BacktestResult> = {};
+    strategies.forEach((s) => (r[s.id] = backtest(s.rule_type, s.params, liveBars, 50000)));
+    setResults(r);
+  }, [strategies, liveBars]);
 
   const signals = useMemo(() => strategies.filter((s) => s.is_active).flatMap((s) =>
     Object.entries(liveBars).map(([sym, b]) => {
