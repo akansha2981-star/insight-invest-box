@@ -2,11 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { Activity, ArrowDownRight, ArrowUpRight, LogOut, Minus, Play, Plus, Power, Upload, Wallet, TrendingUp, ShieldAlert } from "lucide-react";
+import { Activity, ArrowDownRight, ArrowUpRight, LogOut, Minus, Play, Plus, Power, Upload, Wallet, TrendingUp, ShieldAlert, LayoutDashboard, Globe2, LineChart as LineIcon, ScanSearch, Bot, Wrench, FlaskConical, Swords, Trophy, Gauge, Bell, SplitSquareHorizontal, ListChecks, GitCompare } from "lucide-react";
+import { STRATEGIES, buildCtx, rankUniverse, marketRegime, type Ctx, type RegimeDay, type StrategyDef } from "@/lib/swing/strategies20";
+import { compileCustom } from "@/lib/swing/rules";
+import { StrategyLab, MarketCard, UniversePanel, type LabView } from "./StrategyLab";
+import { Scanner } from "./Scanner";
+import { MarketView } from "./MarketView";
+import { StrategyBuilder, type CustomRow } from "./StrategyBuilder";
+import { RobustnessLab, Tournament } from "./Robustness";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
 import { Terminal } from "./Terminal";
-import { StrategyLab } from "./StrategyLab";
 import { RULES, runRule, backtest, parseCsv, type Bar, type BacktestResult } from "@/lib/swing/engine";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +45,12 @@ export default function MoneyDashboard() {
   const [results, setResults] = useState<Record<string, BacktestResult>>({});
   const [viewing, setViewing] = useState<Strategy | null>(null);
   const [editing, setEditing] = useState<Partial<Strategy> | null>(null);
+  const [tab, setTab] = useState("dashboard");
+  const [ctxs, setCtxs] = useState<Ctx[]>([]);
+  const [regime, setRegime] = useState<Map<string, RegimeDay> | null>(null);
+  const [customRows, setCustomRows] = useState<CustomRow[]>([]);
+  const [unread, setUnread] = useState(0);
+  const loadCustom = async () => { const { data } = await db.from("swing_custom_strategies").select("*").order("created_at"); setCustomRows(data ?? []); };
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -104,6 +116,17 @@ export default function MoneyDashboard() {
     });
     return out;
   }, [bars, live]);
+
+  useEffect(() => { // shared indicator context for every research page
+    const id = setTimeout(() => { const c = Object.entries(liveBars).filter(([, b]) => b.length > 60).map(([s, b]) => buildCtx(s, b)); rankUniverse(c); setRegime(marketRegime(c)); setCtxs(c); }, 30);
+    return () => clearTimeout(id);
+  }, [liveBars]);
+  useEffect(() => { if (userId) loadCustom(); }, [userId]);
+  const defs: StrategyDef[] = useMemo(() => {
+    const latest = new Map<string, CustomRow>(); customRows.forEach((r) => { const p = latest.get(r.family_id); if (!p || r.version > p.version) latest.set(r.family_id, r); });
+    return [...STRATEGIES, ...customRows.map((r) => compileCustom(r.id, r.name, r.version, r.definition))];
+  }, [customRows]);
+  const today = regime ? [...regime.values()].at(-1) : undefined;
 
   // Backtest every strategy automatically when data changes
   useEffect(() => {
@@ -175,18 +198,18 @@ export default function MoneyDashboard() {
         </div>
       </header>
 
-      <Tabs defaultValue="terminal" orientation="vertical" className="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-6 md:flex-row md:gap-6">
-        <aside className="md:w-56 md:shrink-0">
-          <TabsList className="flex h-auto w-full flex-row flex-wrap justify-start gap-1 rounded-lg border border-border bg-background p-2 md:sticky md:top-4 md:flex-col md:items-stretch">
-            <div className="hidden px-2 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground md:block">Menu</div>
-            {([
-              ["terminal", "Terminal", Activity], ["strategies", "Strategies", Play], ["signals", "Signals", TrendingUp],
-              ["portfolio", "Portfolio", Wallet], ["compare", "Compare", ArrowUpRight],
-              ...(isAdmin ? [["data", "Price Data", Upload]] : []),
-            ] as [string, string, any][]).map(([v, l, I]) => (
-              <TabsTrigger key={v} value={v} className="justify-start gap-2 px-3 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <I className="h-4 w-4" />{l}
-              </TabsTrigger>
+      <Tabs value={tab} onValueChange={setTab} orientation="vertical" className="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-6 md:flex-row md:gap-6">
+        <aside className="md:w-60 md:shrink-0">
+          <TabsList className="flex h-auto w-full flex-row flex-wrap justify-start gap-0.5 rounded-lg border border-border bg-background p-2 md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:flex-col md:flex-nowrap md:items-stretch md:overflow-y-auto">
+            {MENU.filter((g) => g.group !== "Admin" || isAdmin).map((g) => (
+              <div key={g.group} className="contents md:block">
+                <div className="hidden px-2 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground md:block">{g.group}</div>
+                {g.items.map(([v, l, I]) => (
+                  <TabsTrigger key={v} value={v} className="w-auto justify-start gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground md:w-full">
+                    <I className="h-4 w-4" />{l}{v === "alerts" && unread > 0 && <Badge className="ml-auto h-4 px-1 text-[10px]">{unread}</Badge>}
+                  </TabsTrigger>
+                ))}
+              </div>
             ))}
           </TabsList>
         </aside>
@@ -205,23 +228,37 @@ export default function MoneyDashboard() {
           <Button size="sm" variant="outline" disabled={syncing} onClick={() => syncFeed(true)}>{syncing ? "Syncing..." : "Sync now"}</Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {(tab === "dashboard" || tab === "portfolio") && <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {[
             ["Virtual Capital", inr(capital)], ["Current Value", inr(value)], ["Total Invested", inr(invested)], ["Available Cash", inr(cash)],
             ["Total Profit/Loss", inr(pnl)], ["Overall Return", pct((pnl / capital) * 100)], ["Open Positions", open.length], ["Closed Trades", closed.length],
           ].map(([l, v]) => (
             <Card key={l as string}><CardContent className="p-4"><div className="text-xs text-muted-foreground">{l}</div><div className="mt-1 text-xl font-bold text-foreground">{v}</div></CardContent></Card>
           ))}
-        </div>
+        </div>}
 
+          {!ctxs.length && tab !== "stocks" && <p className="text-sm text-muted-foreground">Preparing live NSE price history and indicators...</p>}
+          {ctxs.length > 0 && LAB_TABS[tab] && <StrategyLab ctxs={ctxs} regime={regime} defs={defs} userId={userId} view={LAB_TABS[tab]} onUnread={setUnread} onUniverseChange={() => loadAll(userId)} />}
+          {ctxs.length > 0 && tab !== "alerts" && !LAB_TABS[tab] && <span className="hidden"><StrategyLab ctxs={ctxs} regime={regime} defs={defs} userId={userId} view="alerts" onUnread={setUnread} /></span>}
 
-          <TabsContent value="terminal">
+          <TabsContent value="dashboard" className="space-y-4">
+            {today && regime && <MarketCard today={today} regime={regime} />}
+            <div className="grid gap-3 md:grid-cols-3">{MENU.slice(1, 4).flatMap((g) => g.items).filter(([v]) => v !== "dashboard").map(([v, l, I, d]) => (
+              <button key={v} onClick={() => setTab(v)} className="rounded-lg border border-border bg-background p-4 text-left transition-colors hover:border-primary">
+                <div className="flex items-center gap-2 font-semibold text-foreground"><I className="h-4 w-4 text-primary" />{l}</div><div className="mt-1 text-xs text-muted-foreground">{d}</div></button>))}</div>
+          </TabsContent>
+          <TabsContent value="markets">{ctxs.length > 0 && <MarketView ctxs={ctxs} regime={regime} />}</TabsContent>
+          <TabsContent value="scanner">{ctxs.length > 0 && <Scanner ctxs={ctxs} />}</TabsContent>
+          <TabsContent value="builder">{ctxs.length > 0 && <StrategyBuilder ctxs={ctxs} regime={regime} userId={userId} rows={customRows} onSaved={loadCustom} />}</TabsContent>
+          <TabsContent value="robust">{ctxs.length > 0 && <RobustnessLab ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
+          <TabsContent value="tournament">{ctxs.length > 0 && <Tournament ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
+
+          <TabsContent value="stocks">
             <Terminal strategies={strategies} onPaperBuy={buy} onQuote={(sym, px) => setTermPx((p) => ({ ...p, [sym]: px }))} />
           </TabsContent>
 
-          <TabsContent value="strategies" className="space-y-3">
-            <StrategyLab bars={liveBars} userId={userId} onUniverseChange={() => loadAll(userId)} />
-            <h2 className="pt-4 text-sm font-bold uppercase tracking-wider text-muted-foreground">Custom strategies</h2>
+          <TabsContent value="compare" className="space-y-3">
+            <h2 className="pt-4 text-sm font-bold uppercase tracking-wider text-muted-foreground">Simple rule strategies</h2>
             {isAdmin && <Button onClick={() => setEditing({ rule_type: "ma_cross", params: {} })}><Plus className="mr-1 h-4 w-4" />New strategy</Button>}
             {noData && <p className="text-sm text-muted-foreground">Fetching daily price history from NSE. This takes about 30 seconds on first load.</p>}
             <div className="grid gap-3 md:grid-cols-2">
@@ -290,7 +327,7 @@ export default function MoneyDashboard() {
           </TabsContent>
 
           <TabsContent value="compare">
-            <Card><CardContent className="p-0">
+            <Card className="mt-3"><CardContent className="p-0">
               <Table><TableHeader><TableRow><TableHead>Strategy</TableHead><TableHead>Trades</TableHead><TableHead>Win rate</TableHead><TableHead>Return</TableHead><TableHead>Max drawdown</TableHead><TableHead>Final value</TableHead></TableRow></TableHeader>
                 <TableBody>{[...strategies].sort((a, b) => (results[b.id]?.totalReturn ?? 0) - (results[a.id]?.totalReturn ?? 0)).map((s) => { const r = results[s.id]; return (
                   <TableRow key={s.id}><TableCell className="font-semibold">{s.name}</TableCell><TableCell>{r?.trades.length ?? 0}</TableCell><TableCell>{(r?.winRate ?? 0).toFixed(0)}%</TableCell><TableCell>{pct(r?.totalReturn ?? 0)}</TableCell><TableCell>-{(r?.maxDrawdown ?? 0).toFixed(1)}%</TableCell><TableCell>{inr(r?.finalValue ?? 50000)}</TableCell></TableRow>
@@ -362,3 +399,13 @@ function SignalBadge({ s }: { s: number }) {
   if (s === -1) return <Badge variant="destructive" className="gap-1"><ArrowDownRight className="h-3 w-3" />Sell</Badge>;
   return <Badge variant="outline" className="gap-1"><Minus className="h-3 w-3" />Hold</Badge>;
 }
+
+const LAB_TABS: Record<string, LabView> = { strategies: "live", backtest: "lab", alerts: "alerts", performance: "board", regime: "market" };
+const MENU: { group: string; items: [string, string, any, string][] }[] = [
+  { group: "Overview", items: [["dashboard", "Dashboard", LayoutDashboard, ""]] },
+  { group: "Market", items: [["markets", "Markets and sectors", Globe2, "Breadth, advances/declines, sector strength"], ["stocks", "Stock terminal", LineIcon, "Live charts with 20+ indicators"], ["scanner", "Scanner", ScanSearch, "Find stocks matching any rule"]] },
+  { group: "Strategies", items: [["strategies", "Auto-trading", Bot, "Run strategies live from any date"], ["builder", "Strategy builder", Wrench, "Create versioned strategies without code"], ["performance", "Leaderboard", Trophy, "All strategies ranked"]] },
+  { group: "Research", items: [["backtest", "Backtest and report", FlaskConical, "Any amount, any start date, full report"], ["robust", "Walk-forward and Monte Carlo", SplitSquareHorizontal, "Out-of-sample and reshuffle tests"], ["tournament", "Tournament", Swords, "Same conditions, robustness score"], ["regime", "Market regime and universe", Gauge, "Bull, sideways or bear; stocks scanned"]] },
+  { group: "Trading", items: [["signals", "Paper signals", ListChecks, ""], ["portfolio", "Portfolio", Wallet, ""], ["alerts", "Alerts", Bell, ""], ["compare", "Rule comparison", GitCompare, ""]] },
+  { group: "Admin", items: [["data", "Price data", Upload, ""]] },
+];
