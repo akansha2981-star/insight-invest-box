@@ -257,7 +257,7 @@ export default function MoneyDashboard() {
                 <div className="flex items-center gap-2 font-semibold text-foreground"><I className="h-4 w-4 text-primary" />{l}</div><div className="mt-1 text-xs text-muted-foreground">{d}</div></button>))}</div>
           </TabsContent>
           <TabsContent value="markets">{ctxs.length > 0 && <MarketView ctxs={ctxs} regime={regime} />}</TabsContent>
-          <TabsContent value="scanner">{ctxs.length > 0 && <Scanner ctxs={ctxs} />}</TabsContent>
+          <TabsContent value="scanner"><Scanner ctxs={ctxs} /></TabsContent>
           <TabsContent value="builder">{ctxs.length > 0 && <StrategyBuilder ctxs={ctxs} regime={regime} userId={userId} rows={customRows} onSaved={loadCustom} />}</TabsContent>
           <TabsContent value="robust">{ctxs.length > 0 && <RobustnessLab ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
           <TabsContent value="comparison">{ctxs.length > 0 && <StrategyCompare ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
