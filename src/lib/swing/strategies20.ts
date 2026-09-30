@@ -195,10 +195,10 @@ export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
   const mtm = (d: string) => cash + open.reduce((a, l) => { const k = idx[l.ci].get(d); return a + l.qtyLeft * (k !== undefined ? ctxs[l.ci].b[k].close : l.t.lastPrice); }, 0);
   const sell = (l: Live, qty: number, px: number, d: string, reason: string | null, i: number) => {
     const fill = px * (1 - SLIPPAGE), val = qty * fill; const slip = qty * px * SLIPPAGE;
-    const ch = charges(0, val) + (reason ? 0 : -15.93 * 0); cash += val; l.qtyLeft -= qty; l.realized += (fill - l.t.entryPrice) * qty; l.chg += ch; l.slip += slip; cash -= ch;
+    const ch = charges(0, val); cash += val; l.qtyLeft -= qty; l.realized += (fill - l.t.entryPrice) * qty; l.chg += ch; l.slip += slip; cash -= ch;
     if (l.qtyLeft <= 0) {
       const t = l.t; t.exitDate = d; t.exitReason = reason; t.exitPrice = +px.toFixed(2); t.open = false; t.charges = +l.chg.toFixed(2); t.slippage = +l.slip.toFixed(2);
-      t.grossPnl = +(l.realized + l.slip - (l.slip)).toFixed(2); t.grossPnl = +((l.realized + l.slip) ).toFixed(2); t.netPnl = +(l.realized - l.chg).toFixed(2);
+      t.grossPnl = +(l.realized + l.slip).toFixed(2); t.netPnl = +(l.realized - l.chg).toFixed(2);
       t.holdDays = i - l.pos.entryIdx; t.rMultiple = t.riskAmount ? +(t.netPnl / t.riskAmount).toFixed(2) : 0; t.equityAfter = Math.round(mtm(d));
     }
   };
