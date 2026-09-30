@@ -15,4 +15,4 @@
 - [x] Saved watchlists
 - [x] Admin desk controls (disable strategies, risk limits)
 - [x] Sector filters in strategy rules
-- [ ] Fix and upgrade Scanner (more advanced, better look)
+- [x] Fix and upgrade Scanner (more advanced, better look)
