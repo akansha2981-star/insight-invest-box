@@ -1789,6 +1789,27 @@ export type Database = {
         }
         Relationships: []
       }
+      swing_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       swing_strategies: {
         Row: {
           created_at: string
@@ -1902,6 +1923,33 @@ export type Database = {
           name?: string
           symbol?: string
           token?: string
+        }
+        Relationships: []
+      }
+      swing_watchlists: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          symbols: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          symbols?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          symbols?: string[]
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
