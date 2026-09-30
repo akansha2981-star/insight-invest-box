@@ -77,7 +77,7 @@ function Candle(props: any) {
   return <g><line x1={cx} x2={cx} y1={y} y2={y + height} stroke={color} /><rect x={x + width * 0.15} width={Math.max(1, width * 0.7)} y={top} height={Math.max(1, bot - top)} fill={color} /></g>;
 }
 
-export function Terminal({ strategies, onPaperBuy, onQuote }: { strategies: StrategyLite[]; onPaperBuy: (symbol: string, strategyId: string, price: number) => void; onQuote?: (symbol: string, price: number) => void }) {
+export function Terminal({ strategies, onPaperBuy, onQuote, onRealOrder }: { onRealOrder?: (symbol: string, price: number) => void; strategies: StrategyLite[]; onPaperBuy: (symbol: string, strategyId: string, price: number) => void; onQuote?: (symbol: string, price: number) => void }) {
   const [watch, setWatch] = useState<Instrument[]>(() => { try { return JSON.parse(localStorage.getItem(WL_KEY) ?? "") || DEFAULT_WL; } catch { return DEFAULT_WL; } });
   const [sel, setSel] = useState<Instrument>(watch[0] ?? DEFAULT_WL[0]);
   const [charts, setCharts] = useState<Record<string, ChartData>>({});
@@ -262,6 +262,7 @@ export function Terminal({ strategies, onPaperBuy, onQuote }: { strategies: Stra
                   <span className="flex items-center gap-2">
                     {sig === 1 ? <span className="flex items-center text-gain"><ArrowUpRight className="h-3 w-3" />BUY</span> : sig === -1 ? <span className="flex items-center text-loss"><ArrowDownRight className="h-3 w-3" />SELL</span> : <span className="flex items-center text-muted-foreground"><Minus className="h-3 w-3" />HOLD</span>}
                     {sig === 1 && (qt?.ltp || last?.close) && <Button size="sm" className="h-6 px-2 text-[10px]" onClick={() => onPaperBuy(sel.name, s.id, qt?.ltp ?? last!.close)}>Paper buy</Button>}
+                    {onRealOrder && (qt?.ltp || last?.close) && <Button size="sm" variant="outline" className="h-6 px-2 text-[10px]" onClick={() => onRealOrder(sel.name, qt?.ltp ?? last!.close)}>Real order</Button>}
                   </span>
                 </div>
               ))}
