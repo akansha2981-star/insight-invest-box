@@ -61,7 +61,19 @@ export default function MoneyDashboard() {
     if (pf.data) setCapital(+pf.data.capital); else await db.from("swing_portfolios").insert({ user_id: uid });
   };
 
-  useEffect(() => { if (userId) loadAll(userId); }, [userId]);
+  const [syncing, setSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState<string | null>(null);
+  const syncFeed = async (force = false) => {
+    setSyncing(true);
+    const { data, error } = await supabase.functions.invoke("swing-sync", { body: { force } });
+    setSyncing(false);
+    if (error || data?.error) { if (force) toast.error("Live feed sync failed. Try again shortly."); return; }
+    setLastSync(data?.lastSync ?? new Date().toISOString());
+    if (!data?.skipped) { if (force) toast.success(`Synced ${data.symbols} stocks from NSE`); loadAll(userId!); }
+  };
+
+  useEffect(() => { if (userId) { loadAll(userId).then(() => syncFeed()); } }, [userId]);
+  useEffect(() => { if (!userId) return; const id = setInterval(() => syncFeed(), 15 * 60000); return () => clearInterval(id); }, [userId]);
   useEffect(() => {
     const tick = () => fetchLiveMarketQuotes().then((r) => setLive(Object.fromEntries(r.quotes.map((q) => [q.symbol.toUpperCase(), q.price]))));
     tick(); const id = setInterval(tick, 30000); return () => clearInterval(id);
@@ -70,17 +82,30 @@ export default function MoneyDashboard() {
   // Backtest every strategy automatically when data changes
   useEffect(() => {
     const r: Record<string, BacktestResult> = {};
-    strategies.forEach((s) => (r[s.id] = backtest(s.rule_type, s.params, bars, 50000)));
+    strategies.forEach((s) => (r[s.id] = backtest(s.rule_type, s.params, liveBars, 50000)));
     setResults(r);
-  }, [strategies, bars]);
+  }, [strategies, liveBars]);
 
   const priceOf = (sym: string) => live[sym] ?? bars[sym]?.at(-1)?.close ?? 0;
 
+  const liveBars = useMemo(() => {
+    const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+    const out: Record<string, Bar[]> = {};
+    Object.entries(bars).forEach(([sym, b]) => {
+      const px = live[sym]; const last = b.at(-1);
+      if (!px || !last) { out[sym] = b; return; }
+      out[sym] = last.date === today
+        ? [...b.slice(0, -1), { ...last, close: px, high: Math.max(last.high, px), low: Math.min(last.low, px) }]
+        : [...b, { date: today, open: last.close, high: Math.max(last.close, px), low: Math.min(last.close, px), close: px, volume: last.volume }];
+    });
+    return out;
+  }, [bars, live]);
+
   const signals = useMemo(() => strategies.filter((s) => s.is_active).flatMap((s) =>
-    Object.entries(bars).map(([sym, b]) => {
+    Object.entries(liveBars).map(([sym, b]) => {
       const sig = runRule(s.rule_type, b, s.params); const last = sig.at(-1) ?? 0;
       return { strategy: s, symbol: sym, signal: last, price: priceOf(sym), date: b.at(-1)?.date };
-    })), [strategies, bars, live]);
+    })), [strategies, liveBars, live]);
 
   const open = trades.filter((t) => t.status === "open");
   const closed = trades.filter((t) => t.status === "closed");
@@ -145,6 +170,15 @@ export default function MoneyDashboard() {
           Paper trading and research only. No real orders are placed. Not investment advice; data is unofficial and sourced from NSE/BSE.
         </div>
 
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3 text-xs">
+          <span className="flex items-center gap-2 text-muted-foreground">
+            <Activity className={"h-4 w-4 " + (Object.keys(live).length ? "text-primary" : "")} />
+            {Object.keys(live).length ? `Live NSE/BSE prices for ${Object.keys(live).length} symbols, updating every 30s` : "Live feed idle (market closed or connecting); using last close"}
+            {lastSync && <> · Daily history synced {new Date(lastSync).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" })} IST</>}
+          </span>
+          <Button size="sm" variant="outline" disabled={syncing} onClick={() => syncFeed(true)}>{syncing ? "Syncing..." : "Sync now"}</Button>
+        </div>
+
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {[
             ["Virtual Capital", inr(capital)], ["Current Value", inr(value)], ["Total Invested", inr(invested)], ["Available Cash", inr(cash)],
@@ -165,7 +199,7 @@ export default function MoneyDashboard() {
 
           <TabsContent value="strategies" className="space-y-3">
             {isAdmin && <Button onClick={() => setEditing({ rule_type: "ma_cross", params: {} })}><Plus className="mr-1 h-4 w-4" />New strategy</Button>}
-            {noData && <p className="text-sm text-muted-foreground">No price history yet. {isAdmin ? "Upload a CSV in the Price Data tab" : "An admin needs to upload price history"} to see backtest results.</p>}
+            {noData && <p className="text-sm text-muted-foreground">Fetching daily price history from NSE. This takes about 30 seconds on first load.</p>}
             <div className="grid gap-3 md:grid-cols-2">
               {strategies.map((s) => {
                 const r = results[s.id]; const cur = signals.filter((x) => x.strategy.id === s.id && x.signal !== 0).length;
@@ -182,7 +216,7 @@ export default function MoneyDashboard() {
                       <div className="text-xs text-muted-foreground">Backtest period: {period}</div>
                       <div className="flex flex-wrap gap-2">
                         <Button size="sm" variant="outline" onClick={() => setViewing(s)}>View</Button>
-                        <Button size="sm" variant="outline" onClick={() => { setResults((p) => ({ ...p, [s.id]: backtest(s.rule_type, s.params, bars) })); toast.success("Backtest complete"); }}><Play className="mr-1 h-3 w-3" />Run Backtest</Button>
+                        <Button size="sm" variant="outline" onClick={() => { setResults((p) => ({ ...p, [s.id]: backtest(s.rule_type, s.params, liveBars) })); toast.success("Backtest complete"); }}><Play className="mr-1 h-3 w-3" />Run Backtest</Button>
                         {isAdmin && <Button size="sm" variant="outline" onClick={() => setEditing(s)}>Edit</Button>}
                         {isAdmin && <Button size="sm" variant="outline" onClick={() => toggle(s)}><Power className="mr-1 h-3 w-3" />{s.is_active ? "Deactivate" : "Activate"}</Button>}
                       </div>
