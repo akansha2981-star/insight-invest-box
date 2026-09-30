@@ -1641,6 +1641,7 @@ export type Database = {
           capital: number
           created_at: string
           id: string
+          market_filter: boolean
           risk_pct: number
           start_date: string
           status: string
@@ -1653,6 +1654,7 @@ export type Database = {
           capital: number
           created_at?: string
           id?: string
+          market_filter?: boolean
           risk_pct?: number
           start_date?: string
           status?: string
@@ -1665,6 +1667,7 @@ export type Database = {
           capital?: number
           created_at?: string
           id?: string
+          market_filter?: boolean
           risk_pct?: number
           start_date?: string
           status?: string
@@ -1844,6 +1847,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      swing_universe: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          exchange: string
+          name: string
+          symbol: string
+          token: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          exchange?: string
+          name: string
+          symbol: string
+          token: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          exchange?: string
+          name?: string
+          symbol?: string
+          token?: string
+        }
+        Relationships: []
       }
       trending_keywords: {
         Row: {

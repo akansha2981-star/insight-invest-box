@@ -181,7 +181,36 @@ export interface SimResult {
   startEquity: number; finalEquity: number; netReturn: number; winRate: number; profitFactor: number; maxDrawdown: number;
   expectancy: number; avgR: number; avgHold: number; sharpe: number; closedCount: number; totalCharges: number; cagr: number; from: string; to: string;
 }
-export interface SimOpts { capital: number; riskPct?: number; startDate?: string; endDate?: string; maxPositions?: number; maxRiskPctOfPrice?: number }
+export type Regime = "bull" | "sideways" | "bear";
+export interface RegimeDay { date: string; regime: Regime; close: number; sma50: number | null; sma200: number | null; adx: number | null; breadth: number }
+/** Allowed regimes per strategy (spec: mean-reversion runs in Bull + Sideways, everything else Bull only). */
+export const allowedRegimes = (def: StrategyDef): Regime[] => (def.family === "Mean reversion" ? ["bull", "sideways"] : ["bull"]);
+
+/**
+ * Market regime from an equal-weight index of the whole universe (built from each stock's daily
+ * open/high/low/close relative to its previous close). Strong Bull: Index > SMA200, SMA50 > SMA200, ADX > 20.
+ * Bear: Index < SMA200 and SMA50 < SMA200. Anything else (incl. ADX < 20) is Sideways.
+ */
+export function marketRegime(ctxs: Ctx[]): Map<string, RegimeDay> {
+  const agg = new Map<string, { o: number; h: number; l: number; c: number; n: number; above: number; tot: number }>();
+  ctxs.forEach((cx) => cx.b.forEach((x, i) => {
+    const a = agg.get(x.date) ?? { o: 0, h: 0, l: 0, c: 0, n: 0, above: 0, tot: 0 };
+    const s200 = cx.r[i].sma200; if (s200) { a.tot++; if (x.close > s200) a.above++; }
+    if (i > 0) { const p = cx.b[i - 1].close; if (p > 0) { a.o += x.open / p; a.h += x.high / p; a.l += x.low / p; a.c += x.close / p; a.n++; } }
+    agg.set(x.date, a);
+  }));
+  const dates = [...agg.keys()].sort(); let lvl = 100; const bars: Bar[] = [];
+  dates.forEach((d) => { const a = agg.get(d)!; if (!a.n) return; const o = lvl * a.o / a.n, h = lvl * a.h / a.n, l = lvl * a.l / a.n, c = lvl * a.c / a.n; bars.push({ date: d, open: o, high: Math.max(h, o, c), low: Math.min(l, o, c), close: c, volume: 0 } as Bar); lvl = c; });
+  const rows = computeAll(bars, false); const out = new Map<string, RegimeDay>();
+  rows.forEach((r) => {
+    const a = agg.get(r.date)!; const bull = !!r.sma200 && !!r.sma50 && r.close > r.sma200 && r.sma50 > r.sma200 && (r.adx ?? 0) > 20;
+    const bear = !!r.sma200 && !!r.sma50 && r.close < r.sma200 && r.sma50 < r.sma200;
+    out.set(r.date, { date: r.date, regime: bull ? "bull" : bear ? "bear" : "sideways", close: +r.close.toFixed(2), sma50: r.sma50, sma200: r.sma200, adx: r.adx, breadth: a.tot ? Math.round((a.above / a.tot) * 100) : 0 });
+  });
+  return out;
+}
+
+export interface SimOpts { capital: number; riskPct?: number; startDate?: string; endDate?: string; maxPositions?: number; maxRiskPctOfPrice?: number; regime?: Map<string, RegimeDay> | null }
 
 /** Portfolio-level simulation: signal at close, entry at next open, shared cash, max N positions. */
 export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
@@ -189,6 +218,8 @@ export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
   const dates = [...new Set(ctxs.flatMap((c) => c.b.map((x) => x.date)))].sort();
   const idx = ctxs.map((c) => new Map(c.b.map((x, i) => [x.date, i])));
   const start = o.startDate ?? dates[Math.min(dates.length - 1, 200)] ?? dates[0], end = o.endDate ?? "9999-12-31";
+  const allowed = allowedRegimes(def);
+  const regimeOk = (d: string) => { if (!o.regime) return true; const r = o.regime.get(d); return !r || allowed.includes(r.regime); };
   let cash = o.capital; const trades: SimTrade[] = []; const equity: { date: string; value: number }[] = [];
   type Live = { t: SimTrade; ci: number; pos: OpenPos; plan: EntryPlan; qtyLeft: number; realized: number; chg: number; slip: number; buyVal: number };
   const open: Live[] = []; let queued: { ci: number; i: number; plan: EntryPlan }[] = []; let pending: PendingSignal[] = [];
@@ -245,7 +276,7 @@ export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
     }
     // 3) New signals at close -> queued for next open
     pending = [];
-    ctxs.forEach((c, ci) => {
+    if (regimeOk(d)) ctxs.forEach((c, ci) => {
       const i = idx[ci].get(d); if (i === undefined || i < 1) return; if (open.some((l) => l.ci === ci)) return;
       const plan = def.entry(c, i); if (!plan || !(plan.sl < c.b[i].close)) return;
       queued.push({ ci, i, plan });
