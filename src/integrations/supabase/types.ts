@@ -1640,6 +1640,8 @@ export type Database = {
         Row: {
           adopted: boolean
           ai_strategy_id: string | null
+          approved_at: string | null
+          approved_by: string | null
           change_summary: string | null
           created_at: string
           definition: Json | null
@@ -1657,6 +1659,8 @@ export type Database = {
         Insert: {
           adopted?: boolean
           ai_strategy_id?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           change_summary?: string | null
           created_at?: string
           definition?: Json | null
@@ -1674,6 +1678,8 @@ export type Database = {
         Update: {
           adopted?: boolean
           ai_strategy_id?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           change_summary?: string | null
           created_at?: string
           definition?: Json | null
@@ -1793,6 +1799,7 @@ export type Database = {
       }
       swing_custom_strategies: {
         Row: {
+          ai_note: string | null
           created_at: string
           definition: Json
           family_id: string
@@ -1802,6 +1809,7 @@ export type Database = {
           version: number
         }
         Insert: {
+          ai_note?: string | null
           created_at?: string
           definition: Json
           family_id?: string
@@ -1811,6 +1819,7 @@ export type Database = {
           version?: number
         }
         Update: {
+          ai_note?: string | null
           created_at?: string
           definition?: Json
           family_id?: string
