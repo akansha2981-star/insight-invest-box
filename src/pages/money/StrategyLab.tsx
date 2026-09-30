@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { Bot, CircleStop, Play, Trash2, Trophy, ArrowUpRight, ArrowDownRight, Clock, Gauge, Plus, Search, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StrategyReport, NotificationFeed, tradeEvents } from "./StrategyReport";
 import { supabase } from "@/integrations/supabase/client";
 import type { Bar } from "@/lib/swing/engine";
 import { STRATEGIES, buildCtx, rankUniverse, simulate, strategyByKey, marketRegime, allowedRegimes, type SimResult, type StrategyDef, type Ctx, type RegimeDay, type Regime } from "@/lib/swing/strategies20";
@@ -45,6 +47,20 @@ export function StrategyLab({ bars, userId, onUniverseChange }: { bars: Record<s
   const board = useMemo(() => ctxs.length ? STRATEGIES.map((def) => ({ def, res: simulate(def, ctxs, { capital: 50000, regime: boardFilter ? regime : null }) })).sort((a, b) => (b.res.trades.length ? 1 : 0) - (a.res.trades.length ? 1 : 0) || b.res.netReturn - a.res.netReturn) : [], [ctxs, regime, boardFilter]);
   const live = useMemo(() => deps.map((d) => { const def = strategyByKey(d.strategy_key); return { d, def, res: def && ctxs.length ? simulate(def, ctxs, { capital: +d.capital, riskPct: +d.risk_pct, startDate: d.start_date, endDate: d.stopped_at ?? undefined, regime: d.market_filter === false ? null : regime }) : null }; }), [deps, ctxs, regime]);
   const today = regime ? [...regime.values()].at(-1) : undefined;
+  const seenKey = `swing-notif-seen-${userId}`;
+  const [lastSeen, setLastSeen] = useState(() => localStorage.getItem(seenKey) ?? "0000");
+  const events = useMemo(() => live.filter((x) => x.res).flatMap((x) => tradeEvents(x.res!.trades, x.d.id)).sort((a, b) => b.date.localeCompare(a.date)), [live]);
+  const markSeen = () => { const d = events[0]?.date ?? todayIST(); localStorage.setItem(seenKey, d); setLastSeen(d); };
+  const toasted = useRef(false);
+  useEffect(() => {
+    if (toasted.current || !events.length) return; toasted.current = true;
+    events.filter((e) => e.date > lastSeen).slice(0, 5).forEach((e) => e.kind === "BUY" ? toast.info(`BUY ${e.qty} ${e.symbol} @ ₹${e.price} · ${e.strategy}`) : (e.pnl ?? 0) > 0 ? toast.success(`SELL ${e.symbol} · Profit booked ${inr(e.pnl ?? 0)} · ${e.strategy}`) : toast.error(`SELL ${e.symbol} · Loss booked ${inr(e.pnl ?? 0)} · ${e.strategy}`));
+  }, [events, lastSeen]);
+  const totals = live.reduce((a, x) => { if (!x.res) return a; a.inv += x.res.startEquity; a.val += x.res.finalEquity; a.open += x.res.trades.filter((t) => t.open).length; a.closed += x.res.closedCount; return a; }, { inv: 0, val: 0, open: 0, closed: 0 });
+  const keepLive = async (keys: string[], capital: number, start: string, filter: boolean) => {
+    const { error } = await db.from("swing_deployments").insert(keys.map((k) => ({ user_id: userId, strategy_key: k, capital, risk_pct: form.risk, start_date: start, market_filter: filter })));
+    if (error) return toast.error(error.message); toast.success(`${keys.length} strategies now running live from ${start}`); loadDeps();
+  };
   const lastDate = ctxs[0]?.b.at(-1)?.date;
 
   const deploy = async () => {
@@ -58,7 +74,17 @@ export function StrategyLab({ bars, userId, onUniverseChange }: { bars: Record<s
   if (!ctxs.length) return <p className="text-sm text-muted-foreground">Loading live NSE price history and computing indicators...</p>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
+        <Kpi l="Running strategies" v={deps.filter((d) => d.status === "active").length} /><Kpi l="Money in strategies" v={inr(totals.inv)} />
+        <Kpi l="Current value" v={inr(totals.val)} /><Kpi l="Net P&L" v={<span className={tone(totals.val - totals.inv)}>{inr(totals.val - totals.inv)}</span>} />
+        <Kpi l="Open / closed trades" v={`${totals.open} / ${totals.closed}`} /><Kpi l="Market today" v={today ? REGIME_LABEL[today.regime] : "-"} />
+      </div>
+      <Tabs defaultValue="live">
+        <TabsList className="flex h-auto flex-wrap justify-start"><TabsTrigger value="live">Live auto-trading</TabsTrigger><TabsTrigger value="lab">Test lab and report</TabsTrigger><TabsTrigger value="alerts">Notifications{events.filter((e) => e.date > lastSeen).length > 0 && <Badge className="ml-1 h-4 px-1 text-[10px]">{events.filter((e) => e.date > lastSeen).length}</Badge>}</TabsTrigger><TabsTrigger value="board">Leaderboard</TabsTrigger><TabsTrigger value="market">Market and stocks</TabsTrigger></TabsList>
+        <TabsContent value="lab"><StrategyReport ctxs={ctxs} regime={regime} onKeepLive={keepLive} /></TabsContent>
+        <TabsContent value="alerts"><NotificationFeed events={events} lastSeen={lastSeen} onSeen={markSeen} /></TabsContent>
+        <TabsContent value="live" className="space-y-4">
       {/* Auto-trade */}
       <Card>
         <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><Bot className="h-4 w-4 text-primary" />Auto-trade a strategy (paper)</CardTitle>
@@ -75,8 +101,6 @@ export function StrategyLab({ bars, userId, onUniverseChange }: { bars: Record<s
         </CardContent>
       </Card>
 
-      {today && <MarketCard today={today} regime={regime!} />}
-      <UniversePanel count={ctxs.length} onAdded={onUniverseChange} />
 
       {live.length > 0 && (
         <div className="space-y-4">
@@ -111,6 +135,12 @@ export function StrategyLab({ bars, userId, onUniverseChange }: { bars: Record<s
         </div>
       )}
 
+        </TabsContent>
+        <TabsContent value="market" className="space-y-4">
+          {today && <MarketCard today={today} regime={regime!} />}
+          <UniversePanel count={ctxs.length} onAdded={onUniverseChange} />
+        </TabsContent>
+        <TabsContent value="board">
       {/* Leaderboard */}
       <Card>
         <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-base"><Trophy className="h-4 w-4 text-primary" />Best performing strategies</CardTitle>
@@ -129,10 +159,13 @@ export function StrategyLab({ bars, userId, onUniverseChange }: { bars: Record<s
                 <TableCell className="text-destructive">-{res.maxDrawdown.toFixed(1)}%</TableCell><TableCell>{res.trades.length}</TableCell><TableCell className={tone(res.avgR)}>{res.avgR.toFixed(2)}R</TableCell><TableCell>{res.sharpe.toFixed(2)}</TableCell>
                 <TableCell>{res.pending.length ? <Badge>{res.pending.length} BUY</Badge> : <span className="text-muted-foreground">-</span>}</TableCell>
                 <TableCell className="whitespace-nowrap"><Button size="sm" variant="outline" onClick={() => setDetail({ def, res, title: def.name })}>Details</Button>{" "}
-                  <Button size="sm" onClick={() => { setForm({ ...form, key: def.key }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Auto-trade</Button></TableCell>
+                  <Button size="sm" onClick={() => { setForm({ ...form, key: def.key }); toast.info(`${def.name} selected. Open "Live auto-trading" to start it.`); }}>Auto-trade</Button></TableCell>
               </TableRow>))}</TableBody></Table>
         </CardContent>
       </Card>
+
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
         <DialogContent className="max-h-[90vh] max-w-6xl overflow-y-auto [&>*]:min-w-0">
