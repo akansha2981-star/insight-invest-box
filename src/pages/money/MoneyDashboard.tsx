@@ -238,7 +238,7 @@ export default function MoneyDashboard() {
         </div>}
 
           {!ctxs.length && tab !== "stocks" && <p className="text-sm text-muted-foreground">Preparing live NSE price history and indicators...</p>}
-          {ctxs.length > 0 && LAB_TABS[tab] && <StrategyLab ctxs={ctxs} regime={regime} defs={defs} userId={userId} view={LAB_TABS[tab]} onUnread={setUnread} onUniverseChange={() => loadAll(userId)} />}
+          {ctxs.length > 0 && LAB_TABS[tab] && <StrategyLab ctxs={ctxs} regime={regime} defs={defs} userId={userId} view={LAB_TABS[tab]} onUnread={setUnread} quiet onUniverseChange={() => loadAll(userId)} />}
           {ctxs.length > 0 && tab !== "alerts" && !LAB_TABS[tab] && <span className="hidden"><StrategyLab ctxs={ctxs} regime={regime} defs={defs} userId={userId} view="alerts" onUnread={setUnread} /></span>}
 
           <TabsContent value="dashboard" className="space-y-4">

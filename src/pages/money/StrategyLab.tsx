@@ -29,7 +29,7 @@ const REGIME_LABEL: Record<Regime, string> = { bull: "Strong Bull", sideways: "S
 const regimeList = (def: StrategyDef) => allowedRegimes(def).map((r) => REGIME_LABEL[r]).join(" + ");
 
 export type LabView = "live" | "lab" | "alerts" | "board" | "market";
-export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view, onUnread }: { ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; userId: string; onUniverseChange?: () => void; view: LabView; onUnread?: (n: number) => void }) {
+export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view, onUnread, quiet }: { ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; userId: string; onUniverseChange?: () => void; view: LabView; onUnread?: (n: number) => void; quiet?: boolean }) {
   const strategyByKey = (k: string) => defs.find((d) => d.key === k);
   const [boardFilter, setBoardFilter] = useState(true);
   const [deps, setDeps] = useState<Deployment[]>([]);
@@ -51,7 +51,7 @@ export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view
   useEffect(() => { onUnread?.(unread); }, [unread]);
   const toasted = useRef(false);
   useEffect(() => {
-    if (toasted.current || !events.length) return; toasted.current = true;
+    if (quiet || toasted.current || !events.length) return; toasted.current = true;
     events.filter((e) => e.date > lastSeen).slice(0, 5).forEach((e) => e.kind === "BUY" ? toast.info(`BUY ${e.qty} ${e.symbol} @ ₹${e.price} · ${e.strategy}`) : (e.pnl ?? 0) > 0 ? toast.success(`SELL ${e.symbol} · Profit booked ${inr(e.pnl ?? 0)} · ${e.strategy}`) : toast.error(`SELL ${e.symbol} · Loss booked ${inr(e.pnl ?? 0)} · ${e.strategy}`));
   }, [events, lastSeen]);
   const totals = live.reduce((a, x) => { if (!x.res) return a; a.inv += x.res.startEquity; a.val += x.res.finalEquity; a.open += x.res.trades.filter((t) => t.open).length; a.closed += x.res.closedCount; return a; }, { inv: 0, val: 0, open: 0, closed: 0 });
