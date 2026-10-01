@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity, Database, Radio, TrendingDown, TrendingUp, Zap } from "lucide-react";
-import type { Ctx, RegimeDay, StrategyDef } from "@/lib/swing/strategies20";
+import type { Ctx, FixedEntry, RegimeDay, StrategyDef } from "@/lib/swing/strategies20";
 import { liveSignalTrades } from "@/lib/swing/liveSignals";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +16,7 @@ const fmt = (t: number | string) => new Date(t).toLocaleString("en-IN", { timeZo
 interface Ev { t: number; kind: string; text: string; tone: number }
 
 /** Live overview: status, health, breadth, movers, signals, open trades and an activity feed. */
-export function LiveDashboard({ ctxs, regime, defs, liveCount, lastSync }: { ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; liveCount: number; lastSync: string | null }) {
+export function LiveDashboard({ ctxs, regime, defs, liveCount, lastSync, fixed }: { fixed?: Map<string, FixedEntry>; ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; liveCount: number; lastSync: string | null }) {
   const [tick, setTick] = useState(Date.now()); const [start, setStart] = useState<string | null>(null);
   const [feed, setFeed] = useState<Ev[]>([]); const prev = useRef<Map<string, number> | null>(null); const seen = useRef(new Set<string>());
   const [, clock] = useState(0);
@@ -33,7 +33,7 @@ export function LiveDashboard({ ctxs, regime, defs, liveCount, lastSync }: { ctx
   const idx = regime ? [...regime.values()].slice(-2) : [];
   const idxChg = idx.length === 2 ? (idx[1].close / idx[0].close - 1) * 100 : NaN;
   const gainers = [...rows].sort((a, b) => b.chg - a.chg).slice(0, 5), losers = [...rows].sort((a, b) => a.chg - b.chg).slice(0, 5), active = [...rows].sort((a, b) => b.value - a.value).slice(0, 5);
-  const trades = useMemo(() => (start ? liveSignalTrades(defs, ctxs, start, regime) : []), [start, defs, ctxs, regime]);
+  const trades = useMemo(() => (start ? liveSignalTrades(defs, ctxs, start, regime, 10000, false, fixed) : []), [start, defs, ctxs, regime, fixed]);
   const openT = trades.filter((t) => t.status === "OPEN" || t.status === "RUNNING"), signals = trades.filter((t) => t.status === "SIGNAL");
   const running = openT.reduce((a, t) => a + t.netPnl, 0);
   const isOpen = marketOpen();
