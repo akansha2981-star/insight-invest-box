@@ -223,7 +223,6 @@ export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
   const dates = [...new Set(ctxs.flatMap((c) => c.b.map((x) => x.date)))].sort();
   const idx = ctxs.map((c) => new Map(c.b.map((x, i) => [x.date, i])));
   const start = o.startDate ?? dates[Math.min(dates.length - 1, 200)] ?? dates[0], end = o.endDate ?? "9999-12-31";
-  const lastDate = dates[dates.length - 1];
   const allowed = allowedRegimes(def);
   const regimeOk = (d: string) => { if (!o.regime) return true; const r = o.regime.get(d); return !r || allowed.includes(r.regime); };
   let cash = o.capital; const trades: SimTrade[] = []; const equity: { date: string; value: number }[] = [];
@@ -291,8 +290,8 @@ export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
       pending.push({ symbol: c.sym, date: d, close: c.b[i].close, stopLoss: +plan.sl.toFixed(2), tp1: plan.tp1Abs ?? (plan.tp1R ? +(c.b[i].close + plan.tp1R * R).toFixed(2) : null), tp2: plan.tp2Abs ?? (plan.tp2R ? +(c.b[i].close + plan.tp2R * R).toFixed(2) : null), qty: Math.max(0, Math.floor((eq * riskPct) / R)), note: plan.note });
     });
     queued.sort((a, b) => (b.plan.score ?? 0) - (a.plan.score ?? 0));
-    // Live mode: a signal on the latest (live) bar is bought right away at the current price
-    if (o.liveEntry && d === lastDate) { const q2 = queued; queued = []; for (const e of q2) enter(e, d, true); }
+    // Live mode: buy at the signal price (live price on today's bar) instead of waiting for the next open
+    if (o.liveEntry) { const q2 = queued; queued = []; for (const e of q2) enter(e, d, true); }
     equity.push({ date: d, value: Math.round(mtm(d)) });
   }
   // Mark open trades to market
