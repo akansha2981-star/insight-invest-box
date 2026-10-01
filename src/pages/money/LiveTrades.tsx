@@ -81,7 +81,7 @@ export function LiveTrades({ ctxs, regime, defs }: { ctxs: Ctx[]; regime: Map<st
   return (
     <div className="space-y-4">
       <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-base"><Activity className="h-4 w-4 animate-pulse text-primary" />Live trades and signals</CardTitle>
-        <p className="text-xs text-muted-foreground">Only signals from {cfg?.start ?? "-"} onward are tracked, nothing backdated. Each trade uses {inr(cfg?.capitalPerTrade ?? 10000)}; buys fill at the next market open; prices refresh every 30 seconds in market hours (latest bar {lastBar}). Charges included. Paper tracking only.</p></CardHeader></Card>
+        <p className="text-xs text-muted-foreground">Only signals from {cfg?.start ?? "-"} onward are tracked, nothing backdated. Each trade uses {inr(cfg?.capitalPerTrade ?? 10000)}; strategies auto-buy at the signal price and auto-sell on target, stop loss, exit rule or max holding; prices refresh every 30 seconds in market hours (latest bar {lastBar}). Charges included. Paper tracking only.</p></CardHeader></Card>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">{cards.map(([l, v, s]) => (
         <Card key={l}><CardContent className="p-3"><div className="text-[11px] text-muted-foreground">{l}</div><div className={"text-lg font-bold tabular-nums " + (s === null ? "" : tone(s))}>{v}</div></CardContent></Card>))}</div>

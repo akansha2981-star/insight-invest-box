@@ -10,11 +10,11 @@ export interface LiveTrade {
   entryValue: number; currentValue: number; grossPnl: number; charges: number; netPnl: number; pnlPct: number; reason: string | null;
 }
 
-export function liveSignalTrades(defs: StrategyDef[], ctxs: Ctx[], start: string, regime: Map<string, RegimeDay> | null, capital = 10000): LiveTrade[] {
+export function liveSignalTrades(defs: StrategyDef[], ctxs: Ctx[], start: string, regime: Map<string, RegimeDay> | null, capital = 10000, marketFilter = false): LiveTrade[] {
   const out: LiveTrade[] = [];
   for (const def of defs) {
     const allowed = allowedRegimes(def);
-    const ok = (d: string) => { const r = regime?.get(d); return !r || allowed.includes(r.regime); };
+    const ok = (d: string) => { const r = regime?.get(d); return !marketFilter || !r || allowed.includes(r.regime); };
     for (const c of ctxs) {
       const b = c.b; let i0 = b.findIndex((x) => x.date >= start); if (i0 < 1) continue;
       let busyUntil = -1;
@@ -22,18 +22,13 @@ export function liveSignalTrades(defs: StrategyDef[], ctxs: Ctx[], start: string
         if (i <= busyUntil || !ok(b[i].date)) continue;
         const plan = def.entry(c, i); if (!plan || !(plan.sl < b[i].close)) continue;
         const base = { id: `${def.key}|${c.sym}|${b[i].date}`, strategyKey: def.key, strategy: def.name, symbol: c.sym, exchange: "NSE", side: "BUY" as const, signalDate: b[i].date };
-        if (i + 1 >= b.length) { // signal today, buy at next open
-          const R = b[i].close - plan.sl; const tp = plan.tp2Abs ?? plan.tp1Abs ?? (plan.tp2R ? b[i].close + plan.tp2R * R : plan.tp1R ? b[i].close + plan.tp1R * R : null);
-          const qty = Math.floor(capital / b[i].close);
-          out.push({ ...base, entryDate: null, exitDate: null, status: "SIGNAL", entry: b[i].close, target: tp ? +tp.toFixed(2) : null, stop: +plan.sl.toFixed(2), exitPrice: null, cmp: b[i].close, qty, entryValue: qty * b[i].close, currentValue: qty * b[i].close, grossPnl: 0, charges: 0, netPnl: 0, pnlPct: 0, reason: null });
-          break;
-        }
-        const e = i + 1, px = b[e].open * (1 + SLIPPAGE), R = px - plan.sl; if (!(R > 0)) continue;
+        // Auto-buy at the signal price (live price for today's bar), then manage exits from the next bar.
+        const e = i, px = b[i].close * (1 + SLIPPAGE), R = px - plan.sl; if (!(R > 0)) continue;
         const qty = Math.floor(capital / px); if (qty <= 0) continue;
         const tpRaw = plan.tp2Abs ?? (plan.tp2R ? px + plan.tp2R * R : null) ?? plan.tp1Abs ?? (plan.tp1R ? px + plan.tp1R * R : null);
         const tp = tpRaw && tpRaw > px ? tpRaw : null; let stop = plan.sl;
         let exitIdx = -1, exitPx = 0, reason: string | null = null;
-        for (let k = e; k < b.length; k++) {
+        for (let k = e + 1; k < b.length; k++) {
           const bar = b[k];
           if (bar.low <= stop) { exitIdx = k; exitPx = Math.min(bar.open, stop); reason = "Stop loss"; break; }
           if (tp && bar.high >= tp) { exitIdx = k; exitPx = Math.max(bar.open, tp); reason = "Target hit"; break; }

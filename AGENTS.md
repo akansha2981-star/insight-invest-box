@@ -1,5 +1,5 @@
 - Swing auto-trading and Live trades are re-simulated deterministically from live swing_prices (src/lib/swing) — why: no cron, backtest/live share logic. Live trades only count signals on/after swing_settings "live_signals".start (₹10k each); swing_signal_log stores only server seen/closed times — why: nothing backdated.
-- Swing market regime/index is an equal-weight index of the scanned universe (marketRegime) — why: no index feed synced.
+- Strategy regime stays an equal-weight index of the followed universe (unchanged so backtests stay reproducible); real indices + full NSE/BSE list live in swing_market_snapshot, filled by swing-market from Yahoo public quotes in 1,000-row rotating batches (pg_cron every 2 min in market hours) — why: broker search blocked, no free official feed.
 - Custom and AI strategies are insert-only versioned JSON rules (rules.ts; swing_custom_strategies, swing_ai_strategies) — why: old backtests stay reproducible. AI versions adopted only if they beat the parent on the last 30% of history.
 - Research pages share one ctxs/regime from MoneyDashboard; live "today" bar appended only after 9:15 IST weekdays.
 - Desk controls: one shared swing_settings "controls" row, admin write, signed-in read.
