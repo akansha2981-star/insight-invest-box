@@ -1872,6 +1872,36 @@ export type Database = {
         }
         Relationships: []
       }
+      swing_index_prices: {
+        Row: {
+          close: number | null
+          created_at: string
+          high: number | null
+          low: number | null
+          open: number | null
+          symbol: string
+          trade_date: string
+        }
+        Insert: {
+          close?: number | null
+          created_at?: string
+          high?: number | null
+          low?: number | null
+          open?: number | null
+          symbol: string
+          trade_date: string
+        }
+        Update: {
+          close?: number | null
+          created_at?: string
+          high?: number | null
+          low?: number | null
+          open?: number | null
+          symbol?: string
+          trade_date?: string
+        }
+        Relationships: []
+      }
       swing_instruments: {
         Row: {
           exchange: string
@@ -1974,6 +2004,102 @@ export type Database = {
           status?: string
           symbol?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      swing_market_snapshot: {
+        Row: {
+          avg_vol_10d: number | null
+          avg_vol_3m: number | null
+          book_value: number | null
+          change_pct: number | null
+          div_yield: number | null
+          dma200: number | null
+          dma50: number | null
+          eps: number | null
+          exchange: string
+          forward_pe: number | null
+          hi52: number | null
+          high: number | null
+          is_index: boolean
+          lo52: number | null
+          low: number | null
+          market_cap: number | null
+          name: string | null
+          open: number | null
+          pb: number | null
+          pe: number | null
+          prev_close: number | null
+          price: number | null
+          quote_time: string | null
+          quoted_at: string | null
+          roe: number | null
+          symbol: string
+          token: string | null
+          volume: number | null
+          yahoo: string
+        }
+        Insert: {
+          avg_vol_10d?: number | null
+          avg_vol_3m?: number | null
+          book_value?: number | null
+          change_pct?: number | null
+          div_yield?: number | null
+          dma200?: number | null
+          dma50?: number | null
+          eps?: number | null
+          exchange: string
+          forward_pe?: number | null
+          hi52?: number | null
+          high?: number | null
+          is_index?: boolean
+          lo52?: number | null
+          low?: number | null
+          market_cap?: number | null
+          name?: string | null
+          open?: number | null
+          pb?: number | null
+          pe?: number | null
+          prev_close?: number | null
+          price?: number | null
+          quote_time?: string | null
+          quoted_at?: string | null
+          roe?: number | null
+          symbol: string
+          token?: string | null
+          volume?: number | null
+          yahoo: string
+        }
+        Update: {
+          avg_vol_10d?: number | null
+          avg_vol_3m?: number | null
+          book_value?: number | null
+          change_pct?: number | null
+          div_yield?: number | null
+          dma200?: number | null
+          dma50?: number | null
+          eps?: number | null
+          exchange?: string
+          forward_pe?: number | null
+          hi52?: number | null
+          high?: number | null
+          is_index?: boolean
+          lo52?: number | null
+          low?: number | null
+          market_cap?: number | null
+          name?: string | null
+          open?: number | null
+          pb?: number | null
+          pe?: number | null
+          prev_close?: number | null
+          price?: number | null
+          quote_time?: string | null
+          quoted_at?: string | null
+          roe?: number | null
+          symbol?: string
+          token?: string | null
+          volume?: number | null
+          yahoo?: string
         }
         Relationships: []
       }
