@@ -215,7 +215,9 @@ export function marketRegime(ctxs: Ctx[]): Map<string, RegimeDay> {
   return out;
 }
 
-export interface SimOpts { capital: number; riskPct?: number; startDate?: string; endDate?: string; maxPositions?: number; maxRiskPctOfPrice?: number; regime?: Map<string, RegimeDay> | null; liveEntry?: boolean }
+export interface SimOpts { capital: number; riskPct?: number; startDate?: string; endDate?: string; maxPositions?: number; maxRiskPctOfPrice?: number; regime?: Map<string, RegimeDay> | null; liveEntry?: boolean; fixed?: Map<string, FixedEntry> }
+/** A live buy recorded when first seen: kept even if the intraday signal later disappears. Key `${strategyKey}|${symbol}|${date}`. */
+export interface FixedEntry { price: number; plan: EntryPlan }
 
 /** Portfolio-level simulation: signal at close, entry at next open, shared cash, max N positions. */
 export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
@@ -227,7 +229,7 @@ export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
   const regimeOk = (d: string) => { if (!o.regime) return true; const r = o.regime.get(d); return !r || allowed.includes(r.regime); };
   let cash = o.capital; const trades: SimTrade[] = []; const equity: { date: string; value: number }[] = [];
   type Live = { t: SimTrade; ci: number; pos: OpenPos; plan: EntryPlan; qtyLeft: number; realized: number; chg: number; slip: number; buyVal: number };
-  const open: Live[] = []; let queued: { ci: number; i: number; plan: EntryPlan }[] = []; let pending: PendingSignal[] = [];
+  const open: Live[] = []; let queued: { ci: number; i: number; plan: EntryPlan; px?: number }[] = []; let pending: PendingSignal[] = [];
   const mtm = (d: string) => cash + open.reduce((a, l) => { const k = idx[l.ci].get(d); return a + l.qtyLeft * (k !== undefined ? ctxs[l.ci].b[k].close : l.t.lastPrice); }, 0);
   const sell = (l: Live, qty: number, px: number, d: string, reason: string | null, i: number) => {
     const fill = px * (1 - SLIPPAGE), val = qty * fill; const slip = qty * px * SLIPPAGE;
@@ -238,10 +240,10 @@ export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
       t.holdDays = i - l.pos.entryIdx; t.rMultiple = t.riskAmount ? +(t.netPnl / t.riskAmount).toFixed(2) : 0; t.equityAfter = Math.round(mtm(d));
     }
   };
-  const enter = (e: { ci: number; i: number; plan: EntryPlan }, d: string, atClose: boolean) => {
+  const enter = (e: { ci: number; i: number; plan: EntryPlan; px?: number }, d: string, atClose: boolean) => {
     if (open.length >= maxPos || open.some((l) => l.ci === e.ci)) return;
     const i = idx[e.ci].get(d); if (i === undefined) return; const c = ctxs[e.ci], bar = c.b[i];
-    const px = (atClose ? bar.close : bar.open) * (1 + SLIPPAGE); const R = px - e.plan.sl; if (!(R > 0) || R / px > maxRiskPx) return;
+    const px = (atClose ? e.px ?? bar.close : bar.open) * (1 + SLIPPAGE); const R = px - e.plan.sl; if (!(R > 0) || R / px > maxRiskPx) return;
       const eqBefore = mtm(d); const riskAmt = eqBefore * riskPct; let qty = Math.floor(riskAmt / R);
       const cost = (n: number) => n * px + charges(n * px, 0); while (qty > 0 && cost(qty) > cash) qty--; if (qty <= 0) return;
       const buyCh = charges(qty * px, 0); cash -= qty * px + buyCh;
@@ -284,8 +286,9 @@ export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
     pending = [];
     if (regimeOk(d)) ctxs.forEach((c, ci) => {
       const i = idx[ci].get(d); if (i === undefined || i < 1) return; if (open.some((l) => l.ci === ci)) return;
-      const plan = def.entry(c, i); if (!plan || !(plan.sl < c.b[i].close)) return;
-      queued.push({ ci, i, plan });
+      const fx = o.fixed?.get(`${def.key}|${c.sym}|${d}`);
+      const plan = fx?.plan ?? def.entry(c, i); if (!plan || !(plan.sl < (fx?.price ?? c.b[i].close))) return;
+      queued.push({ ci, i, plan, px: fx?.price });
       const R = c.b[i].close - plan.sl; const eq = mtm(d);
       pending.push({ symbol: c.sym, date: d, close: c.b[i].close, stopLoss: +plan.sl.toFixed(2), tp1: plan.tp1Abs ?? (plan.tp1R ? +(c.b[i].close + plan.tp1R * R).toFixed(2) : null), tp2: plan.tp2Abs ?? (plan.tp2R ? +(c.b[i].close + plan.tp2R * R).toFixed(2) : null), qty: Math.max(0, Math.floor((eq * riskPct) / R)), note: plan.note });
     });

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity, TrendingDown, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Ctx, RegimeDay, StrategyDef } from "@/lib/swing/strategies20";
+import type { Ctx, FixedEntry, RegimeDay, StrategyDef } from "@/lib/swing/strategies20";
 import { liveSignalTrades, type LiveTrade } from "@/lib/swing/liveSignals";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,14 +16,14 @@ const todayIst = () => new Date(Date.now() + 330 * 60000).toISOString().slice(0,
 const STATUS: Record<string, "default" | "secondary" | "outline" | "destructive"> = { SIGNAL: "outline", OPEN: "default", RUNNING: "default", CLOSED: "secondary" };
 
 /** Forward-only live trade tracker: every strategy signal from the tracking start date, ₹10,000 per trade, marked to live prices. */
-export function LiveTrades({ ctxs, regime, defs }: { ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[] }) {
+export function LiveTrades({ ctxs, regime, defs, fixed }: { ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; fixed?: Map<string, FixedEntry> }) {
   const [cfg, setCfg] = useState<{ start: string; capitalPerTrade: number } | null>(null);
   const [log, setLog] = useState<Map<string, { first_seen_at: string; closed_seen_at: string | null }>>(new Map());
   const [q, setQ] = useState(""); const [status, setStatus] = useState("ALL");
   const flash = useRef(new Map<string, number>()); const [, force] = useState(0);
 
   useEffect(() => { db.from("swing_settings").select("value").eq("key", "live_signals").maybeSingle().then(({ data }: any) => setCfg({ start: data?.value?.start ?? todayIst(), capitalPerTrade: +data?.value?.capitalPerTrade || 10000 })); }, []);
-  const trades = useMemo(() => (cfg ? liveSignalTrades(defs, ctxs, cfg.start, regime, cfg.capitalPerTrade) : []), [cfg, defs, ctxs, regime]);
+  const trades = useMemo(() => (cfg ? liveSignalTrades(defs, ctxs, cfg.start, regime, cfg.capitalPerTrade, false, fixed) : []), [cfg, defs, ctxs, regime, fixed]);
 
   // Record exact first-seen / closed times (shared, server timestamps)
   useEffect(() => {

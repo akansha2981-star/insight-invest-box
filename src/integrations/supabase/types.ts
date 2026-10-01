@@ -2184,8 +2184,10 @@ export type Database = {
       swing_signal_log: {
         Row: {
           closed_seen_at: string | null
+          entry_price: number | null
           first_seen_at: string
           id: string
+          plan: Json | null
           signal_date: string
           strategy_key: string
           strategy_name: string
@@ -2193,8 +2195,10 @@ export type Database = {
         }
         Insert: {
           closed_seen_at?: string | null
+          entry_price?: number | null
           first_seen_at?: string
           id?: string
+          plan?: Json | null
           signal_date: string
           strategy_key: string
           strategy_name: string
@@ -2202,8 +2206,10 @@ export type Database = {
         }
         Update: {
           closed_seen_at?: string | null
+          entry_price?: number | null
           first_seen_at?: string
           id?: string
+          plan?: Json | null
           signal_date?: string
           strategy_key?: string
           strategy_name?: string

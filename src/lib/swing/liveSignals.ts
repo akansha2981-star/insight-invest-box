@@ -1,6 +1,6 @@
 // Forward-only live signal tracker: only signals on or after `start` are traded,
 // each with a fixed capital per trade. Same entry/exit rules as simulate().
-import { charges, SLIPPAGE, allowedRegimes, type Ctx, type RegimeDay, type StrategyDef } from "./strategies20";
+import { charges, SLIPPAGE, allowedRegimes, type Ctx, type RegimeDay, type StrategyDef, type FixedEntry } from "./strategies20";
 
 export type LiveStatus = "SIGNAL" | "OPEN" | "RUNNING" | "CLOSED";
 export interface LiveTrade {
@@ -10,7 +10,7 @@ export interface LiveTrade {
   entryValue: number; currentValue: number; grossPnl: number; charges: number; netPnl: number; pnlPct: number; reason: string | null;
 }
 
-export function liveSignalTrades(defs: StrategyDef[], ctxs: Ctx[], start: string, regime: Map<string, RegimeDay> | null, capital = 10000, marketFilter = false): LiveTrade[] {
+export function liveSignalTrades(defs: StrategyDef[], ctxs: Ctx[], start: string, regime: Map<string, RegimeDay> | null, capital = 10000, marketFilter = false, fixed?: Map<string, FixedEntry>): LiveTrade[] {
   const out: LiveTrade[] = [];
   for (const def of defs) {
     const allowed = allowedRegimes(def);
@@ -20,10 +20,11 @@ export function liveSignalTrades(defs: StrategyDef[], ctxs: Ctx[], start: string
       let busyUntil = -1;
       for (let i = i0; i < b.length; i++) {
         if (i <= busyUntil || !ok(b[i].date)) continue;
-        const plan = def.entry(c, i); if (!plan || !(plan.sl < b[i].close)) continue;
+        const fx = fixed?.get(`${def.key}|${c.sym}|${b[i].date}`);
+        const plan = fx?.plan ?? def.entry(c, i); const sigPx = fx?.price ?? b[i].close; if (!plan || !(plan.sl < sigPx)) continue;
         const base = { id: `${def.key}|${c.sym}|${b[i].date}`, strategyKey: def.key, strategy: def.name, symbol: c.sym, exchange: "NSE", side: "BUY" as const, signalDate: b[i].date };
         // Auto-buy at the signal price (live price for today's bar), then manage exits from the next bar.
-        const e = i, px = b[i].close * (1 + SLIPPAGE), R = px - plan.sl; if (!(R > 0)) continue;
+        const e = i, px = sigPx * (1 + SLIPPAGE), R = px - plan.sl; if (!(R > 0)) continue;
         const qty = Math.floor(capital / px); if (qty <= 0) continue;
         const tpRaw = plan.tp2Abs ?? (plan.tp2R ? px + plan.tp2R * R : null) ?? plan.tp1Abs ?? (plan.tp1R ? px + plan.tp1R * R : null);
         const tp = tpRaw && tpRaw > px ? tpRaw : null; let stop = plan.sl;
