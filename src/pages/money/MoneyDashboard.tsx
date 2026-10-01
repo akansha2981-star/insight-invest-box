@@ -14,6 +14,8 @@ import { StrategyCompare } from "./StrategyCompare";
 import { Watchlists } from "./Watchlists";
 import { AdminControls } from "./AdminControls";
 import { LiveTest } from "./LiveTest";
+import { LiveTrades } from "./LiveTrades";
+import { LiveDashboard } from "./LiveDashboard";
 import { Leaderboard } from "./Leaderboard";
 import { RealTrading } from "./RealTrading";
 import { AIvsCustom } from "./AIvsCustom";
@@ -285,6 +287,7 @@ export default function MoneyDashboard() {
           {ctxs.length > 0 && tab !== "alerts" && !LAB_TABS[tab] && <span className="hidden"><StrategyLab ctxs={ctxs} regime={regime} defs={defs} userId={userId} view="alerts" onUnread={setUnread} /></span>}
 
           <TabsContent value="dashboard" className="space-y-4">
+            {ctxs.length > 0 && <LiveDashboard ctxs={ctxs} regime={regime} defs={defs} liveCount={Object.keys(live).length} lastSync={lastSync} />}
             {today && regime && <MarketCard today={today} regime={regime} />}
             <div className="grid gap-3 md:grid-cols-3">{MENU.slice(1, 4).flatMap((g) => g.items).filter(([v]) => v !== "dashboard").map(([v, l, I, d]) => (
               <button key={v} onClick={() => setTab(v)} className="rounded-lg border border-border bg-background p-4 text-left transition-colors hover:border-primary">
@@ -294,6 +297,7 @@ export default function MoneyDashboard() {
           <TabsContent value="scanner"><Scanner ctxs={ctxs} /></TabsContent>
           <TabsContent value="builder">{ctxs.length > 0 && <StrategyBuilder ctxs={ctxs} regime={regime} userId={userId} rows={customRows} onSaved={loadCustom} />}</TabsContent>
           <TabsContent value="robust">{ctxs.length > 0 && <RobustnessLab ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
+          <TabsContent value="livetrades">{ctxs.length > 0 && <LiveTrades ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
           <TabsContent value="livetest">{ctxs.length > 0 && <LiveTest ctxs={ctxs} regime={regime} defs={defs} onRealOrder={isAdmin ? (symbol, price) => setRealReq({ symbol, price }) : undefined} />}</TabsContent>
           <TabsContent value="comparison">{ctxs.length > 0 && <StrategyCompare ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
           <TabsContent value="aicoach"><Leaderboard isAdmin={isAdmin} onStrategiesChanged={() => { loadAi(); loadCustom(); }} /></TabsContent>
@@ -457,7 +461,7 @@ const MENU: { group: string; items: [string, string, any, string][] }[] = [
   { group: "Market", items: [["markets", "Markets and sectors", Globe2, "Breadth, advances/declines, sector strength"], ["stocks", "Stock terminal", LineIcon, "Live charts with 20+ indicators"], ["scanner", "Scanner", ScanSearch, "Find stocks matching any rule"], ["watchlists", "Watchlists", Star, "Your saved stock lists"]] },
   { group: "Strategies", items: [["strategies", "Auto-trading", Bot, "Run strategies live from any date"], ["builder", "Strategy builder", Wrench, "Create versioned strategies without code"], ["aicoach", "AI dashboard", Sparkles, "AI analysis, faults, changes and approvals"], ["performance", "Leaderboard", Trophy, "All strategies ranked"]] },
   { group: "Research", items: [["backtest", "Backtest and report", FlaskConical, "Any amount, any start date, full report"], ["robust", "Robustness tests", SplitSquareHorizontal, "Out-of-sample and reshuffle tests"], ["livetest", "Live test (top 5)", Radio, "Top 5 strategies up to today, plus today's signals"], ["aibacktest", "AI vs custom backtest", FlaskConical, "AI strategies against yours"], ["ailive", "AI vs custom live test", Radio, "AI vs yours up to today"], ["comparison", "Timeframe comparison", GitCompareArrows, "Rank strategies across periods"], ["tournament", "Tournament", Swords, "Same conditions, robustness score"], ["regime", "Market regime", Gauge, "Bull, sideways or bear; stocks scanned"]] },
-  { group: "Trading", items: [["signals", "Paper signals", ListChecks, ""], ["portfolio", "Portfolio", Wallet, ""], ["alerts", "Alerts", Bell, ""], ["compare", "Rule comparison", GitCompare, ""]] },
+  { group: "Trading", items: [["livetrades", "Live trades", Activity, "Every live signal, P&L and strategy ranking"], ["signals", "Paper signals", ListChecks, ""], ["portfolio", "Portfolio", Wallet, ""], ["alerts", "Alerts", Bell, ""], ["compare", "Rule comparison", GitCompare, ""]] },
   { group: "Admin", items: [["realtrading", "Real trading", ShieldAlert, ""], ["controls", "Desk controls", ShieldCheck, ""], ["data", "Price data", Upload, ""]] },
 ];
 

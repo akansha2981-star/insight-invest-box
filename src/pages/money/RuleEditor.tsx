@@ -33,7 +33,7 @@ export function RuleEditor({ g, onChange, onRemove, depth = 0 }: { g: Group; onC
     <div className={"space-y-2 rounded-md border p-2 " + (depth ? "border-dashed border-primary/40 bg-primary/5" : "border-border")}>
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="text-muted-foreground">Match</span>
-        <div className="flex rounded-md border border-border">{(["AND", "OR"] as const).map((l) => <button key={l} onClick={() => onChange({ ...g, logic: l })} className={"px-2 py-1 font-mono " + (g.logic === l ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>{l === "AND" ? "ALL (AND)" : "ANY (OR)"}</button>)}</div>
+        <div className="flex rounded-md border border-border">{(["AND", "OR", "NOT"] as const).map((l) => <button key={l} onClick={() => onChange({ ...g, logic: l })} className={"px-2 py-1 font-mono " + (g.logic === l ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>{l === "AND" ? "ALL (AND)" : l === "OR" ? "ANY (OR)" : "NONE (NOT)"}</button>)}</div>
         {onRemove && <Button size="sm" variant="ghost" className="ml-auto h-7" onClick={onRemove}><Trash2 className="mr-1 h-3 w-3" />Remove group</Button>}
       </div>
       {g.items.map((x, i) => x.type === "cond"

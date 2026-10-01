@@ -1,8 +1,7 @@
-- Swing auto-trading: deployments store only strategy/amount/start date; trades are re-simulated deterministically from live swing_prices (src/lib/swing/strategies20.ts) — no cron needed and backtest/live use identical logic.
-- Swing market regime: derived client-side from an equal-weight index of the scanned universe (marketRegime in strategies20.ts), since no index feed is synced; mean-reversion strategies allowed in bull+sideways, others bull only.
-- Swing custom strategies: stored as declarative JSON rules (src/lib/swing/rules.ts) in swing_custom_strategies, insert-only versions (no UPDATE grant) so old backtest definitions are never overwritten; compiled to the same StrategyDef as built-ins.
-- Swing research pages share one ctxs/regime computed in MoneyDashboard; live "today" bar is only appended after 9:15 IST on weekdays.
-- Swing desk controls live in swing_settings (key "controls"): admins write, all signed-in read; disabled strategies hidden from non-admins and risk caps clamp form inputs — one shared row, no per-user overrides.
-- Real broker orders go only through the swing-order edge function: admin-only, off by default (swing_settings "live_orders"), per-order and daily limits checked on the server, every attempt logged in swing_live_orders; LIMIT delivery orders on NSE only, so the browser can never skip the limits.
-- Swing AI coach (supabase/functions/swing-ai-coach) runs in small chained steps (rank → ai → eval) and imports a copy of the strategy engine from supabase/functions/_shared/swing — why: edge functions have a ~2s CPU limit and must simulate with the same logic as the app; keep both copies in sync when editing src/lib/swing.
-- AI-made strategies live in swing_ai_strategies (insert-only, global, versioned per family) and are adopted only if they beat the parent on the last 30% of history — why: stops overfitting from replacing working strategies.
+- Swing auto-trading and Live trades are re-simulated deterministically from live swing_prices (src/lib/swing) — why: no cron, backtest/live share logic. Live trades only count signals on/after swing_settings "live_signals".start (₹10k each); swing_signal_log stores only server seen/closed times — why: nothing backdated.
+- Swing market regime/index is an equal-weight index of the scanned universe (marketRegime) — why: no index feed synced.
+- Custom and AI strategies are insert-only versioned JSON rules (rules.ts; swing_custom_strategies, swing_ai_strategies) — why: old backtests stay reproducible. AI versions adopted only if they beat the parent on the last 30% of history.
+- Research pages share one ctxs/regime from MoneyDashboard; live "today" bar appended only after 9:15 IST weekdays.
+- Desk controls: one shared swing_settings "controls" row, admin write, signed-in read.
+- Real orders only via the swing-order edge function: admin-only, off by default, server-side limits, every attempt logged — why: browser can't skip limits.
+- swing-ai-coach runs in chained steps using a copy of the engine in supabase/functions/_shared/swing — why: ~2s edge CPU limit; keep both copies in sync.
