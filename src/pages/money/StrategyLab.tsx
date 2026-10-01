@@ -35,14 +35,14 @@ export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view
   const [boardFilter, setBoardFilter] = useState(true);
   const [deps, setDeps] = useState<Deployment[]>([]);
   const [detail, setDetail] = useState<{ def: StrategyDef; res: SimResult; title: string } | null>(null);
-  const [form, setForm] = useState({ key: defs[11]?.key ?? defs[0]?.key, capital: 50000, risk: limits.defaultRisk, start: todayIST(), filter: true });
+  const [form, setForm] = useState({ key: defs[11]?.key ?? defs[0]?.key, capital: 50000, risk: limits.defaultRisk, start: todayIST(), filter: false });
 
 
   const loadDeps = async () => { const { data } = await db.from("swing_deployments").select("*").order("created_at", { ascending: false }); setDeps(data ?? []); };
   useEffect(() => { loadDeps(); }, [userId]);
 
   const board = useMemo(() => ctxs.length && view === "board" ? defs.map((def) => ({ def, res: simulate(def, ctxs, { capital: 50000, regime: boardFilter ? regime : null }) })).sort((a, b) => (b.res.trades.length ? 1 : 0) - (a.res.trades.length ? 1 : 0) || b.res.netReturn - a.res.netReturn) : [], [ctxs, regime, boardFilter, defs, view]);
-  const live = useMemo(() => deps.map((d) => { const def = strategyByKey(d.strategy_key); return { d, def, res: def && ctxs.length ? simulate(def, ctxs, { capital: +d.capital, riskPct: +d.risk_pct, startDate: d.start_date, endDate: d.stopped_at ?? undefined, regime: d.market_filter === false ? null : regime }) : null }; }), [deps, ctxs, regime, defs]);
+  const live = useMemo(() => deps.map((d) => { const def = strategyByKey(d.strategy_key); return { d, def, res: def && ctxs.length ? simulate(def, ctxs, { capital: +d.capital, riskPct: +d.risk_pct, startDate: d.start_date, endDate: d.stopped_at ?? undefined, regime: d.market_filter === false ? null : regime, liveEntry: true }) : null }; }), [deps, ctxs, regime, defs]);
   const today = regime ? [...regime.values()].at(-1) : undefined;
   const seenKey = `swing-notif-seen-${userId}`;
   const [lastSeen, setLastSeen] = useState(() => localStorage.getItem(seenKey) ?? "0000");
@@ -86,7 +86,7 @@ export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view
       {/* Auto-trade */}
       <Card>
         <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><Bot className="h-4 w-4 text-primary" />Auto-trade a strategy (paper)</CardTitle>
-          <p className="text-xs text-muted-foreground">Pick a strategy, set an amount and a start date. From that day the strategy buys at the next open after a BUY signal and sells on its SL, TP, trailing stop or exit rule, using live NSE daily data. 1% risk per trade by default, max 5 positions, charges and slippage included.</p></CardHeader>
+          <p className="text-xs text-muted-foreground">Pick a strategy, set an amount and a start date. From that day the strategy buys automatically at the live price as soon as a BUY signal appears and sells on its SL, TP, trailing stop or exit rule, using live NSE daily data. 1% risk per trade by default, max 5 positions, charges and slippage included.</p></CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-5">
           <div className="md:col-span-2"><Label className="text-xs">Strategy</Label>
             <Select value={form.key} onValueChange={(v) => setForm({ ...form, key: v })}><SelectTrigger><SelectValue /></SelectTrigger>
@@ -121,7 +121,7 @@ export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view
                   </div>
                   {d.status === "active" && res.pending.length > 0 && (
                     <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs">
-                      <div className="mb-1 flex items-center gap-1 font-semibold text-foreground"><Clock className="h-3 w-3" />Will BUY at next market open</div>
+                      <div className="mb-1 flex items-center gap-1 font-semibold text-foreground"><Clock className="h-3 w-3" />Today's BUY signals (bought automatically at the live price)</div>
                       {res.pending.map((p) => <div key={p.symbol}>{p.symbol}: signal close {px(p.close)} · SL {px(p.stopLoss)} · TP1 {px(p.tp1)} · TP2 {px(p.tp2)} · approx qty {p.qty} · {p.note}</div>)}
                     </div>)}
                   {openT.length === 0 && res.pending.length === 0 && <p className="text-xs text-muted-foreground">{d.market_filter !== false && today && !allowedRegimes(def).includes(today.regime) ? `Paused: the market is ${REGIME_LABEL[today.regime]}, and this strategy only buys in ${regimeList(def)}. Open trades are still managed.` : "Waiting for a BUY signal. The strategy checks every stock after each live data update."}</p>}

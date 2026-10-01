@@ -215,7 +215,7 @@ export function marketRegime(ctxs: Ctx[]): Map<string, RegimeDay> {
   return out;
 }
 
-export interface SimOpts { capital: number; riskPct?: number; startDate?: string; endDate?: string; maxPositions?: number; maxRiskPctOfPrice?: number; regime?: Map<string, RegimeDay> | null }
+export interface SimOpts { capital: number; riskPct?: number; startDate?: string; endDate?: string; maxPositions?: number; maxRiskPctOfPrice?: number; regime?: Map<string, RegimeDay> | null; liveEntry?: boolean }
 
 /** Portfolio-level simulation: signal at close, entry at next open, shared cash, max N positions. */
 export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
@@ -238,25 +238,26 @@ export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
       t.holdDays = i - l.pos.entryIdx; t.rMultiple = t.riskAmount ? +(t.netPnl / t.riskAmount).toFixed(2) : 0; t.equityAfter = Math.round(mtm(d));
     }
   };
-  for (const d of dates) {
-    if (d < start || d > end) continue;
-    // 1) Execute queued entries at today's open
-    const q = queued; queued = [];
-    for (const e of q) {
-      if (open.length >= maxPos || open.some((l) => l.ci === e.ci)) continue;
-      const i = idx[e.ci].get(d); if (i === undefined) continue; const c = ctxs[e.ci], bar = c.b[i];
-      const px = bar.open * (1 + SLIPPAGE); const R = px - e.plan.sl; if (!(R > 0) || R / px > maxRiskPx) continue;
+  const enter = (e: { ci: number; i: number; plan: EntryPlan }, d: string, atClose: boolean) => {
+    if (open.length >= maxPos || open.some((l) => l.ci === e.ci)) return;
+    const i = idx[e.ci].get(d); if (i === undefined) return; const c = ctxs[e.ci], bar = c.b[i];
+    const px = (atClose ? bar.close : bar.open) * (1 + SLIPPAGE); const R = px - e.plan.sl; if (!(R > 0) || R / px > maxRiskPx) return;
       const eqBefore = mtm(d); const riskAmt = eqBefore * riskPct; let qty = Math.floor(riskAmt / R);
-      const cost = (n: number) => n * px + charges(n * px, 0); while (qty > 0 && cost(qty) > cash) qty--; if (qty <= 0) continue;
+      const cost = (n: number) => n * px + charges(n * px, 0); while (qty > 0 && cost(qty) > cash) qty--; if (qty <= 0) return;
       const buyCh = charges(qty * px, 0); cash -= qty * px + buyCh;
       const tp1 = e.plan.tp1Abs ?? (e.plan.tp1R ? px + e.plan.tp1R * R : null), tp2 = e.plan.tp2Abs ?? (e.plan.tp2R ? px + e.plan.tp2R * R : null);
       const t: SimTrade = { strategy: def.name, symbol: c.sym, exchange: "NSE", timeframe: "1D", signal: "BUY", entryPrice: +px.toFixed(2), quantity: qty, stopLoss: +e.plan.sl.toFixed(2),
         tp1: tp1 && tp1 > px ? +tp1.toFixed(2) : null, tp2: tp2 && tp2 > px ? +tp2.toFixed(2) : null, trailingStop: null, riskAmount: Math.round(qty * R), positionValue: Math.round(qty * px),
-        entryDate: d, exitDate: null, exitReason: null, exitPrice: null, grossPnl: 0, charges: +buyCh.toFixed(2), slippage: +(qty * bar.open * SLIPPAGE).toFixed(2), netPnl: 0,
+        entryDate: d, exitDate: null, exitReason: null, exitPrice: null, grossPnl: 0, charges: +buyCh.toFixed(2), slippage: +(qty * (atClose ? bar.close : bar.open) * SLIPPAGE).toFixed(2), netPnl: 0,
         equityBefore: Math.round(eqBefore), equityAfter: null, open: true, lastPrice: bar.close, note: e.plan.note, holdDays: 0, rMultiple: 0 };
       trades.push(t);
       open.push({ t, ci: e.ci, plan: e.plan, qtyLeft: qty, realized: 0, chg: buyCh, slip: t.slippage, buyVal: qty * px, pos: { entryIdx: i, entry: px, stop: e.plan.sl, tp1: t.tp1, tp2: t.tp2, tp1Hit: false } });
-    }
+  };
+  for (const d of dates) {
+    if (d < start || d > end) continue;
+    // 1) Execute queued entries at today's open
+    const q = queued; queued = [];
+    for (const e of q) enter(e, d, false);
     // 2) Manage open positions intraday + at close
     for (const l of [...open]) {
       const c = ctxs[l.ci]; const i = idx[l.ci].get(d); if (i === undefined) continue; const bar = c.b[i]; l.t.lastPrice = bar.close;
@@ -289,6 +290,8 @@ export function simulate(def: StrategyDef, ctxs: Ctx[], o: SimOpts): SimResult {
       pending.push({ symbol: c.sym, date: d, close: c.b[i].close, stopLoss: +plan.sl.toFixed(2), tp1: plan.tp1Abs ?? (plan.tp1R ? +(c.b[i].close + plan.tp1R * R).toFixed(2) : null), tp2: plan.tp2Abs ?? (plan.tp2R ? +(c.b[i].close + plan.tp2R * R).toFixed(2) : null), qty: Math.max(0, Math.floor((eq * riskPct) / R)), note: plan.note });
     });
     queued.sort((a, b) => (b.plan.score ?? 0) - (a.plan.score ?? 0));
+    // Live mode: buy at the signal price (live price on today's bar) instead of waiting for the next open
+    if (o.liveEntry) { const q2 = queued; queued = []; for (const e of q2) enter(e, d, true); }
     equity.push({ date: d, value: Math.round(mtm(d)) });
   }
   // Mark open trades to market
