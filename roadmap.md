@@ -4,5 +4,5 @@
 - [x] Live trades tab (forward-only signals, ₹10k/trade, live P&L, top/bottom strategies)
 - [x] Live dashboard: activity feed, data health, status/refresh info
 - [x] Screener rebuild: all technical filters, AND/OR/NOT builder, presets, sort, pagination, detail view
-- [ ] Full NSE/BSE universe + indices + company figures (in progress)
-- [ ] Live trades: make auto buy/sell actually produce trades
+- [x] Full NSE/BSE universe + indices + company figures (All stocks page)
+- [x] Live trades: auto-buy at signal price, market filter off by default
