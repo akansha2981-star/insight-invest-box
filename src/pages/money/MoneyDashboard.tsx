@@ -24,6 +24,7 @@ import { RealOrderDialog, type RealOrderReq } from "./RealOrderDialog";
 import { DEFAULT_CONTROLS, type Controls } from "@/lib/swing/limits";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchLiveMarketQuotes } from "@/lib/liveMarketData";
+import { useFixedEntries } from "@/lib/swing/useFixedEntries";
 import { Terminal } from "./Terminal";
 import { RULES, runRule, backtest, parseCsv, type Bar, type BacktestResult } from "@/lib/swing/engine";
 import { Button } from "@/components/ui/button";
@@ -152,6 +153,7 @@ export default function MoneyDashboard() {
     const all = [...STRATEGIES, ...ai, ...customRows.map((r) => compileCustom(r.id, r.name, r.version, r.definition))];
     return isAdmin ? all : all.filter((d) => !controls.disabled.includes(d.key));
   }, [customRows, aiRows, controls, isAdmin]);
+  const fixed = useFixedEntries(ctxs, defs);
   const today = regime ? [...regime.values()].at(-1) : undefined;
 
   // Backtest every strategy automatically when data changes
@@ -284,11 +286,11 @@ export default function MoneyDashboard() {
         </div>}
 
           {!ctxs.length && tab !== "stocks" && <p className="text-sm text-muted-foreground">Preparing live NSE price history and indicators...</p>}
-          {ctxs.length > 0 && LAB_TABS[tab] && <StrategyLab ctxs={ctxs} regime={regime} defs={defs} userId={userId} limits={controls} view={LAB_TABS[tab]} onUnread={setUnread} quiet onUniverseChange={() => loadAll(userId)} />}
-          {ctxs.length > 0 && tab !== "alerts" && !LAB_TABS[tab] && <span className="hidden"><StrategyLab ctxs={ctxs} regime={regime} defs={defs} userId={userId} view="alerts" onUnread={setUnread} /></span>}
+          {ctxs.length > 0 && LAB_TABS[tab] && <StrategyLab fixed={fixed} ctxs={ctxs} regime={regime} defs={defs} userId={userId} limits={controls} view={LAB_TABS[tab]} onUnread={setUnread} quiet onUniverseChange={() => loadAll(userId)} />}
+          {ctxs.length > 0 && tab !== "alerts" && !LAB_TABS[tab] && <span className="hidden"><StrategyLab fixed={fixed} ctxs={ctxs} regime={regime} defs={defs} userId={userId} view="alerts" onUnread={setUnread} /></span>}
 
           <TabsContent value="dashboard" className="space-y-4">
-            {ctxs.length > 0 && <LiveDashboard ctxs={ctxs} regime={regime} defs={defs} liveCount={Object.keys(live).length} lastSync={lastSync} />}
+            {ctxs.length > 0 && <LiveDashboard fixed={fixed} ctxs={ctxs} regime={regime} defs={defs} liveCount={Object.keys(live).length} lastSync={lastSync} />}
             {today && regime && <MarketCard today={today} regime={regime} />}
             <div className="grid gap-3 md:grid-cols-3">{MENU.slice(1, 4).flatMap((g) => g.items).filter(([v]) => v !== "dashboard").map(([v, l, I, d]) => (
               <button key={v} onClick={() => setTab(v)} className="rounded-lg border border-border bg-background p-4 text-left transition-colors hover:border-primary">
@@ -299,7 +301,7 @@ export default function MoneyDashboard() {
           <TabsContent value="allstocks"><AllStocks /></TabsContent>
           <TabsContent value="builder">{ctxs.length > 0 && <StrategyBuilder ctxs={ctxs} regime={regime} userId={userId} rows={customRows} onSaved={loadCustom} />}</TabsContent>
           <TabsContent value="robust">{ctxs.length > 0 && <RobustnessLab ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
-          <TabsContent value="livetrades">{ctxs.length > 0 && <LiveTrades ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
+          <TabsContent value="livetrades">{ctxs.length > 0 && <LiveTrades fixed={fixed} ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
           <TabsContent value="livetest">{ctxs.length > 0 && <LiveTest ctxs={ctxs} regime={regime} defs={defs} onRealOrder={isAdmin ? (symbol, price) => setRealReq({ symbol, price }) : undefined} />}</TabsContent>
           <TabsContent value="comparison">{ctxs.length > 0 && <StrategyCompare ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
           <TabsContent value="aicoach"><Leaderboard isAdmin={isAdmin} onStrategiesChanged={() => { loadAi(); loadCustom(); }} /></TabsContent>

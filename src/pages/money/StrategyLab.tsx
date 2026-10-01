@@ -7,7 +7,7 @@ import { LIMITS, type Limits } from "@/lib/swing/limits";
 import { StrategyReport, NotificationFeed, tradeEvents } from "./StrategyReport";
 import { supabase } from "@/integrations/supabase/client";
 import type { Bar } from "@/lib/swing/engine";
-import { STRATEGIES, buildCtx, rankUniverse, simulate, strategyByKey, marketRegime, allowedRegimes, type SimResult, type StrategyDef, type Ctx, type RegimeDay, type Regime } from "@/lib/swing/strategies20";
+import { STRATEGIES, buildCtx, rankUniverse, simulate, strategyByKey, marketRegime, allowedRegimes, type SimResult, type StrategyDef, type Ctx, type RegimeDay, type Regime, type FixedEntry } from "@/lib/swing/strategies20";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +30,7 @@ const REGIME_LABEL: Record<Regime, string> = { bull: "Strong Bull", sideways: "S
 const regimeList = (def: StrategyDef) => allowedRegimes(def).map((r) => REGIME_LABEL[r]).join(" + ");
 
 export type LabView = "live" | "lab" | "alerts" | "board" | "market";
-export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view, onUnread, quiet, limits = LIMITS }: { limits?: Limits; ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; userId: string; onUniverseChange?: () => void; view: LabView; onUnread?: (n: number) => void; quiet?: boolean }) {
+export function StrategyLab({ fixed, ctxs, regime, defs, userId, onUniverseChange, view, onUnread, quiet, limits = LIMITS }: { limits?: Limits; ctxs: Ctx[]; regime: Map<string, RegimeDay> | null; defs: StrategyDef[]; userId: string; onUniverseChange?: () => void; view: LabView; onUnread?: (n: number) => void; quiet?: boolean; fixed?: Map<string, FixedEntry> }) {
   const strategyByKey = (k: string) => defs.find((d) => d.key === k);
   const [boardFilter, setBoardFilter] = useState(true);
   const [deps, setDeps] = useState<Deployment[]>([]);
@@ -42,7 +42,7 @@ export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view
   useEffect(() => { loadDeps(); }, [userId]);
 
   const board = useMemo(() => ctxs.length && view === "board" ? defs.map((def) => ({ def, res: simulate(def, ctxs, { capital: 50000, regime: boardFilter ? regime : null }) })).sort((a, b) => (b.res.trades.length ? 1 : 0) - (a.res.trades.length ? 1 : 0) || b.res.netReturn - a.res.netReturn) : [], [ctxs, regime, boardFilter, defs, view]);
-  const live = useMemo(() => deps.map((d) => { const def = strategyByKey(d.strategy_key); return { d, def, res: def && ctxs.length ? simulate(def, ctxs, { capital: +d.capital, riskPct: +d.risk_pct, startDate: d.start_date, endDate: d.stopped_at ?? undefined, regime: d.market_filter === false ? null : regime, liveEntry: true }) : null }; }), [deps, ctxs, regime, defs]);
+  const live = useMemo(() => deps.map((d) => { const def = strategyByKey(d.strategy_key); return { d, def, res: def && ctxs.length ? simulate(def, ctxs, { capital: +d.capital, riskPct: +d.risk_pct, startDate: d.start_date, endDate: d.stopped_at ?? undefined, regime: d.market_filter === false ? null : regime, liveEntry: true, fixed }) : null }; }), [deps, ctxs, regime, defs, fixed]);
   const today = regime ? [...regime.values()].at(-1) : undefined;
   const seenKey = `swing-notif-seen-${userId}`;
   const [lastSeen, setLastSeen] = useState(() => localStorage.getItem(seenKey) ?? "0000");
