@@ -7,6 +7,7 @@ import { STRATEGIES, buildCtx, rankUniverse, marketRegime, type Ctx, type Regime
 import { compileCustom } from "@/lib/swing/rules";
 import { StrategyLab, MarketCard, UniversePanel, type LabView } from "./StrategyLab";
 import { Scanner } from "./Scanner";
+import { AllStocks } from "./AllStocks";
 import { MarketView } from "./MarketView";
 import { StrategyBuilder, type CustomRow } from "./StrategyBuilder";
 import { RobustnessLab, Tournament } from "./Robustness";
@@ -295,6 +296,7 @@ export default function MoneyDashboard() {
           </TabsContent>
           <TabsContent value="markets">{ctxs.length > 0 && <MarketView ctxs={ctxs} regime={regime} />}</TabsContent>
           <TabsContent value="scanner"><Scanner ctxs={ctxs} /></TabsContent>
+          <TabsContent value="allstocks"><AllStocks /></TabsContent>
           <TabsContent value="builder">{ctxs.length > 0 && <StrategyBuilder ctxs={ctxs} regime={regime} userId={userId} rows={customRows} onSaved={loadCustom} />}</TabsContent>
           <TabsContent value="robust">{ctxs.length > 0 && <RobustnessLab ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
           <TabsContent value="livetrades">{ctxs.length > 0 && <LiveTrades ctxs={ctxs} regime={regime} defs={defs} />}</TabsContent>
@@ -458,7 +460,7 @@ function SignalBadge({ s }: { s: number }) {
 const LAB_TABS: Record<string, LabView> = { strategies: "live", backtest: "lab", alerts: "alerts", performance: "board", regime: "market" };
 const MENU: { group: string; items: [string, string, any, string][] }[] = [
   { group: "Overview", items: [["dashboard", "Dashboard", LayoutDashboard, ""]] },
-  { group: "Market", items: [["markets", "Markets and sectors", Globe2, "Breadth, advances/declines, sector strength"], ["stocks", "Stock terminal", LineIcon, "Live charts with 20+ indicators"], ["scanner", "Scanner", ScanSearch, "Find stocks matching any rule"], ["watchlists", "Watchlists", Star, "Your saved stock lists"]] },
+  { group: "Market", items: [["markets", "Markets and sectors", Globe2, "Breadth, advances/declines, sector strength"], ["stocks", "Stock terminal", LineIcon, "Live charts with 20+ indicators"], ["scanner", "Scanner", ScanSearch, "Find stocks matching any rule"], ["allstocks", "All NSE + BSE stocks", Globe2, "Every listed share with company figures"], ["watchlists", "Watchlists", Star, "Your saved stock lists"]] },
   { group: "Strategies", items: [["strategies", "Auto-trading", Bot, "Run strategies live from any date"], ["builder", "Strategy builder", Wrench, "Create versioned strategies without code"], ["aicoach", "AI dashboard", Sparkles, "AI analysis, faults, changes and approvals"], ["performance", "Leaderboard", Trophy, "All strategies ranked"]] },
   { group: "Research", items: [["backtest", "Backtest and report", FlaskConical, "Any amount, any start date, full report"], ["robust", "Robustness tests", SplitSquareHorizontal, "Out-of-sample and reshuffle tests"], ["livetest", "Live test (top 5)", Radio, "Top 5 strategies up to today, plus today's signals"], ["aibacktest", "AI vs custom backtest", FlaskConical, "AI strategies against yours"], ["ailive", "AI vs custom live test", Radio, "AI vs yours up to today"], ["comparison", "Timeframe comparison", GitCompareArrows, "Rank strategies across periods"], ["tournament", "Tournament", Swords, "Same conditions, robustness score"], ["regime", "Market regime", Gauge, "Bull, sideways or bear; stocks scanned"]] },
   { group: "Trading", items: [["livetrades", "Live trades", Activity, "Every live signal, P&L and strategy ranking"], ["signals", "Paper signals", ListChecks, ""], ["portfolio", "Portfolio", Wallet, ""], ["alerts", "Alerts", Bell, ""], ["compare", "Rule comparison", GitCompare, ""]] },

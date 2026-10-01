@@ -20,6 +20,8 @@ export function LiveDashboard({ ctxs, regime, defs, liveCount, lastSync }: { ctx
   const [tick, setTick] = useState(Date.now()); const [start, setStart] = useState<string | null>(null);
   const [feed, setFeed] = useState<Ev[]>([]); const prev = useRef<Map<string, number> | null>(null); const seen = useRef(new Set<string>());
   const [, clock] = useState(0);
+  const [indices, setIndices] = useState<any[]>([]);
+  useEffect(() => { const load = () => db.from("swing_market_snapshot").select("symbol,price,change_pct,quote_time").eq("is_index", true).then(({ data }: any) => setIndices(data ?? [])); load(); const id = setInterval(load, 60000); return () => clearInterval(id); }, []);
   useEffect(() => { setTick(Date.now()); }, [ctxs]);
   useEffect(() => { const id = setInterval(() => clock((x) => x + 1), 1000); return () => clearInterval(id); }, []);
   useEffect(() => { db.from("swing_settings").select("value").eq("key", "live_signals").maybeSingle().then(({ data }: any) => setStart(data?.value?.start ?? istNow().toISOString().slice(0, 10))); }, []);
@@ -60,6 +62,7 @@ export function LiveDashboard({ ctxs, regime, defs, liveCount, lastSync }: { ctx
   const age = Math.round((Date.now() - tick) / 1000);
   return (
     <div className="space-y-4">
+      {indices.length > 0 && <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-6">{["NIFTY 50", "BANK NIFTY", "SENSEX", "NIFTY IT", "FIN NIFTY", "NIFTY MIDCAP 100", "INDIA VIX", "NIFTY AUTO", "NIFTY PHARMA", "NIFTY FMCG", "NIFTY METAL"].map((n) => indices.find((x) => x.symbol === n)).filter(Boolean).map((x: any) => <Card key={x.symbol}><CardContent className="p-3"><div className="text-[11px] text-muted-foreground">{x.symbol}</div><div className="text-lg font-bold tabular-nums">{f2(+x.price)}</div><div className={"text-xs tabular-nums " + tone(+x.change_pct)}>{+x.change_pct >= 0 ? "+" : ""}{f2(+x.change_pct)}%</div></CardContent></Card>)}</div>}
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8">
         {[
           ["Market", isOpen ? "LIVE" : "CLOSED", isOpen ? 1 : -1],
@@ -77,7 +80,7 @@ export function LiveDashboard({ ctxs, regime, defs, liveCount, lastSync }: { ctx
         <CardContent className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs md:grid-cols-4">
           {[
             ["NSE data", liveCount > 0 ? "Connected (live)" : isOpen ? "Disconnected" : "Market closed, last close"],
-            ["BSE data", "Not connected (no BSE live feed)"],
+            ["BSE data", "Connected (public quotes, ~15 min delay)"], ["Index data", indices.length ? `${indices.length} indices` : "Loading"],
             ["Data source", "Angel One SmartAPI (NSE)"],
             ["Refresh interval", "Live prices 30s · history 15 min"],
             ["Last refresh seen", `${fmt(tick)} (${age}s ago)`],
@@ -105,7 +108,7 @@ export function LiveDashboard({ ctxs, regime, defs, liveCount, lastSync }: { ctx
           <CardContent className="max-h-80 space-y-1 overflow-auto text-xs">{!feed.length && <p className="text-muted-foreground">Waiting for market events...</p>}
             {feed.map((e, k) => <div key={k} className="flex gap-2 border-b border-border py-1"><span className="shrink-0 tabular-nums text-muted-foreground">{fmt(e.t)}</span><Badge variant="outline" className={"shrink-0 text-[10px] " + tone(e.tone)}>{e.kind}</Badge><span>{e.text}</span></div>)}</CardContent></Card>
       </div>
-      <p className="text-[11px] text-muted-foreground">Feed times are when this screen saw the event. Market index is an equal-weight average of the scanned stocks (no NIFTY feed connected). Unofficial data via broker feed, sourced from NSE. Not investment advice.</p>
+      <p className="text-[11px] text-muted-foreground">Feed times are when this screen saw the event. Index cards (NIFTY 50, SENSEX and others) come from a public quote feed, about 15 minutes delayed; the equal-weight index is the average of the followed stocks. Unofficial data via broker feed, sourced from NSE. Not investment advice.</p>
     </div>
   );
 }
