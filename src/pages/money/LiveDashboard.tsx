@@ -41,7 +41,7 @@ export function LiveDashboard({ ctxs, regime, defs, liveCount, lastSync }: { ctx
     if (!ctxs.length) return; const now = Date.now(); const ev: Ev[] = [];
     const add = (key: string, kind: string, text: string, tn = 0) => { if (seen.current.has(key)) return; seen.current.add(key); ev.push({ t: now, kind, text, tone: tn }); };
     trades.forEach((t) => {
-      if (t.status === "SIGNAL") add(`sig|${t.id}`, "BUY signal", `${t.strategy}: BUY ${t.symbol} near ₹${f2(t.close ?? t.entry)} (fills next open)`, 1);
+      if (t.status === "SIGNAL") add(`sig|${t.id}`, "BUY signal", `${t.strategy}: BUY ${t.symbol} near ₹${f2(t.entry)} (fills next open)`, 1);
       if (t.status !== "SIGNAL") add(`open|${t.id}`, "Trade OPEN", `${t.symbol} entered at ₹${f2(t.entry)} by ${t.strategy}`, 1);
       if (t.status === "CLOSED") add(`close|${t.id}`, t.reason === "Target hit" ? "Target reached" : t.reason === "Stop loss" ? "Stop-loss hit" : "Trade closed", `${t.symbol} (${t.strategy}) closed at ₹${f2(t.exitPrice ?? 0)}, net ₹${f2(t.netPnl, 0)}`, t.netPnl);
     });
