@@ -35,7 +35,7 @@ export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view
   const [boardFilter, setBoardFilter] = useState(true);
   const [deps, setDeps] = useState<Deployment[]>([]);
   const [detail, setDetail] = useState<{ def: StrategyDef; res: SimResult; title: string } | null>(null);
-  const [form, setForm] = useState({ key: defs[11]?.key ?? defs[0]?.key, capital: 50000, risk: limits.defaultRisk, start: todayIST(), filter: true });
+  const [form, setForm] = useState({ key: defs[11]?.key ?? defs[0]?.key, capital: 50000, risk: limits.defaultRisk, start: todayIST(), filter: false });
 
 
   const loadDeps = async () => { const { data } = await db.from("swing_deployments").select("*").order("created_at", { ascending: false }); setDeps(data ?? []); };
