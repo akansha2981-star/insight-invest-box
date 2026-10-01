@@ -86,7 +86,7 @@ export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view
       {/* Auto-trade */}
       <Card>
         <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><Bot className="h-4 w-4 text-primary" />Auto-trade a strategy (paper)</CardTitle>
-          <p className="text-xs text-muted-foreground">Pick a strategy, set an amount and a start date. From that day the strategy buys at the next open after a BUY signal and sells on its SL, TP, trailing stop or exit rule, using live NSE daily data. 1% risk per trade by default, max 5 positions, charges and slippage included.</p></CardHeader>
+          <p className="text-xs text-muted-foreground">Pick a strategy, set an amount and a start date. From that day the strategy buys automatically at the live price as soon as a BUY signal appears and sells on its SL, TP, trailing stop or exit rule, using live NSE daily data. 1% risk per trade by default, max 5 positions, charges and slippage included.</p></CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-5">
           <div className="md:col-span-2"><Label className="text-xs">Strategy</Label>
             <Select value={form.key} onValueChange={(v) => setForm({ ...form, key: v })}><SelectTrigger><SelectValue /></SelectTrigger>
