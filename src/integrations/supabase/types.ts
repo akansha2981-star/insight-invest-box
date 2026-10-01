@@ -2418,7 +2418,123 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      swing_market_screen: {
+        Row: {
+          avg_vol_10d: number | null
+          avg_vol_3m: number | null
+          book_value: number | null
+          change_pct: number | null
+          div_yield: number | null
+          dma200: number | null
+          dma50: number | null
+          eps: number | null
+          exchange: string | null
+          forward_pe: number | null
+          from_hi52: number | null
+          from_lo52: number | null
+          gap_pct: number | null
+          hi52: number | null
+          high: number | null
+          is_index: boolean | null
+          lo52: number | null
+          low: number | null
+          market_cap: number | null
+          name: string | null
+          open: number | null
+          pb: number | null
+          pe: number | null
+          prev_close: number | null
+          price: number | null
+          quote_time: string | null
+          quoted_at: string | null
+          roe: number | null
+          symbol: string | null
+          token: string | null
+          value_traded: number | null
+          vol_ratio: number | null
+          volume: number | null
+          vs_dma200: number | null
+          vs_dma50: number | null
+          yahoo: string | null
+        }
+        Insert: {
+          avg_vol_10d?: number | null
+          avg_vol_3m?: number | null
+          book_value?: number | null
+          change_pct?: number | null
+          div_yield?: number | null
+          dma200?: number | null
+          dma50?: number | null
+          eps?: number | null
+          exchange?: string | null
+          forward_pe?: number | null
+          from_hi52?: never
+          from_lo52?: never
+          gap_pct?: never
+          hi52?: number | null
+          high?: number | null
+          is_index?: boolean | null
+          lo52?: number | null
+          low?: number | null
+          market_cap?: number | null
+          name?: string | null
+          open?: number | null
+          pb?: number | null
+          pe?: number | null
+          prev_close?: number | null
+          price?: number | null
+          quote_time?: string | null
+          quoted_at?: string | null
+          roe?: number | null
+          symbol?: string | null
+          token?: string | null
+          value_traded?: never
+          vol_ratio?: never
+          volume?: number | null
+          vs_dma200?: never
+          vs_dma50?: never
+          yahoo?: string | null
+        }
+        Update: {
+          avg_vol_10d?: number | null
+          avg_vol_3m?: number | null
+          book_value?: number | null
+          change_pct?: number | null
+          div_yield?: number | null
+          dma200?: number | null
+          dma50?: number | null
+          eps?: number | null
+          exchange?: string | null
+          forward_pe?: number | null
+          from_hi52?: never
+          from_lo52?: never
+          gap_pct?: never
+          hi52?: number | null
+          high?: number | null
+          is_index?: boolean | null
+          lo52?: number | null
+          low?: number | null
+          market_cap?: number | null
+          name?: string | null
+          open?: number | null
+          pb?: number | null
+          pe?: number | null
+          prev_close?: number | null
+          price?: number | null
+          quote_time?: string | null
+          quoted_at?: string | null
+          roe?: number | null
+          symbol?: string | null
+          token?: string | null
+          value_traded?: never
+          vol_ratio?: never
+          volume?: number | null
+          vs_dma200?: never
+          vs_dma50?: never
+          yahoo?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
