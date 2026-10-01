@@ -15,6 +15,7 @@ import { Watchlists } from "./Watchlists";
 import { AdminControls } from "./AdminControls";
 import { LiveTest } from "./LiveTest";
 import { LiveTrades } from "./LiveTrades";
+import { LiveDashboard } from "./LiveDashboard";
 import { Leaderboard } from "./Leaderboard";
 import { RealTrading } from "./RealTrading";
 import { AIvsCustom } from "./AIvsCustom";
@@ -286,6 +287,7 @@ export default function MoneyDashboard() {
           {ctxs.length > 0 && tab !== "alerts" && !LAB_TABS[tab] && <span className="hidden"><StrategyLab ctxs={ctxs} regime={regime} defs={defs} userId={userId} view="alerts" onUnread={setUnread} /></span>}
 
           <TabsContent value="dashboard" className="space-y-4">
+            {ctxs.length > 0 && <LiveDashboard ctxs={ctxs} regime={regime} defs={defs} liveCount={Object.keys(live).length} lastSync={lastSync} />}
             {today && regime && <MarketCard today={today} regime={regime} />}
             <div className="grid gap-3 md:grid-cols-3">{MENU.slice(1, 4).flatMap((g) => g.items).filter(([v]) => v !== "dashboard").map(([v, l, I, d]) => (
               <button key={v} onClick={() => setTab(v)} className="rounded-lg border border-border bg-background p-4 text-left transition-colors hover:border-primary">
