@@ -2055,6 +2055,36 @@ export type Database = {
         }
         Relationships: []
       }
+      swing_signal_log: {
+        Row: {
+          closed_seen_at: string | null
+          first_seen_at: string
+          id: string
+          signal_date: string
+          strategy_key: string
+          strategy_name: string
+          symbol: string
+        }
+        Insert: {
+          closed_seen_at?: string | null
+          first_seen_at?: string
+          id?: string
+          signal_date: string
+          strategy_key: string
+          strategy_name: string
+          symbol: string
+        }
+        Update: {
+          closed_seen_at?: string | null
+          first_seen_at?: string
+          id?: string
+          signal_date?: string
+          strategy_key?: string
+          strategy_name?: string
+          symbol?: string
+        }
+        Relationships: []
+      }
       swing_strategies: {
         Row: {
           created_at: string
