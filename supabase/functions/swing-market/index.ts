@@ -5,7 +5,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 // plus daily history for major indices. Refreshed in rotating batches by a scheduled job.
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36";
 const INDICES: [string, string][] = [["NIFTY 50", "^NSEI"], ["BANK NIFTY", "^NSEBANK"], ["SENSEX", "^BSESN"], ["NIFTY IT", "^CNXIT"], ["FIN NIFTY", "NIFTY_FIN_SERVICE.NS"]];
-const BATCH = 1500, PER_REQ = 100, PARALLEL = 5;
+const BATCH = 1000, PER_REQ = 100, PARALLEL = 5;
 
 async function crumb(): Promise<{ cookie: string; crumb: string } | null> {
   const r = await fetch("https://fc.yahoo.com", { headers: { "User-Agent": UA }, redirect: "manual" });
