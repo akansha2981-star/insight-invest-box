@@ -121,7 +121,7 @@ export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view
                   </div>
                   {d.status === "active" && res.pending.length > 0 && (
                     <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs">
-                      <div className="mb-1 flex items-center gap-1 font-semibold text-foreground"><Clock className="h-3 w-3" />Will BUY at next market open</div>
+                      <div className="mb-1 flex items-center gap-1 font-semibold text-foreground"><Clock className="h-3 w-3" />Today's BUY signals (bought automatically at the live price)</div>
                       {res.pending.map((p) => <div key={p.symbol}>{p.symbol}: signal close {px(p.close)} · SL {px(p.stopLoss)} · TP1 {px(p.tp1)} · TP2 {px(p.tp2)} · approx qty {p.qty} · {p.note}</div>)}
                     </div>)}
                   {openT.length === 0 && res.pending.length === 0 && <p className="text-xs text-muted-foreground">{d.market_filter !== false && today && !allowedRegimes(def).includes(today.regime) ? `Paused: the market is ${REGIME_LABEL[today.regime]}, and this strategy only buys in ${regimeList(def)}. Open trades are still managed.` : "Waiting for a BUY signal. The strategy checks every stock after each live data update."}</p>}
