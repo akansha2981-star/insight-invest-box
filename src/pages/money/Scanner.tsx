@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScanSearch, ArrowUpDown, Zap, Filter, Loader2, Search } from "lucide-react";
 import type { Ctx } from "@/lib/swing/strategies20";
 import { PRESETS, describe, evalCond, evalGroup, newGroup, val, type Group, type Cond } from "@/lib/swing/rules";
@@ -69,7 +69,7 @@ export function Scanner({ ctxs }: { ctxs: Ctx[] }) {
     const val = (x: any) => (sort.k === "sym" ? x.sym : Number.isFinite(x[sort.k]) ? x[sort.k] : -Infinity);
     return out.sort((a, b) => (val(a) > val(b) ? 1 : val(a) < val(b) ? -1 : 0) * sort.dir);
   }, [rows, run, f, sort]);
-  useMemo(() => setPage(0), [run, f, sort]);
+  useEffect(() => setPage(0), [run, f, sort]);
   const pages = Math.max(1, Math.ceil(hits.length / PAGE)); const shown = hits.slice(page * PAGE, page * PAGE + PAGE);
   const near = useMemo(() => (!f.useRule || hits.length >= 5 ? [] : rows.filter((x) => passFilters(x) && !evalGroup(x.c, x.i, run.g)).map((x) => ({ x, s: score(x.c, x.i, run.g) })).filter((y) => y.s.ok > 0).sort((a, b) => b.s.ok - a.s.ok).slice(0, 8)), [rows, run, f, hits.length]);
 
