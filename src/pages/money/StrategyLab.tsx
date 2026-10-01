@@ -42,7 +42,7 @@ export function StrategyLab({ ctxs, regime, defs, userId, onUniverseChange, view
   useEffect(() => { loadDeps(); }, [userId]);
 
   const board = useMemo(() => ctxs.length && view === "board" ? defs.map((def) => ({ def, res: simulate(def, ctxs, { capital: 50000, regime: boardFilter ? regime : null }) })).sort((a, b) => (b.res.trades.length ? 1 : 0) - (a.res.trades.length ? 1 : 0) || b.res.netReturn - a.res.netReturn) : [], [ctxs, regime, boardFilter, defs, view]);
-  const live = useMemo(() => deps.map((d) => { const def = strategyByKey(d.strategy_key); return { d, def, res: def && ctxs.length ? simulate(def, ctxs, { capital: +d.capital, riskPct: +d.risk_pct, startDate: d.start_date, endDate: d.stopped_at ?? undefined, regime: d.market_filter === false ? null : regime }) : null }; }), [deps, ctxs, regime, defs]);
+  const live = useMemo(() => deps.map((d) => { const def = strategyByKey(d.strategy_key); return { d, def, res: def && ctxs.length ? simulate(def, ctxs, { capital: +d.capital, riskPct: +d.risk_pct, startDate: d.start_date, endDate: d.stopped_at ?? undefined, regime: d.market_filter === false ? null : regime, liveEntry: true }) : null }; }), [deps, ctxs, regime, defs]);
   const today = regime ? [...regime.values()].at(-1) : undefined;
   const seenKey = `swing-notif-seen-${userId}`;
   const [lastSeen, setLastSeen] = useState(() => localStorage.getItem(seenKey) ?? "0000");
