@@ -269,13 +269,22 @@ async function stageAudit(sb: Admin, job: any): Promise<boolean> {
   return false;
 }
 
+const JUNK_HOSTS = ["youtube.com", "youtu.be", "facebook.com", "instagram.com", "x.com", "twitter.com", "reddit.com", "linkedin.com", "pinterest.com", "whatsapp.com", "telegram", "threads.net", "quora.com", "flipboard.com"];
+
 async function stageDiscover(sb: Admin, job: any, schedule: any): Promise<boolean> {
   const topics: string[] = Array.isArray(schedule.topics) ? schedule.topics.slice(0, 10) : [];
   const t = Number(job.cursor.t ?? 0);
   if (t >= topics.length) return false;
   const topic = topics[t];
-  const results = await fcSearch(`${topic} latest news`, 8);
-  const leads = results.filter((r) => r.url && !/\.(pdf|jpg|png)$/i.test(r.url)).map((r) => ({ topic, title: r.title.slice(0, 200), url: r.url, publisher: publisherOf(r.url) }));
+  // General news search + a primary/official-source search (regulators, exchanges, ministries)
+  const general = await fcSearch(`${topic} latest news`, 8);
+  const primary = await fcSearch(`${topic} (site:rbi.org.in OR site:sebi.gov.in OR site:pib.gov.in OR site:nseindia.com OR site:bseindia.com OR site:amfiindia.com OR site:mospi.gov.in OR site:irdai.gov.in)`, 5);
+  const all = [...primary, ...general];
+  const leads = all
+    .filter((r) => r.url && !/\.(pdf|jpg|png)$/i.test(r.url))
+    .filter((r) => !JUNK_HOSTS.some((d) => publisherOf(r.url).includes(d)))
+    .filter((r) => { try { const p = new URL(r.url).pathname; return p.length > 3 && !/^\/(watch|reel|shorts|video)/.test(p); } catch { return false; } })
+    .map((r) => ({ topic, title: r.title.slice(0, 200), url: r.url, publisher: publisherOf(r.url) }));
   job.topics = [...(job.topics ?? []), ...leads];
   job.cursor = { ...job.cursor, t: t + 1 };
   job.stats.discovered = (job.stats.discovered ?? 0) + leads.length;
