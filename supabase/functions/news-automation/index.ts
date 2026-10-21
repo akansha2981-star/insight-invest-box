@@ -612,6 +612,7 @@ async function tick(sb: Admin, force: boolean, trigger: string, userId: string |
       if (!more) {
         const idx = STAGES.indexOf(job.stage);
         job.stage = STAGES[Math.min(idx + 1, STAGES.length - 1)];
+        job.cursor = {}; // each stage starts with its own cursor
         more = job.stage !== "done";
       }
       await updateJob(sb, job);
