@@ -118,7 +118,16 @@ async function callAI(input: string): Promise<any> {
   return JSON.parse(out);
 }
 
+// Firecrawl free-tier limit is ~11 requests/min — space calls out within a tick
+let lastFcCall = 0;
+async function fcThrottle() {
+  const wait = 5600 - (Date.now() - lastFcCall);
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  lastFcCall = Date.now();
+}
+
 async function fcSearch(query: string, limit = 8): Promise<Array<{ url: string; title: string; description: string }>> {
+  await fcThrottle();
   const res = await fetch(`${GATEWAY}/firecrawl/v2/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")!}`, "X-Connection-Api-Key": `${Deno.env.get("FIRECRAWL_API_KEY")!}` },
@@ -131,6 +140,7 @@ async function fcSearch(query: string, limit = 8): Promise<Array<{ url: string; 
 }
 
 async function fcScrape(url: string): Promise<{ markdown: string; title: string }> {
+  await fcThrottle();
   const res = await fetch(`${GATEWAY}/firecrawl/v2/scrape`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")!}`, "X-Connection-Api-Key": `${Deno.env.get("FIRECRAWL_API_KEY")!}` },
@@ -157,7 +167,12 @@ async function semrushPhrase(phrase: string): Promise<{ keyword: string; volume:
 
 function classifyError(e: any): "transient" | "paused" | "fatal" {
   const s = Number(e?.status ?? 0);
-  if (s === 402 || s === 403) return "paused";
+  const msg = String(e?.message ?? "");
+  // Credit / quota / policy pauses persist across entry points
+  if (s === 402 || /credit limit reached|not enough credits|payment_required|TOTAL LIMIT EXCEEDED/i.test(msg)) return "paused";
+  // Provider-level refusals of one site are not pauses — skip that source and continue
+  if (s === 403 && /do not support this site|robots|paywall|login required|captcha/i.test(msg)) return "fatal";
+  if (s === 403) return "paused";
   if (s === 429 || s >= 500 || s === 0) return "transient";
   return "fatal";
 }
@@ -254,13 +269,22 @@ async function stageAudit(sb: Admin, job: any): Promise<boolean> {
   return false;
 }
 
+const JUNK_HOSTS = ["youtube.com", "youtu.be", "facebook.com", "instagram.com", "x.com", "twitter.com", "reddit.com", "linkedin.com", "pinterest.com", "whatsapp.com", "telegram", "threads.net", "quora.com", "flipboard.com"];
+
 async function stageDiscover(sb: Admin, job: any, schedule: any): Promise<boolean> {
   const topics: string[] = Array.isArray(schedule.topics) ? schedule.topics.slice(0, 10) : [];
   const t = Number(job.cursor.t ?? 0);
   if (t >= topics.length) return false;
   const topic = topics[t];
-  const results = await fcSearch(`${topic} latest news`, 8);
-  const leads = results.filter((r) => r.url && !/\.(pdf|jpg|png)$/i.test(r.url)).map((r) => ({ topic, title: r.title.slice(0, 200), url: r.url, publisher: publisherOf(r.url) }));
+  // General news search + a primary/official-source search (regulators, exchanges, ministries)
+  const general = await fcSearch(`${topic} latest news`, 8);
+  const primary = await fcSearch(`${topic} (site:rbi.org.in OR site:sebi.gov.in OR site:pib.gov.in OR site:nseindia.com OR site:bseindia.com OR site:amfiindia.com OR site:mospi.gov.in OR site:irdai.gov.in)`, 5);
+  const all = [...primary, ...general];
+  const leads = all
+    .filter((r) => r.url && !/\.(pdf|jpg|png)$/i.test(r.url))
+    .filter((r) => !JUNK_HOSTS.some((d) => publisherOf(r.url).includes(d)))
+    .filter((r) => { try { const p = new URL(r.url).pathname; return p.length > 3 && !/^\/(watch|reel|shorts|video)/.test(p); } catch { return false; } })
+    .map((r) => ({ topic, title: r.title.slice(0, 200), url: r.url, publisher: publisherOf(r.url) }));
   job.topics = [...(job.topics ?? []), ...leads];
   job.cursor = { ...job.cursor, t: t + 1 };
   job.stats.discovered = (job.stats.discovered ?? 0) + leads.length;
@@ -289,23 +313,45 @@ async function stageDedupe(sb: Admin, job: any): Promise<boolean> {
   return false;
 }
 
+// Pick the densest prose from scraped markdown: drop nav/link-only lines, then take the richest window
+function excerptOf(markdown: string): string {
+  const lines = markdown.split("\n").map((l) => l.trim())
+    .filter((l) => l.length >= 60)
+    .filter((l) => !/^!\[/.test(l) && !/^\[[^\]]*\]\(https?:\/\/[^)]*\)$/.test(l))
+    .filter((l) => !/^(cookie|privacy policy|terms of use|subscribe|sign in|log in|advertisement)/i.test(l));
+  const joined = lines.join(" ").replace(/\s+/g, " ").trim();
+  if (joined.length <= 1800) return joined;
+  // densest 1800-char window (most sentence endings)
+  let best = 0, bestScore = -1;
+  for (let i = 0; i + 1800 <= joined.length; i += 600) {
+    const w = joined.slice(i, i + 1800);
+    const score = (w.match(/[.!?] /g) ?? []).length;
+    if (score > bestScore) { bestScore = score; best = i; }
+  }
+  return joined.slice(best, best + 1800);
+}
+
 async function stageRetrieve(sb: Admin, job: any, schedule: any): Promise<boolean> {
   const topics: string[] = [...new Set((job.topics ?? []).map((l: any) => l.topic))];
   const maxSrc = Math.min(Math.max(Number(schedule.maxSourcesPerTopic ?? 6), 1), 10);
   let t = Number(job.cursor.t ?? 0), u = Number(job.cursor.u ?? 0);
   if (t >= topics.length) return false;
-  const leads = (job.topics ?? []).filter((l: any) => l.topic === topics[t]).slice(0, maxSrc);
+  // Primary/official sources first, then general news
+  const leads = (job.topics ?? []).filter((l: any) => l.topic === topics[t])
+    .sort((a: any, b: any) => Number(isPrimary(b.url)) - Number(isPrimary(a.url)))
+    .slice(0, maxSrc);
   const lead = leads[u];
   if (!lead) { t++; u = 0; job.cursor = { ...job.cursor, t, u }; return t < topics.length; }
   const { data: dup } = await sb.from("news_evidence").select("id").eq("job_id", job.id).eq("source_url", lead.url).maybeSingle();
   if (!dup) {
     try {
       const { markdown, title } = await fcScrape(lead.url);
-      if (markdown && markdown.length >= 200) {
+      const excerpt = excerptOf(markdown);
+      if (markdown && markdown.length >= 200 && excerpt.length >= 200) {
         await sb.from("news_evidence").insert({
           job_id: job.id, topic: topics[t], source_url: lead.url, publisher: lead.publisher,
           title: (title || lead.title).slice(0, 300), kind: isPrimary(lead.url) ? "primary" : "secondary",
-          fingerprint: await sha256(markdown), excerpt: markdown.slice(0, 1500),
+          fingerprint: await sha256(markdown), excerpt,
         });
         job.stats.retrieved = (job.stats.retrieved ?? 0) + 1;
       } else {
@@ -581,9 +627,11 @@ async function tick(sb: Admin, force: boolean, trigger: string, userId: string |
   const today = istDate();
   let job: any = null;
   const { data: todayJobs } = await sb.from("news_automation_jobs").select("*").eq("run_date", today).order("started_at", { ascending: false });
-  const running = (todayJobs ?? []).find((j: any) => j.status === "running");
-  if (running) job = running;
-  else if (!force && (todayJobs ?? []).some((j: any) => j.status === "done")) return { skipped: "Already ran today" };
+  const resumable = (todayJobs ?? []).find((j: any) => j.status === "running" || (j.status === "paused" && !schedule.paused));
+  if (resumable) {
+    job = resumable;
+    if (job.status === "paused") { job.status = "running"; job.error = null; }
+  } else if (!force && (todayJobs ?? []).some((j: any) => j.status === "done")) return { skipped: "Already ran today" };
   else {
     const manualCount = (todayJobs ?? []).filter((j: any) => j.trigger_type === "manual").length;
     const key = force ? `run:${today}:m${manualCount + 1}` : `run:${today}`;
@@ -612,6 +660,7 @@ async function tick(sb: Admin, force: boolean, trigger: string, userId: string |
       if (!more) {
         const idx = STAGES.indexOf(job.stage);
         job.stage = STAGES[Math.min(idx + 1, STAGES.length - 1)];
+        job.cursor = {}; // each stage starts with its own cursor
         more = job.stage !== "done";
       }
       await updateJob(sb, job);
@@ -629,12 +678,15 @@ async function tick(sb: Admin, force: boolean, trigger: string, userId: string |
     await updateJob(sb, job);
     const { data: cs } = await sb.from("news_cron_secret").select("secret").eq("id", 1).maybeSingle();
     const selfUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/news-automation`;
-    // @ts-ignore EdgeRuntime is provided by the runtime
-    EdgeRuntime.waitUntil((async () => {
-      await new Promise((r) => setTimeout(r, 1500));
-      await fetch(selfUrl, { method: "POST", headers: { "Content-Type": "application/json", "x-cron-secret": cs?.secret ?? "" }, body: JSON.stringify({ action: "tick", job_id: job.id }) }).catch(() => {});
-    })());
-    return { job_id: job.id, status: "running", stage: job.stage, stats: job.stats, more: true };
+    const hasEdgeRuntime = typeof (globalThis as any).EdgeRuntime?.waitUntil === "function";
+    if (hasEdgeRuntime) {
+      // @ts-ignore EdgeRuntime is provided by the runtime
+      EdgeRuntime.waitUntil((async () => {
+        await new Promise((r) => setTimeout(r, 1500));
+        await fetch(selfUrl, { method: "POST", headers: { "Content-Type": "application/json", "x-cron-secret": cs?.secret ?? "" }, body: JSON.stringify({ action: "tick", job_id: job.id }) }).catch(() => {});
+      })());
+    }
+    return { job_id: job.id, status: "running", stage: job.stage, stats: job.stats, more: true, self_continuation: hasEdgeRuntime };
   } catch (e: any) {
     const kind = classifyError(e);
     job.error = String(e?.message ?? e).slice(0, 1000);
@@ -663,6 +715,12 @@ async function sitemapRefresh(sb: Admin, trigger: string) {
     const existingPaths = new Set((existing ?? []).map((e: any) => e.path));
     const newRows = rows.filter((r) => !existingPaths.has(r.path));
     if (rows.length) await sb.from("sitemap_urls").upsert(rows, { onConflict: "url" });
+    // Normalize legacy rows to the canonical base (www) so every URL shares one host
+    const { data: offBase } = await sb.from("sitemap_urls").select("id,url").or(`url.like.https://investingiq.in/*,url.like.https://insight-invest-box.lovable.app/*`).limit(600);
+    for (const r of offBase ?? []) {
+      const nu = String(r.url).replace(/^https:\/\/investingiq\.in/, baseUrl).replace(/^https:\/\/insight-invest-box\.lovable\.app/, baseUrl);
+      if (nu !== r.url) await sb.from("sitemap_urls").update({ url: nu }).eq("id", r.id);
+    }
     // Clear fabricated generation-time lastmods on static/city entries
     await sb.from("sitemap_urls").update({ lastmod: null }).in("source", ["static", "re_city"]);
     const incoming = new Set(rows.map((r) => r.path));
