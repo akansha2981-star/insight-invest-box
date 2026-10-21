@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AdminNewsEngine } from "@/components/AdminNewsEngine";
 import { AdminAutomationPanel } from "@/components/AdminAutomationPanel";
+import { LiveArticleStudio } from "@/components/LiveArticleStudio";
 import { AdminAIContentStudio } from "@/components/AdminAIContentStudio";
 import { AdminSitemapManager } from "@/components/AdminSitemapManager";
 import { AdminRealEstate } from "@/components/AdminRealEstate";
@@ -134,8 +135,9 @@ export function AdminNewsResearchCentre() {
       <Button variant="outline" disabled={loading} onClick={() => void load()}><RefreshCw className={loading ? "animate-spin" : ""} />Refresh report</Button>
     </header>
     {error && <div role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-2 text-sm text-destructive"><AlertCircle className="h-4 w-4 shrink-0 mt-0.5" /><span>{error} · Figures below may reflect the last successful refresh.</span></div>}
-    <Tabs defaultValue="intelligence" className="min-w-0">
+    <Tabs defaultValue="live" className="min-w-0">
       <div className="overflow-x-auto pb-2"><TabsList className="h-auto justify-start gap-1 bg-transparent border-b border-border rounded-none p-0 pb-2">
+        <TabsTrigger value="live"><Radio className="h-4 w-4 mr-2" />Live Article Studio</TabsTrigger>
         <TabsTrigger value="intelligence"><FileText className="h-4 w-4 mr-2" />AI Daily Intelligence</TabsTrigger>
         <TabsTrigger value="news"><Newspaper className="h-4 w-4 mr-2" />News Desk</TabsTrigger>
         <TabsTrigger value="studio"><Sparkles className="h-4 w-4 mr-2" />Content Studio</TabsTrigger>
@@ -143,6 +145,8 @@ export function AdminNewsResearchCentre() {
         <TabsTrigger value="sitemap"><ListTree className="h-4 w-4 mr-2" />Sitemap</TabsTrigger>
         <TabsTrigger value="settings"><Settings2 className="h-4 w-4 mr-2" />Automation & Connections</TabsTrigger>
       </TabsList></div>
+
+      <TabsContent value="live" className="mt-5"><LiveArticleStudio /></TabsContent>
 
       <TabsContent value="intelligence" className="space-y-6 mt-5">
         <div className="flex flex-wrap items-end gap-3">
@@ -164,7 +168,7 @@ export function AdminNewsResearchCentre() {
             { label: "Published word count", value: posts.reduce((n, p) => n + articleWords(p.content), 0), detail: `${posts.length} articles · all publishing tools`, icon: FileText },
           ].map(stat => <div key={stat.label} className="border border-border rounded-md bg-card p-3 sm:p-4"><div className="flex items-start gap-2 text-xs text-muted-foreground"><stat.icon className="h-4 w-4 shrink-0 text-primary" /><span>{stat.label}</span></div><div className="text-2xl font-bold my-2 tabular-nums">{loading && !updated ? "—" : stat.value.toLocaleString("en-IN")}</div><p className="text-[11px] text-muted-foreground">{stat.detail}</p></div>)}
         </div>
-        <div className="flex flex-wrap gap-x-8 gap-y-3 py-4 border-y border-border text-sm"><span>Research verification: <b className="font-semibold">Not yet connected</b></span><span>Unattended publishing: <b className="font-semibold">Off</b></span><span>Search Console: <b className="font-semibold">Not connected</b></span></div>
+        <div className="flex flex-wrap gap-x-8 gap-y-3 py-4 border-y border-border text-sm"><span>Research verification: <b className="font-semibold">Not yet connected</b></span><span>Unattended publishing: <b className="font-semibold">Automatic after checks</b></span><span>Search Console: <b className="font-semibold">Connected · site verification pending publish</b></span></div>
         <div>
           <div className="flex flex-wrap items-center justify-between gap-2 mb-4"><h2 className="text-base font-semibold">Publication trend</h2><span className="text-xs text-muted-foreground">All published articles · cumulative total {trend.at(-1)?.cumulative ?? 0}</span></div>
           {!posts.length ? <Empty>No articles were published during this period.</Empty> : <div className="overflow-x-auto"><div className="flex items-end gap-2 h-44 border-b border-border pb-2 min-w-fit">{trend.map(point => <div key={point.date} className="flex flex-col items-center justify-end h-full min-w-10 flex-1 gap-1"><span className="text-[10px] tabular-nums">{point.published}</span><div className={`w-6 rounded-t-sm ${point.published ? "bg-primary" : "bg-muted"} ${barHeights[Math.round(point.published / maxTrend * 9)]}`} title={`${point.date}: ${point.published} published · ${point.cumulative} cumulative`} data-count={point.published} /><span className="text-[9px] text-muted-foreground whitespace-nowrap">{point.date.slice(5)}</span></div>)}</div></div>}
