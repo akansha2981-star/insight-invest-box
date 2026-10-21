@@ -736,6 +736,36 @@ export type Database = {
         }
         Relationships: []
       }
+      news_activity_log: {
+        Row: {
+          created_at: string
+          detail: Json
+          id: number
+          job_id: string | null
+          message: string
+          stage: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          id?: number
+          job_id?: string | null
+          message: string
+          stage: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          id?: number
+          job_id?: string | null
+          message?: string
+          stage?: string
+          status?: string
+        }
+        Relationships: []
+      }
       news_audit_findings: {
         Row: {
           detail: Json
@@ -1023,6 +1053,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      news_live_writing: {
+        Row: {
+          chars: number
+          draft_id: string | null
+          id: string
+          job_id: string
+          partial_text: string
+          status: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          chars?: number
+          draft_id?: string | null
+          id?: string
+          job_id: string
+          partial_text?: string
+          status?: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          chars?: number
+          draft_id?: string | null
+          id?: string
+          job_id?: string
+          partial_text?: string
+          status?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       news_revisions: {
         Row: {
@@ -1746,6 +1809,7 @@ export type Database = {
           id: string
           ran_at: string
           status: string
+          submissions: Json
           total_urls: number
           trigger_type: string
           validation: Json
@@ -1757,6 +1821,7 @@ export type Database = {
           id?: string
           ran_at?: string
           status: string
+          submissions?: Json
           total_urls?: number
           trigger_type?: string
           validation?: Json
@@ -1768,6 +1833,7 @@ export type Database = {
           id?: string
           ran_at?: string
           status?: string
+          submissions?: Json
           total_urls?: number
           trigger_type?: string
           validation?: Json
