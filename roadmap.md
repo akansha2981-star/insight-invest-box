@@ -9,3 +9,4 @@
 - [x] Admin-only AI News & Research Centre: daily intelligence from stored records, date filters, URL copy/export, and integrated existing content tools
 - [ ] Verified unattended publishing and 20:00 IST automation — blocked on a configured independent research/evidence service and validated publishing gates; deliberately not activated
 - [ ] Search Console metrics and completion notifications — blocked on authorized service connections
+- [ ] Audit and plan uploaded full-site background research, evidence-gated publishing, configurable IST schedule, verified property updates, and twice-daily sitemap synchronization
