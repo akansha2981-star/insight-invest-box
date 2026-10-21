@@ -715,6 +715,12 @@ async function sitemapRefresh(sb: Admin, trigger: string) {
     const existingPaths = new Set((existing ?? []).map((e: any) => e.path));
     const newRows = rows.filter((r) => !existingPaths.has(r.path));
     if (rows.length) await sb.from("sitemap_urls").upsert(rows, { onConflict: "url" });
+    // Normalize legacy rows to the canonical base (www) so every URL shares one host
+    const { data: offBase } = await sb.from("sitemap_urls").select("id,url").or(`url.like.https://investingiq.in/*,url.like.https://insight-invest-box.lovable.app/*`).limit(600);
+    for (const r of offBase ?? []) {
+      const nu = String(r.url).replace(/^https:\/\/investingiq\.in/, baseUrl).replace(/^https:\/\/insight-invest-box\.lovable\.app/, baseUrl);
+      if (nu !== r.url) await sb.from("sitemap_urls").update({ url: nu }).eq("id", r.id);
+    }
     // Clear fabricated generation-time lastmods on static/city entries
     await sb.from("sitemap_urls").update({ lastmod: null }).in("source", ["static", "re_city"]);
     const incoming = new Set(rows.map((r) => r.path));
