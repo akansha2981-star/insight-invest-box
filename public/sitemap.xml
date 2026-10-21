@@ -2,301 +2,251 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.investingiq.in/</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/news</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/news-hub</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/markets</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/stocks</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/stocks/reviews</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/economy</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/mutual-funds</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/mutual-funds/screener</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/mutual-funds/compare</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/mutual-funds/overlap</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/mutual-funds/news</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/etfs</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/etfs/screener</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/etfs/compare</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/crypto</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/real-estate</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/portfolio</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/currency-converter</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/sip</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/calculators/emi-calculator</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/fd</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/tax</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/screener</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/portfolio</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/step-up-sip</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/goal-sip</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/retirement-sip</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/child-education-sip</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/marriage-sip</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/inflation-sip</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/fire-calculator</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/lumpsum-calculator</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/swp-calculator</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/tools/portfolio-analyzer</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/best-mutual-funds-2026</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/best-sip-funds</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/best-elss-funds</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/best-small-cap-funds</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/best-index-funds</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/best-etfs-india</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/gold-etf-vs-physical-gold</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/etf-vs-mutual-fund</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/sip-vs-lumpsum</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/about</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/careers</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/contact</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/privacy</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.investingiq.in/terms</loc>
-    <lastmod>2026-10-21T09:07:00.855Z</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -320,7 +270,7 @@
   </url>
   <url>
     <loc>https://www.investingiq.in/news/best-indian-stock-market-analysis-your-complete-guide-to-smarter-investing-in-2026</loc>
-    <lastmod>2026-06-13T23:20:00.566947+00:00</lastmod>
+    <lastmod>2026-10-21T09:10:23.527618+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -333,12 +283,6 @@
   <url>
     <loc>https://www.investingiq.in/news/india-s-cpi-and-wpi-data-analyzing-retail-vs-wholesale-inflation-trends</loc>
     <lastmod>2026-06-15T20:03:43.448538+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.investingiq.in/news/top-10-stocks-to-watch-in-april-2026-ai-tech-chips-more</loc>
-    <lastmod>2026-06-14T10:46:16.466459+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -386,7 +330,7 @@
   </url>
   <url>
     <loc>https://www.investingiq.in/news/rera-india-2026-complete-guide-rules-rights-registration-process</loc>
-    <lastmod>2026-07-10T16:27:43.218748+00:00</lastmod>
+    <lastmod>2026-10-21T09:10:24.566556+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -559,6 +503,18 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.investingiq.in/news/gurgaon-builder-floor-government-update-april-2026-hc-stay-stilt4-rules-what-it-means-for-you</loc>
+    <lastmod>2026-10-21T09:10:25.238577+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.investingiq.in/news/india-q1-2026-real-estate-report-housing-sales-trends-market-analysis-what-it-means-for-homebuyers-nationwide</loc>
+    <lastmod>2026-10-21T09:10:25.658074+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.investingiq.in/news/top-undervalued-stocks-in-india-right-now-hidden-gems</loc>
     <lastmod>2026-06-11T09:02:35.603281+00:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -571,26 +527,26 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.investingiq.in/news/gurgaon-builder-floor-government-update-april-2026-hc-stay-stilt4-rules-what-it-means-for-you</loc>
-    <lastmod>2026-06-14T11:23:00.86694+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.investingiq.in/news/india-q1-2026-real-estate-report-housing-sales-trends-market-analysis-what-it-means-for-homebuyers-nationwide</loc>
-    <lastmod>2026-06-14T19:21:07.040872+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.investingiq.in/news/rbi-mpc-maintains-repo-rate-at-6-5-what-it-means-for-indian-economy-shmn</loc>
     <lastmod>2026-06-15T20:03:51.573435+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.investingiq.in/news/top-10-stocks-to-watch-in-april-2026-ai-tech-chips-more</loc>
+    <lastmod>2026-10-21T09:10:23.900805+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.investingiq.in/news/how-to-use-a-stock-screener-for-indian-stocks-the-ultimate-professional-guide</loc>
     <lastmod>2026-06-14T21:29:47.597874+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.investingiq.in/news/gurgaon-real-estate-market-forecast-20262030</loc>
+    <lastmod>2026-10-21T09:10:26.776556+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -709,14 +665,14 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.investingiq.in/news/sensex-live-chart-live-updates-analysis-trends-investment-guide-2026</loc>
-    <lastmod>2026-07-13T03:16:36.171205+00:00</lastmod>
+    <loc>https://www.investingiq.in/news/q4-fy2026-earnings-season-indian-corporates-navigate-policy-shifts-and-growth</loc>
+    <lastmod>2026-06-15T20:03:53.696814+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.investingiq.in/news/q4-fy2026-earnings-season-indian-corporates-navigate-policy-shifts-and-growth</loc>
-    <lastmod>2026-06-15T20:03:53.696814+00:00</lastmod>
+    <loc>https://www.investingiq.in/news/sensex-live-chart-live-updates-analysis-trends-investment-guide-2026</loc>
+    <lastmod>2026-10-21T09:10:26.027031+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -885,6 +841,12 @@
   <url>
     <loc>https://www.investingiq.in/news/union-budget-2026-27-key-expectations-emerge-from-pre-budget-consultations</loc>
     <lastmod>2026-06-14T22:19:06.720628+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.investingiq.in/news/nifty-50-q1-2026-review-key-numbers-trends-takeaways-for-indian-investors</loc>
+    <lastmod>2026-10-21T09:10:27.12544+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1376,7 +1338,7 @@
   </url>
   <url>
     <loc>https://www.investingiq.in/news/oil-crisis-2026-who-really-wins-and-who-quietly-loses</loc>
-    <lastmod>2026-09-06T22:59:50.476023+00:00</lastmod>
+    <lastmod>2026-10-21T09:10:26.382777+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1484,12 +1446,6 @@
   </url>
   <url>
     <loc>https://www.investingiq.in/news/debt-mutual-funds-adapt-to-evolving-interest-rate-landscape-in-india</loc>
-    <lastmod>2026-07-10T16:27:43.218748+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.investingiq.in/news/gurgaon-real-estate-market-forecast-20262030</loc>
     <lastmod>2026-07-10T16:27:43.218748+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -2299,12 +2255,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.investingiq.in/news/nifty-50-q1-2026-review-key-numbers-trends-takeaways-for-indian-investors</loc>
-    <lastmod>2026-08-08T12:35:05.019103+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.investingiq.in/news/navigating-global-market-volatility-impact-on-indian-equities-and-investor-strat</loc>
     <lastmod>2026-07-18T05:10:44.59614+00:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -2318,7 +2268,7 @@
   </url>
   <url>
     <loc>https://www.investingiq.in/news/gurgaon-real-estate-2026-best-projects-to-invest-in-now</loc>
-    <lastmod>2026-09-19T06:13:24.038807+00:00</lastmod>
+    <lastmod>2026-10-21T09:10:27.530057+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2402,7 +2352,7 @@
   </url>
   <url>
     <loc>https://www.investingiq.in/news/the-future-of-energy-in-2026-renewable-trends-innovations-and-why-it-matters-to-you</loc>
-    <lastmod>2026-09-19T18:07:40.620449+00:00</lastmod>
+    <lastmod>2026-10-21T09:10:27.899532+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
