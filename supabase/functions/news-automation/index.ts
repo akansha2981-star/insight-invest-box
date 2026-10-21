@@ -121,7 +121,7 @@ async function callAI(input: string): Promise<any> {
 // Firecrawl free-tier limit is ~11 requests/min — space calls out within a tick
 let lastFcCall = 0;
 async function fcThrottle() {
-  const wait = 5600 - (Date.now() - lastFcCall);
+  const wait = 6500 - (Date.now() - lastFcCall);
   if (wait > 0) await new Promise((r) => setTimeout(r, wait));
   lastFcCall = Date.now();
 }

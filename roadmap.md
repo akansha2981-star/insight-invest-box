@@ -11,6 +11,6 @@
 - [ ] Search Console metrics and completion notifications — blocked on authorized service connections
 - [ ] Audit and plan uploaded full-site background research, evidence-gated publishing, configurable IST schedule, verified property updates, and twice-daily sitemap synchronization
 - [x] Automation backend: staged verified-research pipeline, evidence store, audit findings, sitemap refresh + runs history, cron jobs, cron-secret auth (news-automation edge function)
-- [ ] Admin Automation dashboard tab (settings form, run-now, held-draft approve/reject, evidence/findings/sitemap history) — backend ready, UI panel pending
-- [ ] Sitemap refresh validation: legacy apex-domain (investingiq.in) URLs in sitemap_urls need normalization to www; refresh reports failed until fixed
-- [ ] Activate scheduled runs (settings.enabled) after the first fully verified article is approved end-to-end
+- [x] Admin Automation dashboard tab (settings form, run-now, held-draft approve/reject, evidence/findings/sitemap history) — live in AdminNewsResearchCentre, backed by news-automation actions
+- [x] Sitemap refresh validation: legacy apex-domain duplicates merged into www base; refresh now passes (394 URLs, ok)
+- [ ] Activate scheduled runs (settings.enabled) after the first fully verified article is approved end-to-end — evidence gate still holds all topics (0 verified drafts as of 2026-10-21)
