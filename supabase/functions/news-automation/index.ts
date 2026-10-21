@@ -346,11 +346,12 @@ async function stageRetrieve(sb: Admin, job: any, schedule: any): Promise<boolea
   if (!dup) {
     try {
       const { markdown, title } = await fcScrape(lead.url);
-      if (markdown && markdown.length >= 200) {
+      const excerpt = excerptOf(markdown);
+      if (markdown && markdown.length >= 200 && excerpt.length >= 200) {
         await sb.from("news_evidence").insert({
           job_id: job.id, topic: topics[t], source_url: lead.url, publisher: lead.publisher,
           title: (title || lead.title).slice(0, 300), kind: isPrimary(lead.url) ? "primary" : "secondary",
-          fingerprint: await sha256(markdown), excerpt: markdown.slice(0, 1500),
+          fingerprint: await sha256(markdown), excerpt,
         });
         job.stats.retrieved = (job.stats.retrieved ?? 0) + 1;
       } else {
