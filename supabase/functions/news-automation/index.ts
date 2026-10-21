@@ -596,9 +596,11 @@ async function tick(sb: Admin, force: boolean, trigger: string, userId: string |
   const today = istDate();
   let job: any = null;
   const { data: todayJobs } = await sb.from("news_automation_jobs").select("*").eq("run_date", today).order("started_at", { ascending: false });
-  const running = (todayJobs ?? []).find((j: any) => j.status === "running");
-  if (running) job = running;
-  else if (!force && (todayJobs ?? []).some((j: any) => j.status === "done")) return { skipped: "Already ran today" };
+  const resumable = (todayJobs ?? []).find((j: any) => j.status === "running" || (j.status === "paused" && !schedule.paused));
+  if (resumable) {
+    job = resumable;
+    if (job.status === "paused") { job.status = "running"; job.error = null; }
+  } else if (!force && (todayJobs ?? []).some((j: any) => j.status === "done")) return { skipped: "Already ran today" };
   else {
     const manualCount = (todayJobs ?? []).filter((j: any) => j.trigger_type === "manual").length;
     const key = force ? `run:${today}:m${manualCount + 1}` : `run:${today}`;
