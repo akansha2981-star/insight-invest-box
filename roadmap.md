@@ -6,3 +6,6 @@
 - [x] Screener rebuild: all technical filters, AND/OR/NOT builder, presets, sort, pagination, detail view
 - [x] Full NSE/BSE universe + indices + company figures (All stocks page)
 - [x] Live trades: auto-buy at signal price, market filter off by default
+- [x] Admin-only AI News & Research Centre: daily intelligence from stored records, date filters, URL copy/export, and integrated existing content tools
+- [ ] Verified unattended publishing and 20:00 IST automation — blocked on a configured independent research/evidence service and validated publishing gates; deliberately not activated
+- [ ] Search Console metrics and completion notifications — blocked on authorized service connections

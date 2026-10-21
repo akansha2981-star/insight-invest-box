@@ -5,3 +5,4 @@
 - Desk controls: one shared swing_settings "controls" row, admin write, signed-in read.
 - Real orders only via the swing-order edge function: admin-only, off by default, server-side limits, every attempt logged — why: browser can't skip limits.
 - swing-ai-coach runs in chained steps using a copy of the engine in supabase/functions/_shared/swing — why: ~2s edge CPU limit; keep both copies in sync.
+- The admin News & Research Centre composes existing content tools and reads paginated source records for IST reports; it verifies the admin role through the existing server RPC and labels legacy source leads as unverified — why: reuse publishing architecture without implying unsupported research or automation guarantees.
