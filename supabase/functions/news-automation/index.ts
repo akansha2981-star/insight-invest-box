@@ -31,6 +31,14 @@ const DISCLAIMER_HTML = `<p><em>This article is for informational and educationa
 const PRIMARY_HOSTS = ["gov.in", "nseindia.com", "bseindia.com", "rbi.org.in", "sebi.gov.in", "amfiindia.com", "incometax.gov.in", "pib.gov.in", "mospi.gov.in", "npci.org.in", "irdai.gov.in", "trai.gov.in"];
 
 type Admin = ReturnType<typeof createClient>;
+const INDEXNOW_KEY = "3f30dabb0eae0b2d12579eaf44e770d0";
+
+// Live activity log — real backend events streamed to the admin dashboard via realtime
+let LOG_SB: Admin | null = null;
+async function logEvent(jobId: string | null, stage: string, status: "pending" | "running" | "completed" | "failed", message: string, detail: Record<string, unknown> = {}) {
+  if (!LOG_SB) return;
+  try { await LOG_SB.from("news_activity_log").insert({ job_id: jobId, stage, status, message: message.slice(0, 500), detail }); } catch (_) { /* logging never breaks the pipeline */ }
+}
 
 // ---------- small helpers ----------
 
@@ -98,23 +106,24 @@ async function sha256(s: string): Promise<string> {
 
 // ---------- provider calls (server-side only) ----------
 
-async function callAI(input: string): Promise<any> {
+async function callAI(input: string, onDelta?: (text: string) => Promise<void>): Promise<any> {
   const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
     method: "POST",
     headers: { "Content-Type": "application/json", "Lovable-API-Key": Deno.env.get("LOVABLE_API_KEY")!, "X-Lovable-AIG-SDK": "fetch" },
     body: JSON.stringify({ model: MODEL, input: [{ role: "user", content: input }], stream: true, store: false, reasoning: { effort: "medium", summary: "auto" }, include: ["reasoning.encrypted_content"], text: { format: { type: "json_object" } } }),
   });
   if (!res.ok || !res.body) { const t = await res.text().catch(() => ""); throw err(res.status, `AI request failed (${res.status}): ${t.slice(0, 300)}`); }
-  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "", out = "";
+  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "", out = ""; let lastFlush = 0;
   for (;;) {
     const { value, done } = await reader.read(); if (done) break; buf += dec.decode(value, { stream: true });
     let k; while ((k = buf.indexOf("\n")) >= 0) {
       const line = buf.slice(0, k).trim(); buf = buf.slice(k + 1); if (!line.startsWith("data:")) continue;
       const p = line.slice(5).trim(); if (p === "[DONE]") continue;
-      try { const ev = JSON.parse(p); if (ev.type === "response.output_text.delta") out += ev.delta; else if (ev.type === "response.failed" || ev.type === "error") throw new Error(ev.response?.error?.message ?? ev.message ?? "AI stream failed"); } catch (e) { if (e instanceof SyntaxError) continue; throw e; }
+      try { const ev = JSON.parse(p); if (ev.type === "response.output_text.delta") { out += ev.delta; if (onDelta && Date.now() - lastFlush > 1200) { lastFlush = Date.now(); await onDelta(out); } } else if (ev.type === "response.failed" || ev.type === "error") throw new Error(ev.response?.error?.message ?? ev.message ?? "AI stream failed"); } catch (e) { if (e instanceof SyntaxError) continue; throw e; }
     }
   }
   if (!out.trim()) throw new Error("AI returned no answer (refused or empty)");
+  if (onDelta) await onDelta(out);
   return JSON.parse(out);
 }
 
@@ -276,6 +285,7 @@ async function stageDiscover(sb: Admin, job: any, schedule: any): Promise<boolea
   const t = Number(job.cursor.t ?? 0);
   if (t >= topics.length) return false;
   const topic = topics[t];
+  await logEvent(job.id, "discover", "running", `Searching the web: ${topic}`, { topic });
   // General news search + a primary/official-source search (regulators, exchanges, ministries)
   const general = await fcSearch(`${topic} latest news`, 8);
   const primary = await fcSearch(`${topic} (site:rbi.org.in OR site:sebi.gov.in OR site:pib.gov.in OR site:nseindia.com OR site:bseindia.com OR site:amfiindia.com OR site:mospi.gov.in OR site:irdai.gov.in)`, 5);
@@ -288,6 +298,7 @@ async function stageDiscover(sb: Admin, job: any, schedule: any): Promise<boolea
   job.topics = [...(job.topics ?? []), ...leads];
   job.cursor = { ...job.cursor, t: t + 1 };
   job.stats.discovered = (job.stats.discovered ?? 0) + leads.length;
+  await logEvent(job.id, "discover", "completed", `Found ${leads.length} candidate sources for "${topic}"`, { topic, urls: leads.slice(0, 12).map((l) => l.url) });
   return t + 1 < topics.length;
 }
 
@@ -354,6 +365,7 @@ async function stageRetrieve(sb: Admin, job: any, schedule: any): Promise<boolea
           fingerprint: await sha256(markdown), excerpt,
         });
         job.stats.retrieved = (job.stats.retrieved ?? 0) + 1;
+        await logEvent(job.id, "retrieve", "completed", `Read source: ${lead.publisher}`, { topic: topics[t], url: lead.url, kind: isPrimary(lead.url) ? "official" : "news" });
       } else {
         job.stats.failed_sources = (job.stats.failed_sources ?? 0) + 1;
       }
@@ -361,6 +373,7 @@ async function stageRetrieve(sb: Admin, job: any, schedule: any): Promise<boolea
       if (classifyError(e) !== "fatal") throw e; // transient/paused bubble up to tick
       job.stats.failed_sources = (job.stats.failed_sources ?? 0) + 1;
       job.stats.warnings = [...(job.stats.warnings ?? []).slice(-20), `scrape failed: ${lead.url}`];
+      await logEvent(job.id, "retrieve", "failed", `Could not read ${lead.publisher}`, { url: lead.url, error: String(e?.message ?? e).slice(0, 200) });
     }
   }
   u++;
@@ -403,6 +416,7 @@ Only include claims directly supported by the excerpts. Never invent facts or nu
     publishers: [...pubs],
     primary,
   };
+  await logEvent(job.id, "verify", verified ? "completed" : "failed", verified ? `Verified: "${topic}" (${pubs.size} publishers, official source present)` : `Held: "${topic}" — ${pubs.size} publisher(s)${primary ? "" : ", no official source"}`, { topic, publishers: [...pubs], primary, reason: String(ai?.reason ?? "").slice(0, 300) });
   if (verified) job.stats.verified = (job.stats.verified ?? 0) + 1;
   else job.stats.held = (job.stats.held ?? 0) + 1;
   job.cursor = { ...job.cursor, t: t + 1 };
@@ -463,7 +477,11 @@ RULES:
 - slug: lowercase letters, digits and hyphens only, max 70 chars.
 - Output strict JSON only: {"title":"...","slug":"...","excerpt":"...","meta_title":"...","meta_description":"...","tags":["max 6"],"category":"one of ${CATEGORIES.join("|")}","content_html":"...","faq":[{"question":"...","answer":"..."}],"internal_links":[{"url":"${BASE_URL}/news/...","text":"..."}]}`;
 
-  const ai = await callAI(prompt);
+  await logEvent(job.id, "draft", "running", `Writing article: ${topic}`, { topic });
+  await sb.from("news_live_writing").upsert({ job_id: job.id, topic, status: "writing", partial_text: "", chars: 0, updated_at: new Date().toISOString() }, { onConflict: "job_id,topic" });
+  const ai = await callAI(prompt, async (text) => {
+    await sb.from("news_live_writing").update({ partial_text: text.slice(0, 60000), chars: text.length, updated_at: new Date().toISOString() }).eq("job_id", job.id).eq("topic", topic);
+  });
   let html = sanitizeHtml(String(ai?.content_html ?? ""));
   if (!/investment advice|informational purposes|not a recommendation/i.test(html)) html += `\n${DISCLAIMER_HTML}`;
   const words = wordCount(html);
@@ -510,6 +528,8 @@ RULES:
   }).select("id").single();
   if (error) throw err(500, `draft insert failed: ${error.message}`);
   job.summary[`draft:${topic}`] = { draft_id: draft.id, slug, words };
+  await sb.from("news_live_writing").update({ status: "saved", draft_id: draft.id, updated_at: new Date().toISOString() }).eq("job_id", job.id).eq("topic", topic);
+  await logEvent(job.id, "draft", "completed", `Saved draft "${title}" (${words} words)`, { topic, draft_id: draft.id, slug, words });
   job.stats.drafted = (job.stats.drafted ?? 0) + 1;
   job.cursor = { ...job.cursor, t: t + 1 };
   return t + 1 < topics.length;
@@ -539,6 +559,7 @@ async function stageChecks(sb: Admin, job: any): Promise<boolean> {
   ];
   const failed = checks.filter((c) => !c.ok);
   const score = Math.max(0, 100 - failed.length * 10);
+  await logEvent(job.id, "checks", failed.length ? "failed" : "completed", `SEO & quality checks: score ${score}${failed.length ? ` — failed ${failed.map((c) => c.name).join(", ")}` : ""}`, { draft_id: draft.id, checks });
   await sb.from("news_drafts").update({ seo_score: score, insights: { ...(draft.insights ?? {}), checks, check_errors: failed.map((c) => c.name), checked_at: new Date().toISOString() } }).eq("id", draft.id);
   job.cursor = { ...job.cursor, t: t + 1 };
   return t + 1 < drafted.length;
@@ -579,6 +600,7 @@ async function stagePublish(sb: Admin, job: any, schedule: any, userId: string |
   const [, info] = drafted[t] as [string, any];
   if (schedule.mode !== "auto") {
     job.stats.held_drafts = (job.stats.held_drafts ?? 0) + 1;
+    await logEvent(job.id, "publish", "pending", "Draft held for review (review mode)", { draft_id: info.draft_id });
   } else {
     const { data: draft } = await sb.from("news_drafts").select("*").eq("id", info.draft_id).maybeSingle();
     const critical = ["disclaimer", "sanitized", "word_count", "sources_linked"];
@@ -587,8 +609,10 @@ async function stagePublish(sb: Admin, job: any, schedule: any, userId: string |
       const url = await publishDraft(sb, draft, userId);
       job.stats.published = (job.stats.published ?? 0) + 1;
       job.summary[`published:${draft.slug}`] = { url, at: new Date().toISOString() };
+      await logEvent(job.id, "publish", "completed", `Published: ${url}`, { url, draft_id: draft.id });
     } else {
       job.stats.held_drafts = (job.stats.held_drafts ?? 0) + 1;
+      await logEvent(job.id, "publish", "failed", "Draft held: did not pass required checks", { draft_id: info.draft_id });
     }
   }
   job.cursor = { ...job.cursor, t: t + 1 };
@@ -622,26 +646,29 @@ async function tick(sb: Admin, force: boolean, trigger: string, userId: string |
   const schedule = await getSchedule(sb);
   if (schedule.paused) return { skipped: `Automation is paused: ${schedule.pausedReason ?? "no reason recorded"}` };
   if (!force && schedule.enabled === false) return { skipped: "Automation is switched off" };
-  if (!force && !inWindow(schedule.startTime ?? "20:00", schedule.endTime ?? "23:00", istHHMM())) return { skipped: "Outside the configured IST window" };
-
   const today = istDate();
+  const nowMin = toMinutes(istHHMM()) ?? 0;
+  const runTimes: string[] = (Array.isArray(schedule.runTimes) && schedule.runTimes.length ? schedule.runTimes : [schedule.startTime ?? "20:00"]).filter((x: string) => toMinutes(x) !== null).sort();
+  // Latest scheduled slot that is already due today
+  const dueSlot = [...runTimes].reverse().find((x) => (toMinutes(x) ?? 9999) <= nowMin) ?? null;
   let job: any = null;
   const { data: todayJobs } = await sb.from("news_automation_jobs").select("*").eq("run_date", today).order("started_at", { ascending: false });
   const resumable = (todayJobs ?? []).find((j: any) => j.status === "running" || (j.status === "paused" && !schedule.paused));
   if (resumable) {
     job = resumable;
     if (job.status === "paused") { job.status = "running"; job.error = null; }
-  } else if (!force && (todayJobs ?? []).some((j: any) => j.status === "done")) return { skipped: "Already ran today" };
+  } else if (!force && !dueSlot) return { skipped: "No scheduled run time is due yet today" };
+  else if (!force && (todayJobs ?? []).some((j: any) => j.job_key === `run:${today}:${dueSlot}`)) return { skipped: `The ${dueSlot} IST run already happened` };
   else {
     const manualCount = (todayJobs ?? []).filter((j: any) => j.trigger_type === "manual").length;
-    const key = force ? `run:${today}:m${manualCount + 1}` : `run:${today}`;
+    const key = force ? `run:${today}:m${manualCount + 1}` : `run:${today}:${dueSlot}`;
     const { data, error } = await sb.from("news_automation_jobs").insert({ job_key: key, run_date: today, trigger_type: trigger }).select().single();
     if (error) {
       // Stable unique key already used — resume whatever exists
       const { data: existing } = await sb.from("news_automation_jobs").select("*").eq("job_key", key).maybeSingle();
       if (!existing) return { error: error.message };
       job = existing;
-    } else job = data;
+    } else { job = data; await logEvent(job.id, "start", "running", `Run started (${trigger}${dueSlot && !force ? `, scheduled ${dueSlot} IST` : ""})`, { job_key: key }); }
   }
   if (job.status !== "running") return { skipped: `Job is ${job.status}` };
   if (job.lease_until && new Date(job.lease_until) > new Date()) return { skipped: "A step is already in progress", job_id: job.id };
@@ -655,7 +682,9 @@ async function tick(sb: Admin, force: boolean, trigger: string, userId: string |
     let steps = 0;
     let more = true;
     while (more && steps < MAX_STEPS_PER_TICK && Date.now() - t0 < TICK_BUDGET_MS) {
+      const stageBefore = job.stage;
       more = await runUnit(sb, job, schedule, userId);
+      if (!more && stageBefore !== "done") await logEvent(job.id, stageBefore, "completed", `Stage finished: ${stageBefore}`, { stats: job.stats });
       steps++;
       if (!more) {
         const idx = STAGES.indexOf(job.stage);
@@ -671,6 +700,8 @@ async function tick(sb: Admin, force: boolean, trigger: string, userId: string |
       job.lease_until = null;
       job.summary.completed_at = job.completed_at;
       await updateJob(sb, job);
+      await logEvent(job.id, "done", "completed", `Run complete: ${job.stats.published ?? 0} published, ${job.stats.drafted ?? 0} drafted, ${job.stats.held ?? 0} topics held`, { stats: job.stats });
+      if ((job.stats.published ?? 0) > 0) await sitemapRefresh(sb, "publish", job.id);
       return { job_id: job.id, status: "done", stats: job.stats };
     }
     // Not finished: continue in the background with the protected cron credential
@@ -703,11 +734,46 @@ async function tick(sb: Admin, force: boolean, trigger: string, userId: string |
       job.completed_at = new Date().toISOString();
     }
     await updateJob(sb, job);
+    await logEvent(job.id, job.stage, "failed", `${job.status === "running" ? "Temporary error, will retry" : job.status === "paused" ? "Paused" : "Failed"}: ${job.error}`, { kind });
     return { job_id: job.id, status: job.status, error: job.error };
   }
 }
 
-async function sitemapRefresh(sb: Admin, trigger: string) {
+async function submitSitemap(sb: Admin, urls: string[]): Promise<any[]> {
+  const out: any[] = [];
+  const sitemapUrl = `${BASE_URL}/sitemap.xml`;
+  // Google Search Console — only a verified property returned by Google is used
+  const gscKey = Deno.env.get("GOOGLE_SEARCH_CONSOLE_API_KEY");
+  if (!gscKey) out.push({ target: "google", ok: false, at: new Date().toISOString(), response: "Search Console not connected" });
+  else {
+    const h = { Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")!}`, "X-Connection-Api-Key": gscKey };
+    try {
+      const lr = await fetch(`${GATEWAY}/google_search_console/webmasters/v3/sites`, { headers: h });
+      const lt = await lr.text();
+      if (!lr.ok) out.push({ target: "google", ok: false, status: lr.status, at: new Date().toISOString(), response: lt.slice(0, 300) });
+      else {
+        const entries = (JSON.parse(lt || "{}").siteEntry ?? []).filter((e: any) => e.permissionLevel !== "siteUnverifiedUser");
+        const site = entries.find((e: any) => e.siteUrl === `${BASE_URL}/`) ?? entries.find((e: any) => e.siteUrl === "sc-domain:investingiq.in");
+        if (!site) out.push({ target: "google", ok: false, at: new Date().toISOString(), response: "No verified Search Console property for www.investingiq.in yet" });
+        else {
+          const r = await fetch(`${GATEWAY}/google_search_console/webmasters/v3/sites/${encodeURIComponent(site.siteUrl)}/sitemaps/${encodeURIComponent(sitemapUrl)}`, { method: "PUT", headers: h });
+          out.push({ target: "google", ok: r.ok, status: r.status, property: site.siteUrl, at: new Date().toISOString(), response: (await r.text()).slice(0, 300) || "accepted" });
+        }
+      }
+    } catch (e: any) { out.push({ target: "google", ok: false, at: new Date().toISOString(), response: String(e?.message ?? e).slice(0, 300) }); }
+  }
+  // IndexNow (Bing, Yandex) — key file is served from the site root
+  try {
+    const list = [...new Set(urls.filter((u) => u.startsWith(BASE_URL)))].slice(0, 1000);
+    if (!list.length) list.push(`${BASE_URL}/`);
+    const r = await fetch("https://api.indexnow.org/indexnow", { method: "POST", headers: { "Content-Type": "application/json; charset=utf-8" }, body: JSON.stringify({ host: "www.investingiq.in", key: INDEXNOW_KEY, keyLocation: `${BASE_URL}/${INDEXNOW_KEY}.txt`, urlList: list }) });
+    out.push({ target: "indexnow", ok: r.status === 200 || r.status === 202, status: r.status, urls: list.length, at: new Date().toISOString(), response: (await r.text()).slice(0, 300) || (r.status === 202 ? "accepted, key pending validation" : "ok") });
+  } catch (e: any) { out.push({ target: "indexnow", ok: false, at: new Date().toISOString(), response: String(e?.message ?? e).slice(0, 300) }); }
+  return out;
+}
+
+async function sitemapRefresh(sb: Admin, trigger: string, jobId: string | null = null) {
+  await logEvent(jobId, "sitemap", "running", "Updating the XML sitemap", { trigger });
   const baseUrl = BASE_URL;
   try {
     const rows = await collectAllUrls(sb, baseUrl);
@@ -746,8 +812,14 @@ async function sitemapRefresh(sb: Admin, trigger: string) {
     const now = new Date().toISOString();
     await sb.from("sitemap_meta").upsert({ id: 1, last_updated_at: now, last_added_count: newRows.length, total_urls: (activeRows ?? []).length, base_url: baseUrl, updated_at: now }, { onConflict: "id" });
     const status = validation.ok && xmlOk ? "ok" : "failed";
-    await sb.from("sitemap_runs").insert({ trigger_type: trigger, status, total_urls: (activeRows ?? []).length, added: newRows.length, deactivated: stale.length, validation: { ...validation, xml_ok: xmlOk }, error: status === "failed" ? validation.issues.join("; ").slice(0, 500) : null });
-    return { status, total_urls: (activeRows ?? []).length, added: newRows.length, deactivated: stale.length, validation, xml_ok: xmlOk };
+    await logEvent(jobId, "sitemap", status === "ok" ? "completed" : "failed", `Sitemap ${status === "ok" ? "updated" : "failed validation"}: ${(activeRows ?? []).length} URLs, ${newRows.length} new`, { validation });
+    let submissions: any[] = [];
+    if (status === "ok") {
+      submissions = await submitSitemap(sb, newRows.map((r: any) => r.url));
+      for (const s of submissions) await logEvent(jobId, "submit", s.ok ? "completed" : "failed", `${s.target === "google" ? "Google Search Console" : "IndexNow (Bing/Yandex)"}: ${s.ok ? "submitted" : "not submitted"}${s.status ? ` (HTTP ${s.status})` : ""} — ${String(s.response).slice(0, 150)}`, s);
+    }
+    await sb.from("sitemap_runs").insert({ trigger_type: trigger, status, total_urls: (activeRows ?? []).length, added: newRows.length, deactivated: stale.length, validation: { ...validation, xml_ok: xmlOk }, submissions, error: status === "failed" ? validation.issues.join("; ").slice(0, 500) : null });
+    return { submissions, status, total_urls: (activeRows ?? []).length, added: newRows.length, deactivated: stale.length, validation, xml_ok: xmlOk };
   } catch (e: any) {
     await sb.from("sitemap_runs").insert({ trigger_type: trigger, status: "failed", error: String(e?.message ?? e).slice(0, 500), validation: {} });
     return { status: "failed", error: String(e?.message ?? e) };
@@ -760,6 +832,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
     const sb = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
+    LOG_SB = sb;
     const auth = await resolveAuth(req, sb);
     if (!auth.admin && !auth.cron) return json({ error: "Admin access or scheduled authorization required" }, 403);
 
@@ -799,6 +872,7 @@ serve(async (req) => {
       if ("dailyArticleLimit" in s) next.dailyArticleLimit = Math.min(Math.max(Number(s.dailyArticleLimit) || 3, 1), 10);
       if ("maxSourcesPerTopic" in s) next.maxSourcesPerTopic = Math.min(Math.max(Number(s.maxSourcesPerTopic) || 6, 1), 10);
       if ("maxRetries" in s) next.maxRetries = Math.min(Math.max(Number(s.maxRetries) || 3, 0), 5);
+      if (Array.isArray(s.runTimes)) next.runTimes = [...new Set(s.runTimes.map((x: any) => String(x).trim()).filter((x: string) => toMinutes(x) !== null))].sort().slice(0, 6);
       if ("paused" in s) { next.paused = !!s.paused; if (!next.paused) next.pausedReason = null; }
       if (Array.isArray(s.topics)) next.topics = s.topics.map((t: any) => String(t).trim()).filter(Boolean).slice(0, 10);
       await saveSchedule(sb, next, auth.userId);
@@ -827,7 +901,23 @@ serve(async (req) => {
       if (blocking.length) return json({ error: `Draft fails required checks (${blocking.join(", ")}). Edit it in the News Desk first.` }, 400);
       if (!(draft.source_summary?.sources ?? []).length) return json({ error: "Draft has no linked evidence sources" }, 400);
       const url = await publishDraft(sb, draft, auth.userId);
-      return json({ ok: true, url });
+      await logEvent(null, "publish", "completed", `Approved and published: ${url}`, { url, draft_id: draft.id });
+      const sitemap = await sitemapRefresh(sb, "publish");
+      return json({ ok: true, url, sitemap });
+    }
+
+    if (action === "save_draft") {
+      if (!auth.admin) return json({ error: "Only admins can edit drafts" }, 403);
+      const d = body?.draft ?? {};
+      const patch: any = {};
+      if (typeof d.headline === "string") patch.headline = d.headline.slice(0, 200);
+      if (typeof d.content === "string") patch.content = sanitizeHtml(d.content);
+      if (typeof d.meta_title === "string") patch.meta_title = d.meta_title.slice(0, 70);
+      if (typeof d.meta_description === "string") patch.meta_description = d.meta_description.slice(0, 165);
+      if (typeof d.summary === "string") patch.summary = d.summary.slice(0, 500);
+      const { error } = await sb.from("news_drafts").update(patch).eq("id", String(body?.draft_id ?? "")).in("status", ["pending", "approved"]);
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
     }
 
     if (action === "reject") {
