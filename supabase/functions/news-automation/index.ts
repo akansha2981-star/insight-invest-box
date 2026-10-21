@@ -157,7 +157,12 @@ async function semrushPhrase(phrase: string): Promise<{ keyword: string; volume:
 
 function classifyError(e: any): "transient" | "paused" | "fatal" {
   const s = Number(e?.status ?? 0);
-  if (s === 402 || s === 403) return "paused";
+  const msg = String(e?.message ?? "");
+  // Credit / quota / policy pauses persist across entry points
+  if (s === 402 || /credit limit reached|not enough credits|payment_required|TOTAL LIMIT EXCEEDED/i.test(msg)) return "paused";
+  // Provider-level refusals of one site are not pauses — skip that source and continue
+  if (s === 403 && /do not support this site|robots|paywall|login required|captcha/i.test(msg)) return "fatal";
+  if (s === 403) return "paused";
   if (s === 429 || s >= 500 || s === 0) return "transient";
   return "fatal";
 }
