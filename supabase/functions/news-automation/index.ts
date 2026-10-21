@@ -313,12 +313,33 @@ async function stageDedupe(sb: Admin, job: any): Promise<boolean> {
   return false;
 }
 
+// Pick the densest prose from scraped markdown: drop nav/link-only lines, then take the richest window
+function excerptOf(markdown: string): string {
+  const lines = markdown.split("\n").map((l) => l.trim())
+    .filter((l) => l.length >= 60)
+    .filter((l) => !/^!\[/.test(l) && !/^\[[^\]]*\]\(https?:\/\/[^)]*\)$/.test(l))
+    .filter((l) => !/^(cookie|privacy policy|terms of use|subscribe|sign in|log in|advertisement)/i.test(l));
+  const joined = lines.join(" ").replace(/\s+/g, " ").trim();
+  if (joined.length <= 1800) return joined;
+  // densest 1800-char window (most sentence endings)
+  let best = 0, bestScore = -1;
+  for (let i = 0; i + 1800 <= joined.length; i += 600) {
+    const w = joined.slice(i, i + 1800);
+    const score = (w.match(/[.!?] /g) ?? []).length;
+    if (score > bestScore) { bestScore = score; best = i; }
+  }
+  return joined.slice(best, best + 1800);
+}
+
 async function stageRetrieve(sb: Admin, job: any, schedule: any): Promise<boolean> {
   const topics: string[] = [...new Set((job.topics ?? []).map((l: any) => l.topic))];
   const maxSrc = Math.min(Math.max(Number(schedule.maxSourcesPerTopic ?? 6), 1), 10);
   let t = Number(job.cursor.t ?? 0), u = Number(job.cursor.u ?? 0);
   if (t >= topics.length) return false;
-  const leads = (job.topics ?? []).filter((l: any) => l.topic === topics[t]).slice(0, maxSrc);
+  // Primary/official sources first, then general news
+  const leads = (job.topics ?? []).filter((l: any) => l.topic === topics[t])
+    .sort((a: any, b: any) => Number(isPrimary(b.url)) - Number(isPrimary(a.url)))
+    .slice(0, maxSrc);
   const lead = leads[u];
   if (!lead) { t++; u = 0; job.cursor = { ...job.cursor, t, u }; return t < topics.length; }
   const { data: dup } = await sb.from("news_evidence").select("id").eq("job_id", job.id).eq("source_url", lead.url).maybeSingle();
