@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AdminNewsEngine } from "@/components/AdminNewsEngine";
+import { AdminAutomationPanel } from "@/components/AdminAutomationPanel";
 import { AdminAIContentStudio } from "@/components/AdminAIContentStudio";
 import { AdminSitemapManager } from "@/components/AdminSitemapManager";
 import { AdminRealEstate } from "@/components/AdminRealEstate";
@@ -122,8 +123,6 @@ export function AdminNewsResearchCentre() {
   const currentRows = filtered.slice((page - 1) * 20, page * 20);
   const currentUrls = filtered.flatMap(d => { const p = d.blog_post_id ? postById.get(d.blog_post_id) : undefined; return p ? [canonicalArticleUrl(p.slug)] : []; });
   const failed = runs.filter(r => r.status === "failed" || r.error || r.failed > 0);
-  const latestRun = data.runs[0];
-  const latestSuccessful = data.runs.find(r => r.completed_at && (r.status === "completed" || r.status === "success"));
   const exportRows = (records: NewsDraft[]) => [["Headline", "Category", "Published at (IST)", "Word count", "Legacy SEO score", "Canonical URL"], ...records.map(d => { const p = d.blog_post_id ? postById.get(d.blog_post_id) : undefined; return [p?.title ?? d.headline, d.category, timestamp(p?.published_at ?? null), articleWords(p?.content), d.seo_score, p ? canonicalArticleUrl(p.slug) : ""]; })];
 
   if (access === "checking") return <div className="p-8 flex items-center gap-2 text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" />Checking admin access…</div>;
@@ -194,10 +193,7 @@ export function AdminNewsResearchCentre() {
       <TabsContent value="estate"><AdminRealEstate /></TabsContent>
       <TabsContent value="sitemap" className="pt-4"><AdminSitemapManager /></TabsContent>
       <TabsContent value="settings" className="space-y-6 mt-6">
-        <div className="flex gap-3 p-4 bg-gold-light border border-border rounded-md"><ShieldCheck className="h-5 w-5 text-gold shrink-0" /><div><h2 className="font-semibold text-sm">Automatic publishing is not enabled</h2><p className="text-sm text-muted-foreground mt-1">Independent source retrieval, evidence verification, duplicate checks and a tested final publishing gate are required before unattended publishing can be safely activated.</p></div></div>
-        <dl className="grid sm:grid-cols-2 gap-x-8 gap-y-5 text-sm">{[
-          ["Requested daily schedule", "8:00 PM IST · not configured"], ["Unattended automation", "Not configured"], ["Last successful News Engine run", timestamp(latestSuccessful?.completed_at ?? null)], ["Latest run", latestRun ? `${timestamp(latestRun.started_at)} · ${latestRun.status}` : "No runs recorded"], ["AI generation", "Existing Lovable AI connection"], ["Independent live research provider", "Not configured for this centre"], ["Google Search Console", "Not connected"], ["Daily completion notifications", "Not configured"], ["Provider usage / spending limits", "Not tracked by the legacy engine"], ["Publishing controls", "Existing News Desk approval workflow"],
-        ].map(([label, value]) => <div key={label} className="border-b border-border pb-4"><dt className="text-xs text-muted-foreground mb-2">{label}</dt><dd className="font-medium break-words">{value}</dd></div>)}</dl>
+        <AdminAutomationPanel />
       </TabsContent>
     </Tabs>
     <Dialog open={preview !== null} onOpenChange={open => { if (!open) setPreview(null); }}><DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle className="leading-snug pr-5">{preview?.headline}</DialogTitle></DialogHeader>{preview && <><p className="text-xs text-muted-foreground">{articleWords(preview.content)} words · {preview.category} · <Badge variant={statusVariant(preview.status)}>{preview.status}</Badge></p><div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => void copy(preview.headline, "Headline")}><Copy />Headline</Button><Button variant="outline" size="sm" onClick={() => void copy(preview.meta_description ?? "", "Meta description")}><Copy />Meta description</Button><Button variant="outline" size="sm" onClick={() => { const doc = new DOMParser().parseFromString(preview.content ?? "", "text/html"); void copy(doc.body.textContent ?? "", "Article"); }}><Copy />Article</Button><Button variant="outline" size="sm" onClick={() => void copy(JSON.stringify(preview.source_summary, null, 2), "Source leads")}><Copy />Source leads</Button></div><div className="text-sm whitespace-pre-wrap leading-relaxed border-t border-border pt-4">{new DOMParser().parseFromString(preview.content ?? "", "text/html").body.textContent}</div></>}</DialogContent></Dialog>
