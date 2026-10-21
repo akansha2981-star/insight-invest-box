@@ -12,3 +12,7 @@
 - news-automation sitemap refresh normalizes legacy off-base URLs (apex investingiq.in, lovable.app) to the canonical www base: update when the canonical twin is absent, delete the duplicate when it already exists (unique url constraint) — why: one host per URL keeps sitemap validation green.
 - The admin Automation & Connections tab (AdminAutomationPanel in AdminNewsResearchCentre) drives news-automation actions over the admin session: settings_set, run_now, approve/reject held drafts, sitemap_refresh, status — why: unattended publishing stays gated behind explicit admin review.
 - Scheduled callbacks authenticate with the x-cron-secret header checked against public.news_cron_secret (never the service key); cron.job headers read it via subquery so the value is never stored in plaintext.
+
+- news-automation writes every real backend event to news_activity_log and streams article text into news_live_writing; the admin Live Article Studio reads both over realtime — why: the dashboard shows real server progress only, never simulated activity.
+- Scheduled runs use settings.runTimes (IST); one job per date+slot key, checked by the hourly cron tick — why: no duplicate runs.
+- After a sitemap refresh, submit to Google Search Console (only a verified property returned by Google) and IndexNow; record each response in sitemap_runs.submissions — why: no submission is claimed without the real response.
