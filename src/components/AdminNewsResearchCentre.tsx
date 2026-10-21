@@ -123,8 +123,6 @@ export function AdminNewsResearchCentre() {
   const currentRows = filtered.slice((page - 1) * 20, page * 20);
   const currentUrls = filtered.flatMap(d => { const p = d.blog_post_id ? postById.get(d.blog_post_id) : undefined; return p ? [canonicalArticleUrl(p.slug)] : []; });
   const failed = runs.filter(r => r.status === "failed" || r.error || r.failed > 0);
-  const latestRun = data.runs[0];
-  const latestSuccessful = data.runs.find(r => r.completed_at && (r.status === "completed" || r.status === "success"));
   const exportRows = (records: NewsDraft[]) => [["Headline", "Category", "Published at (IST)", "Word count", "Legacy SEO score", "Canonical URL"], ...records.map(d => { const p = d.blog_post_id ? postById.get(d.blog_post_id) : undefined; return [p?.title ?? d.headline, d.category, timestamp(p?.published_at ?? null), articleWords(p?.content), d.seo_score, p ? canonicalArticleUrl(p.slug) : ""]; })];
 
   if (access === "checking") return <div className="p-8 flex items-center gap-2 text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" />Checking admin access…</div>;
