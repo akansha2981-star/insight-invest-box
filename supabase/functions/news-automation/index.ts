@@ -715,11 +715,21 @@ async function sitemapRefresh(sb: Admin, trigger: string) {
     const existingPaths = new Set((existing ?? []).map((e: any) => e.path));
     const newRows = rows.filter((r) => !existingPaths.has(r.path));
     if (rows.length) await sb.from("sitemap_urls").upsert(rows, { onConflict: "url" });
-    // Normalize legacy rows to the canonical base (www) so every URL shares one host
+    // Normalize legacy rows to the canonical base (www) so every URL shares one host.
+    // If the canonical twin already exists for the same path, drop the duplicate instead of
+    // updating (an update would violate the unique url constraint).
     const { data: offBase } = await sb.from("sitemap_urls").select("id,url").or(`url.like.https://investingiq.in/*,url.like.https://insight-invest-box.lovable.app/*`).limit(600);
-    for (const r of offBase ?? []) {
-      const nu = String(r.url).replace(/^https:\/\/investingiq\.in/, baseUrl).replace(/^https:\/\/insight-invest-box\.lovable\.app/, baseUrl);
-      if (nu !== r.url) await sb.from("sitemap_urls").update({ url: nu }).eq("id", r.id);
+    if (offBase?.length) {
+      const { data: canonical } = await sb.from("sitemap_urls").select("url").like("url", `${baseUrl}/%`).limit(50000);
+      const canonicalUrls = new Set((canonical ?? []).map((r: any) => r.url));
+      const duplicateIds: string[] = [];
+      for (const r of offBase) {
+        const nu = String(r.url).replace(/^https:\/\/investingiq\.in/, baseUrl).replace(/^https:\/\/insight-invest-box\.lovable\.app/, baseUrl);
+        if (nu === r.url) continue;
+        if (canonicalUrls.has(nu)) duplicateIds.push(r.id);
+        else { await sb.from("sitemap_urls").update({ url: nu }).eq("id", r.id); canonicalUrls.add(nu); }
+      }
+      if (duplicateIds.length) await sb.from("sitemap_urls").delete().in("id", duplicateIds);
     }
     // Clear fabricated generation-time lastmods on static/city entries
     await sb.from("sitemap_urls").update({ lastmod: null }).in("source", ["static", "re_city"]);
