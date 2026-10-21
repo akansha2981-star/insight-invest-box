@@ -118,7 +118,16 @@ async function callAI(input: string): Promise<any> {
   return JSON.parse(out);
 }
 
+// Firecrawl free-tier limit is ~11 requests/min — space calls out within a tick
+let lastFcCall = 0;
+async function fcThrottle() {
+  const wait = 5600 - (Date.now() - lastFcCall);
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  lastFcCall = Date.now();
+}
+
 async function fcSearch(query: string, limit = 8): Promise<Array<{ url: string; title: string; description: string }>> {
+  await fcThrottle();
   const res = await fetch(`${GATEWAY}/firecrawl/v2/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")!}`, "X-Connection-Api-Key": `${Deno.env.get("FIRECRAWL_API_KEY")!}` },
@@ -131,6 +140,7 @@ async function fcSearch(query: string, limit = 8): Promise<Array<{ url: string; 
 }
 
 async function fcScrape(url: string): Promise<{ markdown: string; title: string }> {
+  await fcThrottle();
   const res = await fetch(`${GATEWAY}/firecrawl/v2/scrape`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")!}`, "X-Connection-Api-Key": `${Deno.env.get("FIRECRAWL_API_KEY")!}` },
