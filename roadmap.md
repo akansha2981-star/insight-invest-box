@@ -6,3 +6,4 @@
 - [x] Screener rebuild: all technical filters, AND/OR/NOT builder, presets, sort, pagination, detail view
 - [x] Full NSE/BSE universe + indices + company figures (All stocks page)
 - [x] Live trades: auto-buy at signal price, market filter off by default
+- [ ] Admin-only AI News & Research Centre: source-backed research, safe publishing, daily intelligence, settings and scheduler
