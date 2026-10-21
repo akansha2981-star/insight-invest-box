@@ -170,7 +170,8 @@ function render(entries: Entry[]) {
 
 async function main() {
   const dynamic = await collectDynamic();
-  const all = [...staticEntries.map((e) => ({ lastmod: today, ...e })), ...dynamic];
+  // Static entries have no page-specific change signal — omit lastmod rather than fabricate it.
+  const all = [...staticEntries, ...dynamic];
   // Dedupe by path, last write wins
   const seen = new Map<string, Entry>();
   for (const e of all) seen.set(e.path, e);
