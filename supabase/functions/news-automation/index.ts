@@ -630,12 +630,15 @@ async function tick(sb: Admin, force: boolean, trigger: string, userId: string |
     await updateJob(sb, job);
     const { data: cs } = await sb.from("news_cron_secret").select("secret").eq("id", 1).maybeSingle();
     const selfUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/news-automation`;
-    // @ts-ignore EdgeRuntime is provided by the runtime
-    EdgeRuntime.waitUntil((async () => {
-      await new Promise((r) => setTimeout(r, 1500));
-      await fetch(selfUrl, { method: "POST", headers: { "Content-Type": "application/json", "x-cron-secret": cs?.secret ?? "" }, body: JSON.stringify({ action: "tick", job_id: job.id }) }).catch(() => {});
-    })());
-    return { job_id: job.id, status: "running", stage: job.stage, stats: job.stats, more: true };
+    const hasEdgeRuntime = typeof (globalThis as any).EdgeRuntime?.waitUntil === "function";
+    if (hasEdgeRuntime) {
+      // @ts-ignore EdgeRuntime is provided by the runtime
+      EdgeRuntime.waitUntil((async () => {
+        await new Promise((r) => setTimeout(r, 1500));
+        await fetch(selfUrl, { method: "POST", headers: { "Content-Type": "application/json", "x-cron-secret": cs?.secret ?? "" }, body: JSON.stringify({ action: "tick", job_id: job.id }) }).catch(() => {});
+      })());
+    }
+    return { job_id: job.id, status: "running", stage: job.stage, stats: job.stats, more: true, self_continuation: hasEdgeRuntime };
   } catch (e: any) {
     const kind = classifyError(e);
     job.error = String(e?.message ?? e).slice(0, 1000);
