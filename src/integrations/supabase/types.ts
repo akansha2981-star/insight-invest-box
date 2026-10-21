@@ -736,6 +736,137 @@ export type Database = {
         }
         Relationships: []
       }
+      news_audit_findings: {
+        Row: {
+          detail: Json
+          entity: string
+          found_at: string
+          id: string
+          job_id: string | null
+          kind: string
+          resolved: boolean
+          target: string
+        }
+        Insert: {
+          detail?: Json
+          entity: string
+          found_at?: string
+          id?: string
+          job_id?: string | null
+          kind: string
+          resolved?: boolean
+          target: string
+        }
+        Update: {
+          detail?: Json
+          entity?: string
+          found_at?: string
+          id?: string
+          job_id?: string | null
+          kind?: string
+          resolved?: boolean
+          target?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_audit_findings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "news_automation_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_automation_jobs: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          cursor: Json
+          error: string | null
+          id: string
+          job_key: string
+          lease_until: string | null
+          run_date: string
+          stage: string
+          started_at: string
+          stats: Json
+          status: string
+          summary: Json
+          topics: Json
+          trigger_type: string
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          cursor?: Json
+          error?: string | null
+          id?: string
+          job_key: string
+          lease_until?: string | null
+          run_date: string
+          stage?: string
+          started_at?: string
+          stats?: Json
+          status?: string
+          summary?: Json
+          topics?: Json
+          trigger_type?: string
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          cursor?: Json
+          error?: string | null
+          id?: string
+          job_key?: string
+          lease_until?: string | null
+          run_date?: string
+          stage?: string
+          started_at?: string
+          stats?: Json
+          status?: string
+          summary?: Json
+          topics?: Json
+          trigger_type?: string
+        }
+        Relationships: []
+      }
+      news_automation_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      news_cron_secret: {
+        Row: {
+          id: number
+          secret: string
+        }
+        Insert: {
+          id?: number
+          secret?: string
+        }
+        Update: {
+          id?: number
+          secret?: string
+        }
+        Relationships: []
+      }
       news_drafts: {
         Row: {
           blog_post_id: string | null
@@ -842,6 +973,100 @@ export type Database = {
             columns: ["run_id"]
             isOneToOne: false
             referencedRelation: "news_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_evidence: {
+        Row: {
+          excerpt: string | null
+          fingerprint: string
+          id: string
+          job_id: string | null
+          kind: string
+          publisher: string | null
+          retrieved_at: string
+          source_url: string
+          title: string | null
+          topic: string
+        }
+        Insert: {
+          excerpt?: string | null
+          fingerprint: string
+          id?: string
+          job_id?: string | null
+          kind?: string
+          publisher?: string | null
+          retrieved_at?: string
+          source_url: string
+          title?: string | null
+          topic: string
+        }
+        Update: {
+          excerpt?: string | null
+          fingerprint?: string
+          id?: string
+          job_id?: string | null
+          kind?: string
+          publisher?: string | null
+          retrieved_at?: string
+          source_url?: string
+          title?: string | null
+          topic?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_evidence_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "news_automation_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_revisions: {
+        Row: {
+          created_at: string
+          entity: string
+          entity_id: string
+          evidence_id: string | null
+          field: string
+          id: string
+          job_id: string | null
+          new_value: string | null
+          old_value: string | null
+          source_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity: string
+          entity_id: string
+          evidence_id?: string | null
+          field: string
+          id?: string
+          job_id?: string | null
+          new_value?: string | null
+          old_value?: string | null
+          source_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity?: string
+          entity_id?: string
+          evidence_id?: string | null
+          field?: string
+          id?: string
+          job_id?: string | null
+          new_value?: string | null
+          old_value?: string | null
+          source_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_revisions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "news_automation_jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -1513,13 +1738,49 @@ export type Database = {
         }
         Relationships: []
       }
+      sitemap_runs: {
+        Row: {
+          added: number
+          deactivated: number
+          error: string | null
+          id: string
+          ran_at: string
+          status: string
+          total_urls: number
+          trigger_type: string
+          validation: Json
+        }
+        Insert: {
+          added?: number
+          deactivated?: number
+          error?: string | null
+          id?: string
+          ran_at?: string
+          status: string
+          total_urls?: number
+          trigger_type?: string
+          validation?: Json
+        }
+        Update: {
+          added?: number
+          deactivated?: number
+          error?: string | null
+          id?: string
+          ran_at?: string
+          status?: string
+          total_urls?: number
+          trigger_type?: string
+          validation?: Json
+        }
+        Relationships: []
+      }
       sitemap_urls: {
         Row: {
           changefreq: string
           first_seen: string
           id: string
           is_active: boolean
-          lastmod: string
+          lastmod: string | null
           path: string
           priority: number
           source: string
@@ -1531,7 +1792,7 @@ export type Database = {
           first_seen?: string
           id?: string
           is_active?: boolean
-          lastmod?: string
+          lastmod?: string | null
           path: string
           priority?: number
           source?: string
@@ -1543,7 +1804,7 @@ export type Database = {
           first_seen?: string
           id?: string
           is_active?: boolean
-          lastmod?: string
+          lastmod?: string | null
           path?: string
           priority?: number
           source?: string

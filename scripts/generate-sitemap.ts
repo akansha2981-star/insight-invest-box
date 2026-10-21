@@ -16,7 +16,6 @@ interface Entry {
   priority?: string;
 }
 
-const today = new Date().toISOString();
 
 const staticEntries: Entry[] = [
   { path: "/", changefreq: "daily", priority: "1.0" },
@@ -107,7 +106,7 @@ async function collectDynamic(): Promise<Entry[]> {
     if (!p.slug) continue;
     entries.push({
       path: `/news/${p.slug}`,
-      lastmod: p.updated_at || p.published_at || today,
+      lastmod: p.updated_at || p.published_at ,
       changefreq: "weekly",
       priority: "0.8",
     });
@@ -116,7 +115,7 @@ async function collectDynamic(): Promise<Entry[]> {
     if (!f.slug) continue;
     entries.push({
       path: `/mutual-funds/${f.slug}`,
-      lastmod: f.updated_at || today,
+      lastmod: f.updated_at ,
       changefreq: "daily",
       priority: "0.7",
     });
@@ -125,7 +124,7 @@ async function collectDynamic(): Promise<Entry[]> {
     if (!e.slug) continue;
     entries.push({
       path: `/etfs/${e.slug}`,
-      lastmod: e.updated_at || today,
+      lastmod: e.updated_at ,
       changefreq: "daily",
       priority: "0.7",
     });
@@ -134,7 +133,7 @@ async function collectDynamic(): Promise<Entry[]> {
     if (!r.symbol) continue;
     entries.push({
       path: `/stocks/review/${encodeURIComponent(r.symbol)}`,
-      lastmod: r.updated_at || today,
+      lastmod: r.updated_at ,
       changefreq: "weekly",
       priority: "0.7",
     });
@@ -170,7 +169,8 @@ function render(entries: Entry[]) {
 
 async function main() {
   const dynamic = await collectDynamic();
-  const all = [...staticEntries.map((e) => ({ lastmod: today, ...e })), ...dynamic];
+  // Static entries have no page-specific change signal — omit lastmod rather than fabricate it.
+  const all = [...staticEntries, ...dynamic];
   // Dedupe by path, last write wins
   const seen = new Map<string, Entry>();
   for (const e of all) seen.set(e.path, e);

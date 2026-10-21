@@ -1,0 +1,142 @@
+-- Verified research & publishing automation: settings, jobs, evidence, audit, revisions, sitemap history, cron secret.
+
+-- Settings (schedule, mode, limits, pause) — key/value like swing_settings
+CREATE TABLE public.news_automation_settings (
+  key text PRIMARY KEY,
+  value jsonb NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  updated_by uuid
+);
+GRANT SELECT, INSERT, UPDATE ON public.news_automation_settings TO authenticated;
+GRANT ALL ON public.news_automation_settings TO service_role;
+ALTER TABLE public.news_automation_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admins manage automation settings" ON public.news_automation_settings
+  FOR ALL TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'))
+  WITH CHECK (public.has_role(auth.uid(), 'admin'));
+
+-- Bounded background jobs with stable keys, stage tracking and leases
+CREATE TABLE public.news_automation_jobs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  job_key text NOT NULL UNIQUE,
+  run_date date NOT NULL,
+  trigger_type text NOT NULL DEFAULT 'manual',
+  status text NOT NULL DEFAULT 'running',
+  stage text NOT NULL DEFAULT 'audit_site',
+  cursor jsonb NOT NULL DEFAULT '{}'::jsonb,
+  topics jsonb NOT NULL DEFAULT '[]'::jsonb,
+  stats jsonb NOT NULL DEFAULT '{}'::jsonb,
+  summary jsonb NOT NULL DEFAULT '{}'::jsonb,
+  error text,
+  lease_until timestamptz,
+  attempts int NOT NULL DEFAULT 0,
+  started_at timestamptz NOT NULL DEFAULT now(),
+  completed_at timestamptz
+);
+GRANT SELECT ON public.news_automation_jobs TO authenticated;
+GRANT ALL ON public.news_automation_jobs TO service_role;
+ALTER TABLE public.news_automation_jobs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admins read automation jobs" ON public.news_automation_jobs
+  FOR SELECT TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+-- Retrieved source evidence with fingerprints
+CREATE TABLE public.news_evidence (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  job_id uuid REFERENCES public.news_automation_jobs(id) ON DELETE CASCADE,
+  topic text NOT NULL,
+  source_url text NOT NULL,
+  publisher text,
+  title text,
+  kind text NOT NULL DEFAULT 'secondary',
+  retrieved_at timestamptz NOT NULL DEFAULT now(),
+  fingerprint text NOT NULL,
+  excerpt text,
+  UNIQUE (job_id, source_url)
+);
+GRANT SELECT ON public.news_evidence TO authenticated;
+GRANT ALL ON public.news_evidence TO service_role;
+ALTER TABLE public.news_evidence ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admins read news evidence" ON public.news_evidence
+  FOR SELECT TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+-- Site audit findings
+CREATE TABLE public.news_audit_findings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  job_id uuid REFERENCES public.news_automation_jobs(id) ON DELETE SET NULL,
+  found_at timestamptz NOT NULL DEFAULT now(),
+  kind text NOT NULL,
+  entity text NOT NULL,
+  target text NOT NULL,
+  detail jsonb NOT NULL DEFAULT '{}'::jsonb,
+  resolved boolean NOT NULL DEFAULT false
+);
+GRANT SELECT, UPDATE ON public.news_audit_findings TO authenticated;
+GRANT ALL ON public.news_audit_findings TO service_role;
+ALTER TABLE public.news_audit_findings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admins manage audit findings" ON public.news_audit_findings
+  FOR ALL TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'))
+  WITH CHECK (public.has_role(auth.uid(), 'admin'));
+
+-- Verified content change history (stock analysis / properties)
+CREATE TABLE public.news_revisions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  job_id uuid REFERENCES public.news_automation_jobs(id) ON DELETE SET NULL,
+  entity text NOT NULL,
+  entity_id text NOT NULL,
+  field text NOT NULL,
+  old_value text,
+  new_value text,
+  source_url text,
+  evidence_id uuid,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT ON public.news_revisions TO authenticated;
+GRANT ALL ON public.news_revisions TO service_role;
+ALTER TABLE public.news_revisions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admins read revisions" ON public.news_revisions
+  FOR SELECT TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+-- Sitemap refresh history
+CREATE TABLE public.sitemap_runs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  ran_at timestamptz NOT NULL DEFAULT now(),
+  trigger_type text NOT NULL DEFAULT 'cron',
+  status text NOT NULL,
+  total_urls int NOT NULL DEFAULT 0,
+  added int NOT NULL DEFAULT 0,
+  deactivated int NOT NULL DEFAULT 0,
+  validation jsonb NOT NULL DEFAULT '{}'::jsonb,
+  error text
+);
+GRANT SELECT ON public.sitemap_runs TO authenticated;
+GRANT ALL ON public.sitemap_runs TO service_role;
+ALTER TABLE public.sitemap_runs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admins read sitemap runs" ON public.sitemap_runs
+  FOR SELECT TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+-- Shared secret for scheduled callbacks (value generated by the database, never printed)
+CREATE TABLE public.news_cron_secret (
+  id int PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  secret uuid NOT NULL DEFAULT gen_random_uuid()
+);
+INSERT INTO public.news_cron_secret (id) VALUES (1) ON CONFLICT DO NOTHING;
+GRANT ALL ON public.news_cron_secret TO service_role;
+ALTER TABLE public.news_cron_secret ENABLE ROW LEVEL SECURITY;
+
+-- Static sitemap entries may have no authoritative lastmod; omit rather than fabricate
+ALTER TABLE public.sitemap_urls ALTER COLUMN lastmod DROP NOT NULL;
+
+-- Seed default schedule: runs OFF until activated, publishing mode 'review' (drafts held for approval)
+INSERT INTO public.news_automation_settings (key, value) VALUES (
+  'schedule',
+  '{"enabled": false, "startTime": "20:00", "endTime": "23:00", "frequency": "daily", "mode": "review", "dailyArticleLimit": 3, "maxSourcesPerTopic": 6, "maxRetries": 3, "paused": false, "pausedReason": null, "topics": ["Indian stock market", "Indian economy", "mutual funds India", "real estate India", "personal finance India"]}'::jsonb
+) ON CONFLICT (key) DO NOTHING;
+
+CREATE INDEX news_automation_jobs_status_idx ON public.news_automation_jobs (status, started_at DESC);
+CREATE INDEX news_evidence_job_topic_idx ON public.news_evidence (job_id, topic);
+CREATE INDEX news_audit_findings_kind_idx ON public.news_audit_findings (kind, found_at DESC);
