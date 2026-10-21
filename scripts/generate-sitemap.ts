@@ -106,7 +106,7 @@ async function collectDynamic(): Promise<Entry[]> {
     if (!p.slug) continue;
     entries.push({
       path: `/news/${p.slug}`,
-      lastmod: p.updated_at || p.published_at || today,
+      lastmod: p.updated_at || p.published_at ,
       changefreq: "weekly",
       priority: "0.8",
     });
@@ -115,7 +115,7 @@ async function collectDynamic(): Promise<Entry[]> {
     if (!f.slug) continue;
     entries.push({
       path: `/mutual-funds/${f.slug}`,
-      lastmod: f.updated_at || today,
+      lastmod: f.updated_at ,
       changefreq: "daily",
       priority: "0.7",
     });
@@ -124,7 +124,7 @@ async function collectDynamic(): Promise<Entry[]> {
     if (!e.slug) continue;
     entries.push({
       path: `/etfs/${e.slug}`,
-      lastmod: e.updated_at || today,
+      lastmod: e.updated_at ,
       changefreq: "daily",
       priority: "0.7",
     });
@@ -133,7 +133,7 @@ async function collectDynamic(): Promise<Entry[]> {
     if (!r.symbol) continue;
     entries.push({
       path: `/stocks/review/${encodeURIComponent(r.symbol)}`,
-      lastmod: r.updated_at || today,
+      lastmod: r.updated_at ,
       changefreq: "weekly",
       priority: "0.7",
     });
