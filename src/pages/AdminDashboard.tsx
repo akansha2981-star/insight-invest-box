@@ -19,6 +19,7 @@ import { AdminSmartRefresh } from "@/components/AdminSmartRefresh";
 import { AdminForexMonitor } from "@/components/AdminForexMonitor";
 import { AdminAIOptimizer } from "@/components/AdminAIOptimizer";
 import { AdminNewsEngine } from "@/components/AdminNewsEngine";
+import { AdminNewsResearchCentre } from "@/components/AdminNewsResearchCentre";
 import AdminMutualFunds from "@/components/AdminMutualFunds";
 
 interface BlogPost {
@@ -29,10 +30,11 @@ interface BlogPost {
   cover_image_url: string | null; tags: string[] | null;
 }
 
-type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio' | 'sitemap' | 'smart-refresh' | 'forex' | 'ai-optimizer' | 'news-engine' | 'mutual-funds' | 'activity-logs';
+type AdminView = 'dashboard' | 'posts' | 'create' | 'edit' | 'page-sections' | 'breaking-news' | 'stock-reviews' | 'home-banners' | 'newsletter' | 'real-estate' | 'pages' | 'auth-analytics' | 'registered-users' | 'ai-studio' | 'sitemap' | 'smart-refresh' | 'forex' | 'ai-optimizer' | 'news-engine' | 'mutual-funds' | 'activity-logs' | 'news-research';
 
 const NAV_ITEMS = [
   { id: 'dashboard',        label: 'Dashboard',          icon: BarChart2 },
+  { id: 'news-research',    label: 'AI News & Research Centre', icon: Sparkles },
   { id: 'news-engine',      label: 'News Engine',        icon: Newspaper },
   { id: 'mutual-funds',     label: 'Mutual Funds & ETFs', icon: LineChart },
   { id: 'ai-optimizer',     label: 'AI Optimizer',       icon: Sparkles },
@@ -62,6 +64,7 @@ export default function AdminDashboard() {
   const [view, setView] = useState<AdminView>('dashboard');
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -79,7 +82,7 @@ export default function AdminDashboard() {
           .from("user_roles")
           .select("role")
           .eq("user_id", userId);
-        if (roles && roles.length > 0) return true;
+        if (roles && roles.length > 0) { setIsAdmin(roles.some(r => r.role === "admin")); return true; }
         if (i < 4) await new Promise(r => setTimeout(r, 600));
       }
       return false;
@@ -173,7 +176,7 @@ export default function AdminDashboard() {
               (async () => {
                 for (let i = 0; i < 5; i++) {
                   const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
-                  if (roles && roles.length > 0) { setAuthorized(true); fetchPosts(); setLoading(false); return; }
+                  if (roles && roles.length > 0) { setIsAdmin(roles.some(r => r.role === "admin")); setAuthorized(true); fetchPosts(); setLoading(false); return; }
                   if (i < 4) await new Promise(r => setTimeout(r, 600));
                 }
                 setAuthorized(false); setLoading(false);
@@ -220,7 +223,7 @@ export default function AdminDashboard() {
 
       <nav className="px-3 py-4 flex-1 overflow-y-auto">
         <div className="text-[9px] text-white/30 font-bold uppercase tracking-widest px-2 mb-2">Content</div>
-        {NAV_ITEMS.map(item => (
+        {NAV_ITEMS.filter(item => item.id !== 'news-research' || isAdmin).map(item => (
           <button
             key={item.id}
             onClick={() => handleNavClick(item.id)}
@@ -231,7 +234,7 @@ export default function AdminDashboard() {
             }`}
           >
             <item.icon className="h-4 w-4" />
-            {item.label}
+            <span className="text-left min-w-0 whitespace-normal">{item.label}</span>
           </button>
         ))}
 
@@ -297,7 +300,7 @@ export default function AdminDashboard() {
         </div>
       </div>
       {/* ─── Main content ─── */}
-      <main className="flex-1 overflow-auto bg-background pt-14 lg:pt-0">
+      <main className="flex-1 min-w-0 overflow-auto bg-background pt-14 lg:pt-0">
         {view === 'dashboard' && (
           <div className="p-4 sm:p-6 lg:p-8 max-w-5xl">
             <div className="mb-8">
@@ -419,6 +422,7 @@ export default function AdminDashboard() {
         {view === 'forex' && <AdminForexMonitor />}
         {view === 'ai-optimizer' && <AdminAIOptimizer />}
         {view === 'news-engine' && <AdminNewsEngine />}
+        {view === 'news-research' && isAdmin && <AdminNewsResearchCentre />}
         {view === 'mutual-funds' && <AdminMutualFunds />}
         {view === 'registered-users' && <AdminRegisteredUsers />}
 
