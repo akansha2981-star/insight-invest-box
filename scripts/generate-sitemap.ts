@@ -16,7 +16,6 @@ interface Entry {
   priority?: string;
 }
 
-const today = new Date().toISOString();
 
 const staticEntries: Entry[] = [
   { path: "/", changefreq: "daily", priority: "1.0" },
