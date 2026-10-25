@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { OPENAI_USAGE_PAUSED } from "../_shared/openaiUsage.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -90,7 +91,7 @@ async function callAINonStream(systemPrompt: string, userPrompt: string, tools?:
       await resp.text().catch(() => {});
     } catch (e) { console.error("Lovable AI error:", e instanceof Error ? e.message : e); }
   }
-  const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY");
+  const OPENAI_KEY = OPENAI_USAGE_PAUSED ? undefined : Deno.env.get("OPENAI_API_KEY");
   if (OPENAI_KEY) {
     try {
       const body: any = {

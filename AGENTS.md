@@ -16,3 +16,4 @@
 - news-automation writes every real backend event to news_activity_log and streams article text into news_live_writing; the admin Live Article Studio reads both over realtime — why: the dashboard shows real server progress only, never simulated activity.
 - Scheduled runs use settings.runTimes (IST); one job per date+slot key, checked by the hourly cron tick — why: no duplicate runs.
 - After a sitemap refresh, submit to Google Search Console (only a verified property returned by Google) and IndexNow; record each response in sitemap_runs.submissions — why: no submission is claimed without the real response.
+- OpenAI calls share the server-only _shared/openaiUsage.ts gate; direct key branches and gateway job entry points must honor it, with a guard immediately before gateway calls — why: one owner-controlled pause covers public, admin and chained/scheduled work without deleting credentials or affecting other providers.

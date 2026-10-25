@@ -18,6 +18,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { collectAllUrls, buildXml, validateRows } from "../_shared/sitemap.ts";
+import { OPENAI_USAGE_PAUSED, OPENAI_PAUSE_MESSAGE, assertOpenAIUsageAllowed } from "../_shared/openaiUsage.ts";
 
 const MODEL = "openai/gpt-6-astra";
 const BASE_URL = "https://www.investingiq.in";
@@ -107,6 +108,7 @@ async function sha256(s: string): Promise<string> {
 // ---------- provider calls (server-side only) ----------
 
 async function callAI(input: string, onDelta?: (text: string) => Promise<void>): Promise<any> {
+  assertOpenAIUsageAllowed();
   const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
     method: "POST",
     headers: { "Content-Type": "application/json", "Lovable-API-Key": Deno.env.get("LOVABLE_API_KEY")!, "X-Lovable-AIG-SDK": "fetch" },
@@ -643,6 +645,7 @@ async function updateJob(sb: Admin, job: any) {
 }
 
 async function tick(sb: Admin, force: boolean, trigger: string, userId: string | null) {
+  if (OPENAI_USAGE_PAUSED) return { skipped: OPENAI_PAUSE_MESSAGE, openai_paused: true };
   const schedule = await getSchedule(sb);
   if (schedule.paused) return { skipped: `Automation is paused: ${schedule.pausedReason ?? "no reason recorded"}` };
   if (!force && schedule.enabled === false) return { skipped: "Automation is switched off" };
@@ -849,6 +852,8 @@ serve(async (req) => {
       const { data: sitemapRuns } = await sb.from("sitemap_runs").select("*").order("ran_at", { ascending: false }).limit(10);
       return json({
         schedule,
+        openai_paused: OPENAI_USAGE_PAUSED,
+        openai_pause_reason: OPENAI_USAGE_PAUSED ? OPENAI_PAUSE_MESSAGE : null,
         connections: { firecrawl: !!Deno.env.get("FIRECRAWL_API_KEY"), semrush: !!Deno.env.get("SEMRUSH_API_KEY"), ai: !!Deno.env.get("LOVABLE_API_KEY") },
         jobs: jobs ?? [],
         evidence_count: evidenceCount ?? 0,

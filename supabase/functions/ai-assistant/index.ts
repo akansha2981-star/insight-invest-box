@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { OPENAI_USAGE_PAUSED } from "../_shared/openaiUsage.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
@@ -229,7 +230,7 @@ async function callAI(systemPrompt: string, userPrompt: string, stream = true): 
   }
 
   // Fallback: OpenAI
-  const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY");
+  const OPENAI_KEY = OPENAI_USAGE_PAUSED ? undefined : Deno.env.get("OPENAI_API_KEY");
   if (OPENAI_KEY) {
     try {
       const ac = new AbortController();
