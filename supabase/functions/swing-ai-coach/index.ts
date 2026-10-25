@@ -5,6 +5,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { STRATEGIES, buildCtx, rankUniverse, marketRegime, simulate, type Ctx, type StrategyDef, type SimResult } from "../_shared/swing/strategies20.ts";
 import { compileCustom, FIELDS, type CustomDef, type Group, type Cond } from "../_shared/swing/rules.ts";
 import { SECTORS } from "../_shared/swing/robust.ts";
+import { OPENAI_USAGE_PAUSED, OPENAI_PAUSE_MESSAGE, assertOpenAIUsageAllowed } from "../_shared/openaiUsage.ts";
 
 const MODEL = "openai/gpt-6-astra";
 const MAX_PROPOSALS = 10;
@@ -38,6 +39,7 @@ const m = (r: SimResult) => ({ ret: r2(r.netReturn), win: r2(r.winRate), dd: r2(
 const score = (x: ReturnType<typeof m>) => (x.trades < 5 ? -999 + x.trades : x.ret - 0.5 * x.dd + 0.05 * x.win + 2 * Math.min(x.pf, 3));
 
 async function callAI(input: string) {
+  assertOpenAIUsageAllowed();
   const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
     method: "POST",
     headers: { "Content-Type": "application/json", "Lovable-API-Key": Deno.env.get("LOVABLE_API_KEY")!, "X-Lovable-AIG-SDK": "fetch" },
@@ -184,6 +186,7 @@ Deno.serve(async (req) => {
   const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, SRK);
   const body = await req.json().catch(() => ({}));
+  if (OPENAI_USAGE_PAUSED && !body?.approve_id) return json({ skipped: OPENAI_PAUSE_MESSAGE, openai_paused: true });
   const token = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
   const internal = !!body?.run_id && token === SRK;
   const selfUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/swing-ai-coach`;

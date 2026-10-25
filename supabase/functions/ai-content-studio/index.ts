@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { OPENAI_USAGE_PAUSED } from "../_shared/openaiUsage.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -28,7 +29,7 @@ async function callAI(systemPrompt: string, userPrompt: string, maxTokens = 4000
       if (resp.status === 429 || resp.status === 402) return { __error: resp.status };
     } catch (e) { console.error("Lovable AI err", e); }
   }
-  const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY");
+  const OPENAI_KEY = OPENAI_USAGE_PAUSED ? undefined : Deno.env.get("OPENAI_API_KEY");
   if (OPENAI_KEY) {
     try {
       const resp = await fetch("https://api.openai.com/v1/chat/completions", {

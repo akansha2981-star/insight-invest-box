@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { OPENAI_USAGE_PAUSED } from "../_shared/openaiUsage.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -7,7 +8,7 @@ const corsHeaders = {
 };
 
 async function callAINonStream(systemPrompt: string, userPrompt: string, tools?: any[], toolChoice?: any): Promise<any | null> {
-  const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY");
+  const OPENAI_KEY = OPENAI_USAGE_PAUSED ? undefined : Deno.env.get("OPENAI_API_KEY");
   if (OPENAI_KEY) {
     try {
       const body: any = { model: "gpt-4o-mini", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }] };

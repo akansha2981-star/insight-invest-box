@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { OPENAI_USAGE_PAUSED } from "../_shared/openaiUsage.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,7 +7,7 @@ const corsHeaders = {
 };
 
 async function callAINonStream(systemPrompt: string, userPrompt: string): Promise<any | null> {
-  const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY");
+  const OPENAI_KEY = OPENAI_USAGE_PAUSED ? undefined : Deno.env.get("OPENAI_API_KEY");
   if (OPENAI_KEY) {
     try {
       const resp = await fetch("https://api.openai.com/v1/chat/completions", {
