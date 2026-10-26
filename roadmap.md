@@ -1,5 +1,6 @@
 # Roadmap
 - [ ] Pause only OpenAI requests across public/admin tools and automatic jobs; deploy and verify without calling OpenAI.
+- [ ] Connect Firecrawl, Google Search Console and Semrush fresh in the new workspace; keep OpenAI paused.
 - [x] AI Coach + Leaderboard (daily AI analysis, auto-adopt tested improvements, change log)
 - [x] /money app-style shell: sticky app header, desktop sidebar, mobile bottom nav + "More" sheet
 - [x] Live trades tab (forward-only signals, ₹10k/trade, live P&L, top/bottom strategies)
